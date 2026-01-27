@@ -4,7 +4,7 @@
 	"type": "module",
 	"author": "Supabase",
 	"license": "MIT",
-	"description": "Generic build system for Supabase agent skills",
+	"description": "Generic build system for agent skills. Forked from https://github.com/supabase/agent-skills",
 	"scripts": {
 		"build": "tsx src/build.ts",
 		"validate": "tsx src/validate.ts",
