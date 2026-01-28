@@ -56,28 +56,9 @@ async function myWorkflowFn(userId: string, amount: number) {
 const myWorkflow = DBOS.registerWorkflow(myWorkflowFn);
 ```
 
-Or register as a transaction function:
+You can also pre-register a transaction function with `dataSource.registerTransaction`:
 ```typescript
 const insertOrder = dataSource.registerTransaction(insertOrderFn);
-```
-
-Or use the decorator:
-```typescript
-class Orders {
-  @dataSource.transaction()
-  static async insertOrder(userId: string, amount: number) {
-    const rows = await dataSource
-      .client("orders")
-      .insert({ user_id: userId, amount })
-      .returning("id");
-    return rows[0].id;
-  }
-
-  @DBOS.workflow()
-  static async orderWorkflow(userId: string, amount: number) {
-    return await Orders.insertOrder(userId, amount);
-  }
-}
 ```
 
 Available datasource packages: `@dbos-inc/knex-datasource`, `@dbos-inc/kysely-datasource`, `@dbos-inc/drizzle-datasource`, `@dbos-inc/typeorm-datasource`, `@dbos-inc/prisma-datasource`, `@dbos-inc/nodepg-datasource`, `@dbos-inc/postgres-datasource`.

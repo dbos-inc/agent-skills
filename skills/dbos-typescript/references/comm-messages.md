@@ -19,19 +19,17 @@ import { Queue } from "some-external-queue";
 **Correct (using DBOS messages):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async checkoutWorkflow() {
-    // Wait for payment notification (timeout 120 seconds)
-    const notification = await DBOS.recv<string>("payment_status", 120);
+async function checkoutWorkflowFn() {
+  // Wait for payment notification (timeout 120 seconds)
+  const notification = await DBOS.recv<string>("payment_status", 120);
 
-    if (notification && notification === "paid") {
-      await Example.fulfillOrder();
-    } else {
-      await Example.cancelOrder();
-    }
+  if (notification && notification === "paid") {
+    await DBOS.runStep(fulfillOrder, { name: "fulfillOrder" });
+  } else {
+    await DBOS.runStep(cancelOrder, { name: "cancelOrder" });
   }
 }
+const checkoutWorkflow = DBOS.registerWorkflow(checkoutWorkflowFn);
 
 // Send a message from a webhook handler
 async function paymentWebhook(workflowID: string, status: string) {

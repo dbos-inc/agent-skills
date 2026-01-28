@@ -13,38 +13,32 @@ Use `DBOS.patch()` to safely deploy breaking changes to workflow code. Breaking 
 
 ```typescript
 // BEFORE: original workflow
-class Example {
-  @DBOS.workflow()
-  static async workflow() {
-    await foo();
-    await bar();
-  }
+async function workflowFn() {
+  await foo();
+  await bar();
 }
+const workflow = DBOS.registerWorkflow(workflowFn);
 
 // AFTER: breaking change - recovery will fail for in-progress workflows!
-class Example {
-  @DBOS.workflow()
-  static async workflow() {
-    await baz(); // Changed step
-    await bar();
-  }
+async function workflowFn() {
+  await baz(); // Changed step
+  await bar();
 }
+const workflow = DBOS.registerWorkflow(workflowFn);
 ```
 
 **Correct (using patch):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async workflow() {
-    if (await DBOS.patch("use-baz")) {
-      await baz(); // New workflows run this
-    } else {
-      await foo(); // Old workflows continue with original code
-    }
-    await bar();
+async function workflowFn() {
+  if (await DBOS.patch("use-baz")) {
+    await baz(); // New workflows run this
+  } else {
+    await foo(); // Old workflows continue with original code
   }
+  await bar();
 }
+const workflow = DBOS.registerWorkflow(workflowFn);
 ```
 
 `DBOS.patch()` returns `true` for new workflows and `false` for workflows that started before the patch.
@@ -52,27 +46,23 @@ class Example {
 **Deprecating patches (after all old workflows complete):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async workflow() {
-    if (await DBOS.deprecatePatch("use-baz")) { // Always returns true
-      await baz();
-    }
-    await bar();
+async function workflowFn() {
+  if (await DBOS.deprecatePatch("use-baz")) { // Always returns true
+    await baz();
   }
+  await bar();
 }
+const workflow = DBOS.registerWorkflow(workflowFn);
 ```
 
 **Removing patches (after all workflows using deprecatePatch complete):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async workflow() {
-    await baz();
-    await bar();
-  }
+async function workflowFn() {
+  await baz();
+  await bar();
 }
+const workflow = DBOS.registerWorkflow(workflowFn);
 ```
 
 Lifecycle: `patch()` → deploy → wait for old workflows → `deprecatePatch()` → deploy → wait → remove patch entirely.

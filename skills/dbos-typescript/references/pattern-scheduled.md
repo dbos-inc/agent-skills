@@ -7,7 +7,7 @@ tags: pattern, scheduled, cron, recurring
 
 ## Create Scheduled Workflows
 
-Use `@DBOS.scheduled` or `DBOS.registerScheduled` to run workflows on a cron schedule. Each scheduled invocation runs exactly once per interval.
+Use `DBOS.registerScheduled` to run workflows on a cron schedule. Each scheduled invocation runs exactly once per interval.
 
 **Incorrect (manual scheduling with setInterval):**
 
@@ -18,31 +18,19 @@ setInterval(async () => {
 }, 60000);
 ```
 
-**Correct (using @DBOS.scheduled decorator):**
+**Correct (using DBOS.registerScheduled):**
 
 ```typescript
 import { DBOS } from "@dbos-inc/dbos-sdk";
 
-class ScheduledTasks {
-  @DBOS.workflow()
-  @DBOS.scheduled({ crontab: "*/30 * * * * *" })
-  static async everyThirtySeconds(scheduledTime: Date, actualTime: Date) {
-    DBOS.logger.info("Running scheduled task");
-  }
-
-  @DBOS.workflow()
-  @DBOS.scheduled({ crontab: "0 9 * * *" })
-  static async dailyAt9AM(scheduledTime: Date, actualTime: Date) {
-    await ScheduledTasks.generateReport();
-  }
+async function everyThirtySecondsFn(scheduledTime: Date, actualTime: Date) {
+  DBOS.logger.info("Running scheduled task");
 }
-```
+const everyThirtySeconds = DBOS.registerWorkflow(everyThirtySecondsFn);
+DBOS.registerScheduled(everyThirtySeconds, { crontab: "*/30 * * * * *" });
 
-Using `registerScheduled` instead of decorators:
-
-```typescript
 async function dailyReportFn(scheduledTime: Date, actualTime: Date) {
-  DBOS.logger.info("Generating daily report");
+  await DBOS.runStep(generateReport, { name: "generateReport" });
 }
 const dailyReport = DBOS.registerWorkflow(dailyReportFn);
 DBOS.registerScheduled(dailyReport, { crontab: "0 9 * * *" });
@@ -64,18 +52,16 @@ DBOS crontab supports 5 or 6 fields (optional seconds):
 Retroactive execution (for missed intervals):
 
 ```typescript
-import { SchedulerMode } from "@dbos-inc/dbos-sdk";
+import { DBOS, SchedulerMode } from "@dbos-inc/dbos-sdk";
 
-class ScheduledTasks {
-  @DBOS.workflow()
-  @DBOS.scheduled({
-    crontab: "0 21 * * 5",
-    mode: SchedulerMode.ExactlyOncePerInterval,
-  })
-  static async fridayNightJob(scheduledTime: Date, actualTime: Date) {
-    // Runs even if the app was offline during the scheduled time
-  }
+async function fridayNightJobFn(scheduledTime: Date, actualTime: Date) {
+  // Runs even if the app was offline during the scheduled time
 }
+const fridayNightJob = DBOS.registerWorkflow(fridayNightJobFn);
+DBOS.registerScheduled(fridayNightJob, {
+  crontab: "0 21 * * 5",
+  mode: SchedulerMode.ExactlyOncePerInterval,
+});
 ```
 
 Scheduled workflows cannot be applied to instance methods.

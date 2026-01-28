@@ -12,27 +12,23 @@ Use `DBOS.sleep()` for durable delays within workflows. The wakeup time is store
 **Incorrect (non-durable sleep):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async delayedTask() {
-    // setTimeout is not durable - lost on restart!
-    await new Promise(r => setTimeout(r, 60000));
-    await Example.doWork();
-  }
+async function delayedTaskFn() {
+  // setTimeout is not durable - lost on restart!
+  await new Promise(r => setTimeout(r, 60000));
+  await DBOS.runStep(doWork, { name: "doWork" });
 }
+const delayedTask = DBOS.registerWorkflow(delayedTaskFn);
 ```
 
 **Correct (durable sleep):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async delayedTask() {
-    // Durable sleep - survives restarts
-    await DBOS.sleep(60000); // 60 seconds in milliseconds
-    await Example.doWork();
-  }
+async function delayedTaskFn() {
+  // Durable sleep - survives restarts
+  await DBOS.sleep(60000); // 60 seconds in milliseconds
+  await DBOS.runStep(doWork, { name: "doWork" });
 }
+const delayedTask = DBOS.registerWorkflow(delayedTaskFn);
 ```
 
 `DBOS.sleep()` takes milliseconds (unlike Python which takes seconds).

@@ -14,28 +14,24 @@ Workflows can publish events (key-value pairs) with `DBOS.setEvent`. Other code 
 ```typescript
 let progress = 0; // Global variable - not durable!
 
-class Example {
-  @DBOS.workflow()
-  static async processData() {
-    progress = 50; // Not persisted, lost on restart
-  }
+async function processDataFn() {
+  progress = 50; // Not persisted, lost on restart
 }
+const processData = DBOS.registerWorkflow(processDataFn);
 ```
 
 **Correct (using events):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async processData() {
-    await DBOS.setEvent("status", "processing");
-    await Example.stepOne();
-    await DBOS.setEvent("progress", 50);
-    await Example.stepTwo();
-    await DBOS.setEvent("progress", 100);
-    await DBOS.setEvent("status", "complete");
-  }
+async function processDataFn() {
+  await DBOS.setEvent("status", "processing");
+  await DBOS.runStep(stepOne, { name: "stepOne" });
+  await DBOS.setEvent("progress", 50);
+  await DBOS.runStep(stepTwo, { name: "stepTwo" });
+  await DBOS.setEvent("progress", 100);
+  await DBOS.setEvent("status", "complete");
 }
+const processData = DBOS.registerWorkflow(processDataFn);
 
 // Read events from outside the workflow
 const status = await DBOS.getEvent<string>(workflowID, "status");
@@ -46,17 +42,15 @@ const progress = await DBOS.getEvent<number>(workflowID, "progress", 30);
 Events are useful for interactive workflows. For example, a checkout workflow can publish a payment URL for the caller to redirect to:
 
 ```typescript
-class Shop {
-  @DBOS.workflow()
-  static async checkoutWorkflow() {
-    const paymentURL = await Shop.createPayment();
-    await DBOS.setEvent("paymentURL", paymentURL);
-    // Continue processing...
-  }
+async function checkoutWorkflowFn() {
+  const paymentURL = await DBOS.runStep(createPayment, { name: "createPayment" });
+  await DBOS.setEvent("paymentURL", paymentURL);
+  // Continue processing...
 }
+const checkoutWorkflow = DBOS.registerWorkflow(checkoutWorkflowFn);
 
 // HTTP handler starts workflow and reads the payment URL
-const handle = await DBOS.startWorkflow(Shop).checkoutWorkflow();
+const handle = await DBOS.startWorkflow(checkoutWorkflow)();
 const url = await DBOS.getEvent<string>(handle.workflowID, "paymentURL", 300);
 ```
 

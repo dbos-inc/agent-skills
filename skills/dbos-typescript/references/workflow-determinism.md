@@ -12,14 +12,12 @@ Workflow functions must be deterministic: given the same inputs and step return 
 **Incorrect (non-deterministic workflow):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async exampleWorkflow() {
-    // HTTP request in workflow breaks recovery!
-    const body = await fetch("https://example.com").then(r => r.text());
-    await Example.processData(body);
-  }
+async function exampleWorkflowFn() {
+  // HTTP request in workflow breaks recovery!
+  const body = await fetch("https://example.com").then(r => r.text());
+  await processData(body);
 }
+const exampleWorkflow = DBOS.registerWorkflow(exampleWorkflowFn);
 ```
 
 **Correct (non-determinism in step):**

@@ -19,25 +19,15 @@ const handle = await DBOS.startWorkflow(processTask)("data");
 **Correct (with timeout):**
 
 ```typescript
+async function processTaskFn(data: string) {
+  // ...
+}
+const processTask = DBOS.registerWorkflow(processTaskFn);
+
 // Timeout after 5 minutes (in milliseconds)
 const handle = await DBOS.startWorkflow(processTask, {
   timeoutMS: 5 * 60 * 1000,
 })("data");
-```
-
-With decorators:
-
-```typescript
-class Tasks {
-  @DBOS.workflow()
-  static async processTask(data: string) {
-    // ...
-  }
-}
-
-const handle = await DBOS.startWorkflow(Tasks, {
-  timeoutMS: 300000,
-}).processTask("data");
 ```
 
 Key timeout behaviors:

@@ -54,34 +54,6 @@ async function processAllTasksFn(tasks: string[]) {
 const processAllTasks = DBOS.registerWorkflow(processAllTasksFn);
 ```
 
-With decorators:
-
-```typescript
-const queue = new WorkflowQueue("task_queue");
-
-class Tasks {
-  @DBOS.workflow()
-  static async processTask(task: string) {
-    // ...
-  }
-
-  @DBOS.workflow()
-  static async processAllTasks(tasks: string[]) {
-    const handles = [];
-    for (const task of tasks) {
-      handles.push(
-        await DBOS.startWorkflow(Tasks, { queueName: queue.name }).processTask(task)
-      );
-    }
-    const results = [];
-    for (const h of handles) {
-      results.push(await h.getResult());
-    }
-    return results;
-  }
-}
-```
-
 Queues process workflows in FIFO order. All queues should be created before `DBOS.launch()`.
 
 Reference: [DBOS Queues](https://docs.dbos.dev/typescript/tutorials/queue-tutorial)

@@ -12,30 +12,26 @@ Use `DBOS.startWorkflow` to start a workflow in the background and get a handle 
 **Incorrect (no way to track background work):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async processData(data: string) {
-    // ...
-  }
+async function processDataFn(data: string) {
+  // ...
 }
+const processData = DBOS.registerWorkflow(processDataFn);
 
 // Fire and forget - no way to track or get result
-Example.processData(data);
+processData(data);
 ```
 
 **Correct (using startWorkflow):**
 
 ```typescript
-class Example {
-  @DBOS.workflow()
-  static async processData(data: string) {
-    return "processed: " + data;
-  }
+async function processDataFn(data: string) {
+  return "processed: " + data;
 }
+const processData = DBOS.registerWorkflow(processDataFn);
 
 async function main() {
   // Start workflow in background, get handle
-  const handle = await DBOS.startWorkflow(Example).processData("input");
+  const handle = await DBOS.startWorkflow(processData)("input");
 
   // Get the workflow ID
   console.log(handle.workflowID);
@@ -46,18 +42,6 @@ async function main() {
   // Check status
   const status = await handle.getStatus();
 }
-```
-
-Or with `registerWorkflow`:
-
-```typescript
-async function processDataFn(data: string) {
-  return "processed: " + data;
-}
-const processData = DBOS.registerWorkflow(processDataFn);
-
-const handle = await DBOS.startWorkflow(processData)("input");
-const result = await handle.getResult();
 ```
 
 Retrieve a handle later by workflow ID:

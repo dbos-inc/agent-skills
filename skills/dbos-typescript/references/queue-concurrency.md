@@ -35,16 +35,13 @@ const queue = new WorkflowQueue("limited_tasks", { concurrency: 10 });
 // Only one task at a time - guarantees order
 const serialQueue = new WorkflowQueue("sequential_queue", { concurrency: 1 });
 
-class Tasks {
-  @DBOS.workflow()
-  static async processEvent(event: string) {
-    // ...
-  }
+async function processEventFn(event: string) {
+  // ...
 }
+const processEvent = DBOS.registerWorkflow(processEventFn);
 
 app.post("/events", async (req, res) => {
-  await DBOS.startWorkflow(Tasks, { queueName: serialQueue.name })
-    .processEvent(req.body.event);
+  await DBOS.startWorkflow(processEvent, { queueName: serialQueue.name })(req.body.event);
   res.send("Queued!");
 });
 ```

@@ -12,48 +12,31 @@ Assign a workflow ID to ensure a workflow executes only once, even if called mul
 **Incorrect (no idempotency):**
 
 ```typescript
-class Payments {
-  @DBOS.workflow()
-  static async processPayment(orderId: string, amount: number) {
-    await Payments.chargeCard(amount);
-    await Payments.updateOrder(orderId);
-  }
+async function processPaymentFn(orderId: string, amount: number) {
+  await DBOS.runStep(() => chargeCard(amount), { name: "chargeCard" });
+  await DBOS.runStep(() => updateOrder(orderId), { name: "updateOrder" });
 }
+const processPayment = DBOS.registerWorkflow(processPaymentFn);
 
 // Multiple calls could charge the card multiple times!
-await Payments.processPayment("order-123", 50);
-await Payments.processPayment("order-123", 50); // Double charge!
+await processPayment("order-123", 50);
+await processPayment("order-123", 50); // Double charge!
 ```
 
 **Correct (with workflow ID):**
 
 ```typescript
-class Payments {
-  @DBOS.workflow()
-  static async processPayment(orderId: string, amount: number) {
-    await Payments.chargeCard(amount);
-    await Payments.updateOrder(orderId);
-  }
-}
-
-// Same workflow ID = only one execution
-const workflowID = `payment-${orderId}`;
-await DBOS.startWorkflow(Payments, { workflowID }).processPayment("order-123", 50);
-await DBOS.startWorkflow(Payments, { workflowID }).processPayment("order-123", 50);
-// Second call returns the result of the first execution
-```
-
-Or with `registerWorkflow`:
-
-```typescript
 async function processPaymentFn(orderId: string, amount: number) {
-  // ...
+  await DBOS.runStep(() => chargeCard(amount), { name: "chargeCard" });
+  await DBOS.runStep(() => updateOrder(orderId), { name: "updateOrder" });
 }
 const processPayment = DBOS.registerWorkflow(processPaymentFn);
 
-const handle = await DBOS.startWorkflow(processPayment, {
-  workflowID: `payment-${orderId}`,
-})(orderId, amount);
+// Same workflow ID = only one execution
+const workflowID = `payment-${orderId}`;
+await DBOS.startWorkflow(processPayment, { workflowID })("order-123", 50);
+await DBOS.startWorkflow(processPayment, { workflowID })("order-123", 50);
+// Second call returns the result of the first execution
 ```
 
 Access the current workflow ID inside a workflow:

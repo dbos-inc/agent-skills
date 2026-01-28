@@ -17,52 +17,16 @@ import { DBOS } from "@dbos-inc/dbos-sdk";
 
 const app = express();
 
-class Tasks {
-  @DBOS.workflow()
-  static async processTask(data: string) {
-    // ...
-  }
+async function processTaskFn(data: string) {
+  // ...
 }
+const processTask = DBOS.registerWorkflow(processTaskFn);
 
 // Server starts without launching DBOS!
 app.listen(3000);
 ```
 
 **Correct (launch DBOS first, then start Express):**
-
-```typescript
-import express from "express";
-import { DBOS } from "@dbos-inc/dbos-sdk";
-
-const app = express();
-
-class Tasks {
-  @DBOS.workflow()
-  static async processTask(data: string) {
-    // ...
-  }
-}
-
-app.post("/process", async (req, res) => {
-  const handle = await DBOS.startWorkflow(Tasks).processTask(req.body.data);
-  res.json({ workflowID: handle.workflowID });
-});
-
-async function main() {
-  DBOS.setConfig({
-    name: "my-app",
-    systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
-  });
-  await DBOS.launch();
-  app.listen(3000, () => {
-    console.log("Server running on port 3000");
-  });
-}
-
-main().catch(console.log);
-```
-
-You can also use `DBOS.registerWorkflow` instead of decorators:
 
 ```typescript
 import express from "express";
@@ -86,7 +50,9 @@ async function main() {
     systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
   });
   await DBOS.launch();
-  app.listen(3000);
+  app.listen(3000, () => {
+    console.log("Server running on port 3000");
+  });
 }
 
 main().catch(console.log);
