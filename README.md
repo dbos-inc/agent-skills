@@ -1,7 +1,7 @@
 # DBOS Agent Skills
 
-Agent Skills help developers use AI agents to add DBOS durable workflows to their application.
-The skills in this repository can automatically be used by coding agents like Claude Code or Cursor to learn how to use DBOS.
+Agent Skills help developers use AI agents to add DBOS durable workflows to their applications.
+The skills in this repository can automatically be used by coding agents like Claude Code or Cursor to teach them how to use DBOS.
 
 The skills in this repo follow the [Agent Skills](https://agentskills.io/) format.
 
