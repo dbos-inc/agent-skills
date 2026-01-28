@@ -13,9 +13,15 @@ Workflow functions must be deterministic: given the same inputs and step return 
 
 ```typescript
 async function exampleWorkflowFn() {
-  // HTTP request in workflow breaks recovery!
-  const body = await fetch("https://example.com").then(r => r.text());
-  await processData(body);
+  // Random value in workflow breaks recovery!
+  // On replay, Math.random() returns a different value,
+  // so the workflow may take a different branch.
+  const choice = Math.random() > 0.5 ? 1 : 0;
+  if (choice === 0) {
+    await stepOne();
+  } else {
+    await stepTwo();
+  }
 }
 const exampleWorkflow = DBOS.registerWorkflow(exampleWorkflowFn);
 ```
@@ -23,28 +29,19 @@ const exampleWorkflow = DBOS.registerWorkflow(exampleWorkflowFn);
 **Correct (non-determinism in step):**
 
 ```typescript
-async function fetchData() {
-  return await fetch("https://example.com").then(r => r.text());
-}
-
 async function exampleWorkflowFn() {
-  // Step result is checkpointed for recovery
-  const body = await DBOS.runStep(fetchData, { name: "fetchData" });
-  await processData(body);
+  // Step result is checkpointed - replay uses the saved value
+  const choice = await DBOS.runStep(
+    () => Promise.resolve(Math.random() > 0.5 ? 1 : 0),
+    { name: "generateChoice" }
+  );
+  if (choice === 0) {
+    await stepOne();
+  } else {
+    await stepTwo();
+  }
 }
 const exampleWorkflow = DBOS.registerWorkflow(exampleWorkflowFn);
-```
-
-Or using an inline arrow function:
-
-```typescript
-async function exampleWorkflowFn() {
-  const body = await DBOS.runStep(
-    () => fetch("https://example.com").then(r => r.text()),
-    { name: "fetchData" }
-  );
-  await processData(body);
-}
 ```
 
 Non-deterministic operations that must be in steps:
