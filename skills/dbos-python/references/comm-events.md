@@ -45,7 +45,7 @@ def start_workflow():
 
 @app.get("/status/{workflow_id}")
 def get_status(workflow_id: str):
-    status = DBOS.get_event(workflow_id, "status")
+    status = DBOS.get_event(workflow_id, "status", timeout_seconds=0) or "not started"
     return {"status": status}
 ```
 
