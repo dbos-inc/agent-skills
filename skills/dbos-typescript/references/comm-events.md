@@ -34,8 +34,8 @@ async function processDataFn() {
 const processData = DBOS.registerWorkflow(processDataFn);
 
 // Read events from outside the workflow
-const status = await DBOS.getEvent<string>(workflowID, "status");
-const progress = await DBOS.getEvent<number>(workflowID, "progress", 30);
+const status = await DBOS.getEvent<string>(workflowID, "status", 0);
+const progress = await DBOS.getEvent<number>(workflowID, "progress", 0);
 // Returns null if the event doesn't exist within the timeout (default 60s)
 ```
 
