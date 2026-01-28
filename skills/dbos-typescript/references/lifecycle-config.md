@@ -44,29 +44,4 @@ async function main() {
 main().catch(console.log);
 ```
 
-For scheduled-only applications (no HTTP server), the process stays alive while DBOS is running:
-
-```typescript
-import { DBOS } from "@dbos-inc/dbos-sdk";
-
-class Scheduled {
-  @DBOS.workflow()
-  @DBOS.scheduled({ crontab: "* * * * *" })
-  static async scheduledTask(scheduledTime: Date, actualTime: Date) {
-    // runs every minute
-  }
-}
-
-async function main() {
-  DBOS.setConfig({
-    name: "my-app",
-    systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
-  });
-  await DBOS.launch();
-  // DBOS keeps the process alive while scheduled workflows run
-}
-
-main().catch(console.log);
-```
-
 Reference: [DBOS Lifecycle](https://docs.dbos.dev/typescript/reference/dbos-class)
