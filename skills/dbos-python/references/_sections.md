@@ -32,6 +32,10 @@ This file defines the rule categories for DBOS Python best practices. Rules are 
 **Impact:** LOW-MEDIUM
 **Description:** Testing DBOS applications with pytest, fixtures, and best practices.
 
-## 8. Advanced (advanced)
+## 8. Client (client)
+**Impact:** MEDIUM
+**Description:** DBOSClient for interacting with DBOS from external applications.
+
+## 9. Advanced (advanced)
 **Impact:** LOW
 **Description:** Async workflows, workflow versioning, patching, and code upgrades.

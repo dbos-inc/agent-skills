@@ -4,7 +4,7 @@
 
 ## Overview
 
-DBOS Python SDK for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, or building applications that need to be resilient to failures.
+DBOS Python SDK for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, using DBOSClient from external applications, or building applications that need to be resilient to failures.
 
 ## Structure
 
@@ -33,7 +33,8 @@ dbos-python/
 | 5 | Communication | MEDIUM | `comm-` |
 | 6 | Pattern | MEDIUM | `pattern-` |
 | 7 | Testing | LOW-MEDIUM | `test-` |
-| 8 | Advanced | LOW | `advanced-` |
+| 8 | Client | MEDIUM | `client-` |
+| 9 | Advanced | LOW | `advanced-` |
 
 Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md`).
 
@@ -43,6 +44,10 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/advanced-async.md`
 - `references/advanced-patching.md`
 - `references/advanced-versioning.md`
+
+**Client** (`client-`):
+- `references/client-enqueue.md`
+- `references/client-setup.md`
 
 **Communication** (`comm-`):
 - `references/comm-events.md`
@@ -81,8 +86,9 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/workflow-background.md`
 - `references/workflow-constraints.md`
 - `references/workflow-determinism.md`
+- `references/workflow-introspection.md`
 - `references/workflow-timeout.md`
 
 ---
 
-*28 reference files across 8 categories*
+*31 reference files across 9 categories*

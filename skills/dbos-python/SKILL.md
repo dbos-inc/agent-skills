@@ -1,6 +1,6 @@
 ---
 name: dbos-python
-description: DBOS Python SDK for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, or building applications that need to be resilient to failures.
+description: DBOS Python SDK for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, using DBOSClient from external applications, or building applications that need to be resilient to failures.
 license: MIT
 metadata:
   author: dbos
@@ -22,6 +22,7 @@ Reference these guidelines when:
 - Using queues for concurrency control
 - Implementing workflow communication (events, messages, streams)
 - Configuring and launching DBOS applications
+- Using DBOSClient from external applications
 - Testing DBOS applications
 
 ## Rule Categories by Priority
@@ -35,7 +36,8 @@ Reference these guidelines when:
 | 5 | Communication | MEDIUM | `comm-` |
 | 6 | Pattern | MEDIUM | `pattern-` |
 | 7 | Testing | LOW-MEDIUM | `test-` |
-| 8 | Advanced | LOW | `advanced-` |
+| 8 | Client | MEDIUM | `client-` |
+| 9 | Advanced | LOW | `advanced-` |
 
 ## Critical Rules
 
