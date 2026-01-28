@@ -11,15 +11,6 @@ The skills in this repo follow the [Agent Skills](https://agentskills.io/) forma
 npx skills add dbos-inc/agent-skills
 ```
 
-### Claude Code Plugin
-
-You can also install the skills in this repo as Claude Code plugins
-
-```bash
-/plugin marketplace add dbos-inc/agent-skills
-/plugin install dbos-python@dbos-agent-skills
-```
-
 ## Skill Structure
 
 Each skill follows the [Agent Skills Open Standard](https://agentskills.io/):
