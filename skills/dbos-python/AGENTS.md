@@ -63,7 +63,10 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 **Queue** (`queue-`):
 - `references/queue-basics.md`
 - `references/queue-concurrency.md`
+- `references/queue-deduplication.md`
+- `references/queue-listening.md`
 - `references/queue-partitioning.md`
+- `references/queue-priority.md`
 - `references/queue-rate-limiting.md`
 
 **Step** (`step-`):
@@ -82,4 +85,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*25 reference files across 8 categories*
+*28 reference files across 8 categories*
