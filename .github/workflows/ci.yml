@@ -1,0 +1,54 @@
+name: Skills CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  biome:
+    name: Format and Lint (Biome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Biome CI
+        run: npm run ci:check
+
+  validate-and-build:
+    name: Validate and Build Skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: packages/skills-build
+        run: npm install
+
+      - name: Validate all skills
+        working-directory: packages/skills-build
+        run: npm run validate
+
+      - name: Build all skills
+        working-directory: packages/skills-build
+        run: npm run build
+
+      - name: Check for uncommitted changes
+        run: |
+          if [[ -n $(git status --porcelain 'skills/*/AGENTS.md') ]]; then
+            echo "Error: AGENTS.md files are not up to date"
+            echo "Run 'npm run build' and commit the changes"
+            git diff skills/*/AGENTS.md
+            exit 1
+          fi
