@@ -41,6 +41,14 @@ Reference these guidelines when:
 
 ## Critical Rules
 
+### Installation
+
+Always install the latest version of DBOS:
+
+```bash
+npm install @dbos-inc/dbos-sdk@latest
+```
+
 ### DBOS Configuration and Launch
 
 A DBOS application MUST configure and launch DBOS before running any workflows:
