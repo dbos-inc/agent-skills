@@ -71,6 +71,16 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 
 Lifecycle: `Patch()` → deploy → wait for old workflows → `DeprecatePatch()` → deploy → wait → remove patch entirely.
 
-Requires `EnablePatching: true` in Config.
+**Required configuration** — patching must be explicitly enabled:
+
+```go
+ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+	AppName:        "my-app",
+	DatabaseURL:    os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
+	EnablePatching: true, // Required for dbos.Patch and dbos.DeprecatePatch
+})
+```
+
+Without `EnablePatching: true`, calls to `dbos.Patch` and `dbos.DeprecatePatch` will fail.
 
 Reference: [Patching](https://docs.dbos.dev/golang/tutorials/upgrading-workflows#patching)

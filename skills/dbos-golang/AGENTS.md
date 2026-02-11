@@ -55,7 +55,6 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 **Lifecycle** (`lifecycle-`):
 - `references/lifecycle-config.md`
-- `references/lifecycle-http.md`
 
 **Pattern** (`pattern-`):
 - `references/pattern-debouncing.md`
@@ -90,4 +89,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*30 reference files across 9 categories*
+*29 reference files across 9 categories*
