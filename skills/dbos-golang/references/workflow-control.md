@@ -1,6 +1,6 @@
 ---
 title: Cancel, Resume, and Fork Workflows
-impact: CRITICAL
+impact: MEDIUM
 impactDescription: Enables operational control over long-running workflows
 tags: workflow, cancel, resume, fork, management
 ---

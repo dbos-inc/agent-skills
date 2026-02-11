@@ -1,6 +1,6 @@
 ---
 title: Enqueue Workflows from External Applications
-impact: MEDIUM
+impact: HIGH
 impactDescription: Enables external services to submit work to DBOS queues
 tags: client, enqueue, external, queue
 ---

@@ -1,6 +1,6 @@
 ---
 title: List and Inspect Workflows
-impact: CRITICAL
+impact: MEDIUM
 impactDescription: Enables monitoring and debugging of workflow executions
 tags: workflow, list, inspect, status, monitoring
 ---
