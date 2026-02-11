@@ -46,4 +46,4 @@ Worker concurrency is recommended for most use cases. Take care with global conc
 
 When using worker concurrency, each process must have a unique `ExecutorID` set in configuration (this is automatic with DBOS Conductor or Cloud).
 
-Reference: [Managing Concurrency](https://docs.dbos.dev/golang/programming-guide#managing-concurrency)
+Reference: [Managing Concurrency](https://docs.dbos.dev/golang/tutorials/queue-tutorial#managing-concurrency)

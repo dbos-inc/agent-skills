@@ -59,4 +59,4 @@ handle, _ := dbos.ForkWorkflow[string](ctx, dbos.ForkWorkflowInput{
 })
 ```
 
-Reference: [Versioning](https://docs.dbos.dev/golang/programming-guide#versioning)
+Reference: [Versioning](https://docs.dbos.dev/golang/tutorials/upgrading-workflows#versioning)

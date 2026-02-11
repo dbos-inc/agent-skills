@@ -42,4 +42,4 @@ Priority rules:
 - Workflows **without** assigned priorities have the highest priority (run first)
 - Workflows with the same priority are dequeued in FIFO order
 
-Reference: [Priority](https://docs.dbos.dev/golang/programming-guide#priority)
+Reference: [Priority](https://docs.dbos.dev/golang/tutorials/queue-tutorial#priority)

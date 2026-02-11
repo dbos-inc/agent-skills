@@ -35,4 +35,4 @@ Key timeout behaviors:
 - Cancellation happens at the **beginning of the next step** - the current step completes first
 - Cancelling a workflow also cancels all **child workflows**
 
-Reference: [Workflow Timeouts](https://docs.dbos.dev/golang/programming-guide#workflow-timeouts)
+Reference: [Workflow Timeouts](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#workflow-timeouts)

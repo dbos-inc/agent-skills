@@ -73,4 +73,4 @@ Lifecycle: `Patch()` → deploy → wait for old workflows → `DeprecatePatch()
 
 Requires `EnablePatching: true` in Config.
 
-Reference: [Patching](https://docs.dbos.dev/golang/programming-guide#patching)
+Reference: [Patching](https://docs.dbos.dev/golang/tutorials/upgrading-workflows#patching)

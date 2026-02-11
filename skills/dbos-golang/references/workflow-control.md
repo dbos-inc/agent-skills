@@ -50,4 +50,4 @@ result, err := forkHandle.GetResult()
 
 Forking creates a new workflow with a new ID, copying the original workflow's inputs and step outputs up to the selected step.
 
-Reference: [Workflow Management](https://docs.dbos.dev/golang/programming-guide#workflow-management)
+Reference: [Workflow Management](https://docs.dbos.dev/golang/tutorials/workflow-management)

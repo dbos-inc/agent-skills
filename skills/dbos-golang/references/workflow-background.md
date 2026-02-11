@@ -61,4 +61,4 @@ result, err := handle.GetResult()
 - `dbos.WithHandleTimeout(timeout)`: Return a timeout error if the workflow doesn't complete within the duration
 - `dbos.WithHandlePollingInterval(interval)`: Control how often the database is polled for completion
 
-Reference: [Starting Workflows](https://docs.dbos.dev/golang/programming-guide#starting-workflows)
+Reference: [Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial)

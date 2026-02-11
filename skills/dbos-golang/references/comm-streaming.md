@@ -72,4 +72,4 @@ Key behaviors:
 - `ReadStream` blocks until the workflow is inactive or the stream is closed
 - `ReadStreamAsync` returns a channel of `StreamValue[R]` for non-blocking reads
 
-Reference: [Workflow Streaming](https://docs.dbos.dev/golang/programming-guide#workflow-streaming)
+Reference: [Workflow Streaming](https://docs.dbos.dev/golang/tutorials/workflow-communication#workflow-streaming)

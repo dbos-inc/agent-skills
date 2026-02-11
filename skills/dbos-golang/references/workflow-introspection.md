@@ -61,4 +61,4 @@ Workflow status values: `WorkflowStatusPending`, `WorkflowStatusEnqueued`, `Work
 
 To optimize performance, avoid loading inputs/outputs when you don't need them (they are not loaded by default).
 
-Reference: [Workflow Management](https://docs.dbos.dev/golang/programming-guide#workflow-management)
+Reference: [Workflow Management](https://docs.dbos.dev/golang/tutorials/workflow-management#listing-workflows)

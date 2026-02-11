@@ -87,4 +87,4 @@ Key points:
 - Mock `DBOSContext` for fast unit tests without Postgres
 - Use real Postgres for integration tests that verify durable behavior
 
-Reference: [Testing DBOS](https://docs.dbos.dev/golang/programming-guide#testing)
+Reference: [Testing DBOS](https://docs.dbos.dev/golang/tutorials/testing)

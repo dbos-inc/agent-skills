@@ -44,4 +44,4 @@ Key behaviors:
 
 Type signature: `Debouncer[P any, R any]` — the type parameters match the target workflow.
 
-Reference: [Debouncing Workflows](https://docs.dbos.dev/golang/programming-guide#debouncing-workflows)
+Reference: [Debouncing Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#debouncing)

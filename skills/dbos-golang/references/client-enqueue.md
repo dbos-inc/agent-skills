@@ -62,4 +62,4 @@ The workflow name must match the registered name or custom name set with `WithWo
 
 Always call `client.Shutdown()` when done.
 
-Reference: [DBOS Client Enqueue](https://docs.dbos.dev/golang/programming-guide#client-enqueue)
+Reference: [DBOS Client Enqueue](https://docs.dbos.dev/golang/reference/client#enqueue)

@@ -49,4 +49,4 @@ This is useful for:
 - Preventing duplicate form submissions
 - Idempotent event processing
 
-Reference: [Deduplication](https://docs.dbos.dev/golang/programming-guide#deduplication)
+Reference: [Deduplication](https://docs.dbos.dev/golang/tutorials/queue-tutorial#deduplication)

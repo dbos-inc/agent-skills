@@ -50,4 +50,4 @@ func processAllTasks(ctx dbos.DBOSContext, tasks []string) ([]string, error) {
 
 Queues process workflows in FIFO order. All queues must be created with `dbos.NewWorkflowQueue` before `Launch()`.
 
-Reference: [DBOS Queues](https://docs.dbos.dev/golang/programming-guide#queues)
+Reference: [DBOS Queues](https://docs.dbos.dev/golang/tutorials/queue-tutorial)

@@ -66,4 +66,4 @@ DBOS crontab uses 6 fields with second precision:
 * * * * * *
 ```
 
-Reference: [Scheduled Workflows](https://docs.dbos.dev/golang/programming-guide#scheduled-workflows)
+Reference: [Scheduled Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#scheduled-workflows)

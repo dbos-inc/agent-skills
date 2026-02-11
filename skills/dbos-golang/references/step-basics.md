@@ -78,4 +78,4 @@ When to use steps:
 - Getting current time
 - Any non-deterministic operation
 
-Reference: [DBOS Steps](https://docs.dbos.dev/golang/programming-guide#steps)
+Reference: [DBOS Steps](https://docs.dbos.dev/golang/tutorials/step-tutorial)

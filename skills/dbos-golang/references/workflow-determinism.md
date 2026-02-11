@@ -48,4 +48,4 @@ Non-deterministic operations that must be in steps:
 - Reading files
 - Database queries
 
-Reference: [Workflow Determinism](https://docs.dbos.dev/golang/programming-guide#determinism)
+Reference: [Workflow Determinism](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#determinism)

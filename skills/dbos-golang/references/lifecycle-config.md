@@ -67,4 +67,4 @@ Config fields:
 - `ExecutorID`: Executor identifier (default: `"local"`)
 - `EnablePatching`: Enable code patching system (default: `false`)
 
-Reference: [DBOS Go Programming Guide](https://docs.dbos.dev/golang/programming-guide)
+Reference: [Integrating DBOS](https://docs.dbos.dev/golang/integrating-dbos)

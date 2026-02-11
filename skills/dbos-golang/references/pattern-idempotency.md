@@ -60,4 +60,4 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 
 Workflow IDs must be **globally unique** for your application. If not set, a random UUID is generated.
 
-Reference: [Workflow IDs and Idempotency](https://docs.dbos.dev/golang/programming-guide#workflow-ids-and-idempotency)
+Reference: [Workflow IDs and Idempotency](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#workflow-ids-and-idempotency)

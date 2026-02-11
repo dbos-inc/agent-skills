@@ -66,4 +66,4 @@ url, _ := dbos.GetEvent[string](ctx, handle.GetWorkflowID(), "paymentURL", 300*t
 
 `GetEvent` blocks until the event is set or the timeout expires. It returns the zero value of the type if the timeout is reached.
 
-Reference: [Workflow Events](https://docs.dbos.dev/golang/programming-guide#workflow-events)
+Reference: [Workflow Events](https://docs.dbos.dev/golang/tutorials/workflow-communication#workflow-events)

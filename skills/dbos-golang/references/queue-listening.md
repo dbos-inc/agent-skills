@@ -46,4 +46,4 @@ dbos.RunWorkflow(ctx, gpuTask, "data",
 )
 ```
 
-Reference: [Explicit Queue Listening](https://docs.dbos.dev/golang/programming-guide#explicit-queue-listening)
+Reference: [Listening to Specific Queues](https://docs.dbos.dev/golang/tutorials/queue-tutorial#listening-to-specific-queues)

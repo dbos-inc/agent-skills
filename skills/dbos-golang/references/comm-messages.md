@@ -54,4 +54,4 @@ Key behaviors:
 - All messages are persisted to the database
 - Messages sent from workflows are delivered exactly-once
 
-Reference: [Workflow Messaging](https://docs.dbos.dev/golang/programming-guide#workflow-messaging)
+Reference: [Workflow Messaging and Notifications](https://docs.dbos.dev/golang/tutorials/workflow-communication#workflow-messaging-and-notifications)

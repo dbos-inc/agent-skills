@@ -65,4 +65,4 @@ Additional constraints:
 - All workflows and queues must be registered **before** `Launch()`
 - Concurrent steps must start in deterministic order using `dbos.Go`/`dbos.Select`
 
-Reference: [Workflow Guarantees](https://docs.dbos.dev/golang/programming-guide#workflow-guarantees)
+Reference: [Workflow Guarantees](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#workflow-guarantees)

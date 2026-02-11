@@ -67,4 +67,4 @@ func main() {
 
 The DBOS context is safe to share across goroutines — Go's `net/http` server handles each request in its own goroutine, and `dbos.RunWorkflow` is concurrency-safe.
 
-Reference: [DBOS Go Programming Guide](https://docs.dbos.dev/golang/programming-guide)
+Reference: [Integrating DBOS](https://docs.dbos.dev/golang/integrating-dbos)

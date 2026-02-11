@@ -63,4 +63,4 @@ With defaults, retry delays are: 100ms, 200ms, 400ms, 800ms, 1.6s, 3.2s, 5s, 5s.
 
 If all retries are exhausted, a `DBOSError` with code `MaxStepRetriesExceeded` is returned to the calling workflow.
 
-Reference: [Step Retries](https://docs.dbos.dev/golang/programming-guide#configurable-retries)
+Reference: [Configurable Retries](https://docs.dbos.dev/golang/tutorials/step-tutorial#configurable-retries)

@@ -47,4 +47,4 @@ Common use cases:
 - Third-party API throttling
 - Preventing database overload
 
-Reference: [Rate Limiting](https://docs.dbos.dev/golang/programming-guide#rate-limiting)
+Reference: [Rate Limiting](https://docs.dbos.dev/golang/tutorials/queue-tutorial#rate-limiting)

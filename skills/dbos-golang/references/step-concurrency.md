@@ -76,4 +76,4 @@ Key behaviors:
 - On recovery, `Select` replays the same selection, maintaining determinism
 - Steps started with `Go` follow the same retry and checkpointing rules as `RunAsStep`
 
-Reference: [Concurrent Steps](https://docs.dbos.dev/golang/programming-guide#concurrent-steps)
+Reference: [Concurrent Steps](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#concurrent-steps)

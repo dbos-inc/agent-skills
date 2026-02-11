@@ -49,4 +49,4 @@ func scheduledTask(ctx dbos.DBOSContext, task string) (string, error) {
 }
 ```
 
-Reference: [Durable Sleep](https://docs.dbos.dev/golang/programming-guide#durable-sleep)
+Reference: [Durable Sleep](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#durable-sleep)
