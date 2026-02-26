@@ -48,13 +48,11 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/local-reset.md`
 
 **Migration** (`migrate-`):
-- `references/migrate-production.md`
-- `references/migrate-system-tables.md`
-- `references/migrate-user-schema.md`
+- `references/migrate-commands.md`
 
 **Workflow Management** (`workflow-`):
 - `references/workflow-management.md`
 
 ---
 
-*9 reference files across 5 categories*
+*7 reference files across 5 categories*

@@ -54,4 +54,4 @@ Re-run migrations to recreate system tables:
 dbos migrate
 ```
 
-Reference: [Python CLI](https://docs.dbos.dev/python/reference/cli)
+Reference: [Python CLI](https://docs.dbos.dev/python/reference/cli) | [TypeScript CLI](https://docs.dbos.dev/typescript/reference/cli) | [Go CLI](https://docs.dbos.dev/golang/reference/cli)

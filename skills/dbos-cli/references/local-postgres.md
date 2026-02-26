@@ -70,4 +70,4 @@ After starting, connect with:
 export DBOS_SYSTEM_DATABASE_URL=postgres://postgres:dbos@localhost:5432/dbos
 ```
 
-Reference: [Quickstart](https://docs.dbos.dev/quickstart)
+Reference: [Quickstart](https://docs.dbos.dev/quickstart) | [TypeScript CLI](https://docs.dbos.dev/typescript/reference/cli) | [Go CLI](https://docs.dbos.dev/golang/reference/cli)

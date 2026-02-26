@@ -66,4 +66,4 @@ database_url: localhost/mydb  # Missing protocol, user, port
 database_url: postgres://postgres:password@localhost:5432/mydb
 ```
 
-Reference: [Python Config](https://docs.dbos.dev/python/reference/configuration) | [TS Config](https://docs.dbos.dev/typescript/reference/configuration)
+Reference: [Python Config](https://docs.dbos.dev/python/reference/configuration) | [TypeScript Config](https://docs.dbos.dev/typescript/reference/configuration) | [Go Programming Guide](https://docs.dbos.dev/golang/programming-guide)

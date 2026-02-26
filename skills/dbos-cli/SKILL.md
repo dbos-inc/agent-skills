@@ -29,7 +29,7 @@ Reference these guidelines when:
 - Initializing a new DBOS project with `dbos init`
 - Managing workflows from the command line (list, cancel, resume, fork)
 - Starting a local Postgres instance for development
-- Configuring `dbos-config.yaml` for migrations, rollbacks, or runtime
+- Configuring `dbos-config.yaml` for migrations or runtime
 - Setting up database roles with least-privilege access
 - Resetting the DBOS system database
 
@@ -104,13 +104,12 @@ The application then runs as `myapp_role` with only the permissions it needs.
 Read individual reference files for detailed explanations and examples:
 
 ```
-references/migrate-system-tables.md
-references/migrate-user-schema.md
+references/migrate-commands.md
 references/config-database.md
 ```
 
 ## References
 
 - https://docs.dbos.dev/python/reference/cli
-- https://docs.dbos.dev/typescript/reference/configuration
-- https://docs.dbos.dev/golang/programming-guide
+- https://docs.dbos.dev/typescript/reference/cli
+- https://docs.dbos.dev/golang/reference/cli

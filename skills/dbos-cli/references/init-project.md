@@ -82,4 +82,4 @@ go install github.com/dbos-inc/dbos-transact-golang/cmd/dbos@latest
 
 Then create `dbos-config.yaml` manually or with `dbos init --config`.
 
-Reference: [Quickstart](https://docs.dbos.dev/quickstart) | [Adding DBOS to Python](https://docs.dbos.dev/python/integrating-dbos)
+Reference: [Quickstart](https://docs.dbos.dev/quickstart) | [Python CLI](https://docs.dbos.dev/python/reference/cli) | [TypeScript CLI](https://docs.dbos.dev/typescript/reference/cli) | [Go Integrating DBOS](https://docs.dbos.dev/golang/integrating-dbos)

@@ -103,4 +103,4 @@ runtimeConfig:
     - npm install
 ```
 
-Reference: [TS Config](https://docs.dbos.dev/typescript/reference/configuration) | [Deploying to Cloud](https://docs.dbos.dev/production/dbos-cloud/deploying-to-cloud)
+Reference: [Python CLI](https://docs.dbos.dev/python/reference/cli) | [TypeScript Config](https://docs.dbos.dev/typescript/reference/configuration) | [Go CLI](https://docs.dbos.dev/golang/reference/cli) | [Deploying to Cloud](https://docs.dbos.dev/production/dbos-cloud/deploying-to-cloud)

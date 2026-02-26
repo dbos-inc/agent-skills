@@ -104,4 +104,4 @@ npx dbos workflow queue list     # TypeScript
 | Fork | `dbos workflow fork <id>` | `npx dbos workflow fork <id>` | `dbos workflow fork <id>` |
 | Queue list | `dbos workflow queue list` | `npx dbos workflow queue list` | — |
 
-Reference: [Python CLI](https://docs.dbos.dev/python/reference/cli)
+Reference: [Python CLI](https://docs.dbos.dev/python/reference/cli) | [TypeScript CLI](https://docs.dbos.dev/typescript/reference/cli) | [Go CLI](https://docs.dbos.dev/golang/reference/cli)
