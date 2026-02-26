@@ -4,8 +4,7 @@ description: >
   DBOS CLI for database migrations, workflow management, and local development
   across Python, TypeScript, and Go. Use this skill when running dbos migrate,
   managing DBOS system tables, setting up database permissions, initializing
-  DBOS projects, managing workflows from the command line, or working with
-  dbos-config.yaml.
+  DBOS projects, or managing workflows from the command line.
 license: MIT
 metadata:
   author: dbos
@@ -14,8 +13,8 @@ metadata:
   date: February 2026
   abstract: >
     Reference for the DBOS CLI across Python, TypeScript, and Go. Covers
-    database migrations, project initialization, workflow management, local
-    Postgres setup, and configuration.
+    database migrations, project initialization, workflow management, and
+    local Postgres setup.
 ---
 
 # DBOS CLI Reference
@@ -29,7 +28,6 @@ Reference these guidelines when:
 - Initializing a new DBOS project with `dbos init`
 - Managing workflows from the command line (list, cancel, resume, fork)
 - Starting a local Postgres instance for development
-- Configuring `dbos-config.yaml` for migrations or runtime
 - Setting up database roles with least-privilege access
 - Resetting the DBOS system database
 
@@ -38,10 +36,9 @@ Reference these guidelines when:
 | Priority | Category | Impact | Prefix |
 |----------|----------|--------|--------|
 | 1 | Migration | CRITICAL | `migrate-` |
-| 2 | Configuration | HIGH | `config-` |
-| 3 | Initialization | MEDIUM | `init-` |
-| 4 | Workflow Management | MEDIUM | `workflow-` |
-| 5 | Local Development | LOW-MEDIUM | `local-` |
+| 2 | Initialization | MEDIUM | `init-` |
+| 3 | Workflow Management | MEDIUM | `workflow-` |
+| 4 | Local Development | LOW-MEDIUM | `local-` |
 
 ## Critical Rules
 
@@ -105,7 +102,6 @@ Read individual reference files for detailed explanations and examples:
 
 ```
 references/migrate-commands.md
-references/config-database.md
 ```
 
 ## References

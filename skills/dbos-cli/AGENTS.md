@@ -27,18 +27,13 @@ dbos-cli/
 | Priority | Category | Impact | Prefix |
 |----------|----------|--------|--------|
 | 1 | Migration | CRITICAL | `migrate-` |
-| 2 | Configuration | HIGH | `config-` |
-| 3 | Initialization | MEDIUM | `init-` |
-| 4 | Workflow Management | MEDIUM | `workflow-` |
-| 5 | Local Development | LOW-MEDIUM | `local-` |
+| 2 | Initialization | MEDIUM | `init-` |
+| 3 | Workflow Management | MEDIUM | `workflow-` |
+| 4 | Local Development | LOW-MEDIUM | `local-` |
 
 Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md`).
 
 ## Available References
-
-**Configuration** (`config-`):
-- `references/config-database.md`
-- `references/config-migrate-commands.md`
 
 **Initialization** (`init-`):
 - `references/init-project.md`
@@ -55,4 +50,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*7 reference files across 5 categories*
+*5 reference files across 4 categories*
