@@ -37,25 +37,53 @@ config: DBOSConfig = {
     "application_version": "2.0.0",  # New version
 }
 DBOS(config=config)
-
-# Deploy new version alongside old version
-# New traffic goes to v2.0.0, old workflows drain on v1.0.0
-
-# Check for remaining old workflows before retiring v1.0.0
-old_workflows = DBOS.list_workflows(
-    app_version="1.0.0",
-    status=["PENDING", "ENQUEUED"]
-)
-
-if len(old_workflows) == 0:
-    # Safe to retire old version
-    pass
 ```
 
-Fork a workflow to run on a new version:
+Deploy new version alongside old version. Direct new traffic to v2.0.0, drain old workflows on v1.0.0.
+
+### Directing Enqueued Workflows to Latest Version
+
+Use `DBOS.get_latest_application_version` to route enqueued work to the latest version:
 
 ```python
-# Fork workflow from step 5 on version 2.0.0
+from dbos import DBOS, Queue, SetEnqueueOptions
+
+queue = Queue("my_queue")
+
+latest_version = DBOS.get_latest_application_version()
+with SetEnqueueOptions(app_version=latest_version["version_name"]):
+    queue.enqueue(my_workflow, arg1, arg2)
+```
+
+Scheduled workflows are automatically enqueued to the latest version.
+
+### Checking and Retiring Old Versions
+
+```python
+active = DBOS.list_workflows(
+    app_version="1.0.0",
+    status=["ENQUEUED", "PENDING"],
+)
+if not active:
+    print("Safe to retire version 1.0.0")
+```
+
+### Version Management APIs
+
+```python
+# List all registered versions (newest first)
+versions = DBOS.list_application_versions()
+
+# Get the latest version
+latest = DBOS.get_latest_application_version()
+
+# Roll back: promote a previous version to latest
+DBOS.set_latest_application_version("1.0.0")
+```
+
+### Forking Workflows to a New Version
+
+```python
 new_handle = DBOS.fork_workflow(
     workflow_id="old-workflow-id",
     start_step=5,
