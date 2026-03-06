@@ -2,7 +2,7 @@
 title: Start Workflows in Background
 impact: CRITICAL
 impactDescription: Background workflows enable reliable async processing
-tags: workflow, background, handle, async
+tags: workflow, background, handle, async, waitFirst
 ---
 
 ## Start Workflows in Background
@@ -50,5 +50,21 @@ Retrieve a handle later by workflow ID:
 const handle = DBOS.retrieveWorkflow<string>(workflowID);
 const result = await handle.getResult();
 ```
+
+### Waiting for the First of Multiple Workflows
+
+Use `DBOS.waitFirst` to race multiple concurrent workflows and process results as they complete:
+
+```typescript
+const handles = await Promise.all(
+  items.map((item) => DBOS.startWorkflow(processItem)(item))
+);
+
+// Wait for whichever finishes first
+const firstDone = await DBOS.waitFirst(handles);
+const result = await firstDone.getResult();
+```
+
+`waitFirst` takes a non-empty array of `WorkflowHandle` and throws if the array is empty.
 
 Reference: [Starting Workflows in Background](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#starting-workflows-in-the-background)

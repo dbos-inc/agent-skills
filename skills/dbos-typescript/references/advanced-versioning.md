@@ -31,26 +31,48 @@ DBOS.setConfig({
 
 By default, the application version is automatically computed from a hash of workflow source code. Set it explicitly for more control.
 
-**Blue-green deployment strategy:**
+### Directing Enqueued Workflows to Latest Version
 
-1. Deploy new version (v2) alongside old version (v1)
-2. Direct new traffic to v2 processes
-3. Let v1 processes "drain" (complete in-progress workflows)
-4. Check for remaining v1 workflows:
+Use `DBOS.getLatestApplicationVersion` to route enqueued work to the latest version:
 
 ```typescript
-const oldWorkflows = await DBOS.listWorkflows({
-  applicationVersion: "1.0.0",
-  status: "PENDING",
-});
+const latestVersion = await DBOS.getLatestApplicationVersion();
+const handle = await DBOS.startWorkflow(myWorkflow, {
+  queueName: "my_queue",
+  enqueueOptions: { applicationVersion: latestVersion.versionName },
+})(arg1, arg2);
 ```
 
-5. Once all v1 workflows are complete, retire v1 processes
+Scheduled workflows are automatically enqueued to the latest version.
 
-**Fork to new version (for stuck workflows):**
+### Checking and Retiring Old Versions
 
 ```typescript
-// Fork a workflow from a failed step to run on the new version
+const active = await DBOS.listWorkflows({
+  applicationVersion: "1.0.0",
+  status: ["ENQUEUED", "PENDING"],
+});
+if (active.length === 0) {
+  console.log("Safe to retire version 1.0.0");
+}
+```
+
+### Version Management APIs
+
+```typescript
+// List all registered versions (newest first)
+const versions = await DBOS.listApplicationVersions();
+
+// Get the latest version
+const latest = await DBOS.getLatestApplicationVersion();
+
+// Roll back: promote a previous version to latest
+await DBOS.setLatestApplicationVersion("1.0.0");
+```
+
+### Forking Workflows to a New Version
+
+```typescript
 const handle = await DBOS.forkWorkflow<string>(
   workflowID,
   failedStepID,
