@@ -43,6 +43,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 **Advanced** (`advanced-`):
 - `references/advanced-async.md`
 - `references/advanced-patching.md`
+- `references/advanced-serialization.md`
 - `references/advanced-versioning.md`
 
 **Client** (`client-`):
@@ -92,4 +93,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*32 reference files across 9 categories*
+*33 reference files across 9 categories*
