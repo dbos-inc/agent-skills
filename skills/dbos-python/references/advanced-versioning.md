@@ -68,6 +68,13 @@ if not active:
     print("Safe to retire version 1.0.0")
 ```
 
+### Reading the Current Version
+
+```python
+# Read the version this process is running as
+print(DBOS.application_version)
+```
+
 ### Version Management APIs
 
 ```python
@@ -79,6 +86,16 @@ latest = DBOS.get_latest_application_version()
 
 # Roll back: promote a previous version to latest
 DBOS.set_latest_application_version("1.0.0")
+```
+
+Each `VersionInfo` is a dict with:
+
+```python
+class VersionInfo(TypedDict):
+    version_id: str           # Unique ID
+    version_name: str         # Unique name (matches the application_version config field)
+    version_timestamp: int    # Epoch ms - determines which version is "latest"
+    created_at: int           # Epoch ms when first registered
 ```
 
 ### Forking Workflows to a New Version
