@@ -46,13 +46,13 @@ Deploy new version alongside old version. Direct new traffic to v2.0.0, drain ol
 Use `DBOS.get_latest_application_version` to route enqueued work to the latest version:
 
 ```python
-from dbos import DBOS, Queue, SetEnqueueOptions
+from dbos import DBOS, SetEnqueueOptions
 
-queue = Queue("my_queue")
+DBOS.register_queue("my_queue")
 
 latest_version = DBOS.get_latest_application_version()
 with SetEnqueueOptions(app_version=latest_version["version_name"]):
-    queue.enqueue(my_workflow, arg1, arg2)
+    DBOS.enqueue_workflow("my_queue", my_workflow, arg1, arg2)
 ```
 
 Scheduled workflows are automatically enqueued to the latest version.

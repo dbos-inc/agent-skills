@@ -13,13 +13,13 @@ Partitioned queues apply flow control limits per partition key instead of the en
 
 ```typescript
 // Global concurrency=1 blocks ALL users, not per-user
-const queue = new WorkflowQueue("tasks", { concurrency: 1 });
+await DBOS.registerQueue("tasks", { concurrency: 1 });
 ```
 
 **Correct (partitioned queue):**
 
 ```typescript
-const queue = new WorkflowQueue("tasks", {
+await DBOS.registerQueue("tasks", {
   partitionQueue: true,
   concurrency: 1,
 });
@@ -28,7 +28,7 @@ async function onUserTask(userID: string, task: string) {
   // Each user gets their own partition - at most 1 task per user
   // but tasks from different users can run concurrently
   await DBOS.startWorkflow(processTask, {
-    queueName: queue.name,
+    queueName: "tasks",
     enqueueOptions: { queuePartitionKey: userID },
   })(task);
 }
@@ -37,8 +37,8 @@ async function onUserTask(userID: string, task: string) {
 **Two-level queueing (per-user + global limits):**
 
 ```typescript
-const concurrencyQueue = new WorkflowQueue("concurrency-queue", { concurrency: 5 });
-const partitionedQueue = new WorkflowQueue("partitioned-queue", {
+await DBOS.registerQueue("concurrency-queue", { concurrency: 5 });
+await DBOS.registerQueue("partitioned-queue", {
   partitionQueue: true,
   concurrency: 1,
 });
@@ -46,14 +46,14 @@ const partitionedQueue = new WorkflowQueue("partitioned-queue", {
 // At most 1 task per user AND at most 5 tasks globally
 async function onUserTask(userID: string, task: string) {
   await DBOS.startWorkflow(concurrencyManager, {
-    queueName: partitionedQueue.name,
+    queueName: "partitioned-queue",
     enqueueOptions: { queuePartitionKey: userID },
   })(task);
 }
 
 async function concurrencyManagerFn(task: string) {
   const handle = await DBOS.startWorkflow(processTask, {
-    queueName: concurrencyQueue.name,
+    queueName: "concurrency-queue",
   })(task);
   return await handle.getResult();
 }

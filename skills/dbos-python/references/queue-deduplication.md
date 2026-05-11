@@ -12,28 +12,28 @@ Use deduplication IDs to ensure only one workflow with a given ID is active in a
 **Incorrect (duplicate workflows possible):**
 
 ```python
-queue = Queue("user_tasks")
+DBOS.register_queue("user_tasks")
 
 @app.post("/process/{user_id}")
 def process_for_user(user_id: str):
     # Multiple requests = multiple workflows for same user!
-    queue.enqueue(process_workflow, user_id)
+    DBOS.enqueue_workflow("user_tasks", process_workflow, user_id)
 ```
 
 **Correct (deduplicated by user):**
 
 ```python
-from dbos import Queue, SetEnqueueOptions
+from dbos import DBOS, SetEnqueueOptions
 from dbos import error as dboserror
 
-queue = Queue("user_tasks")
+DBOS.register_queue("user_tasks")
 
 @app.post("/process/{user_id}")
 def process_for_user(user_id: str):
     with SetEnqueueOptions(deduplication_id=user_id):
         try:
-            handle = queue.enqueue(process_workflow, user_id)
-            return {"workflow_id": handle.get_workflow_id()}
+            handle = DBOS.enqueue_workflow("user_tasks", process_workflow, user_id)
+            return {"workflow_id": handle.workflow_id}
         except dboserror.DBOSQueueDeduplicatedError:
             return {"status": "already processing"}
 ```

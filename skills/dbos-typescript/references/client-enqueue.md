@@ -25,6 +25,9 @@ const client = await DBOSClient.create({
   systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
 });
 
+// Optionally register the queue from the client (persists to system database)
+await client.registerQueue("task_queue", { concurrency: 10 });
+
 // Basic enqueue
 const handle = await client.enqueue(
   {
@@ -37,6 +40,8 @@ const handle = await client.enqueue(
 // Wait for the result
 const result = await handle.getResult();
 ```
+
+The queue does not need to exist when `enqueue` is called. If no queue with the given name has been registered, the workflow is still durably recorded as `ENQUEUED` and starts running once the queue is registered and a worker becomes available.
 
 **Type-safe enqueue:**
 
@@ -68,7 +73,9 @@ const result = await handle.getResult(); // type: string
 - `workflowTimeoutMS`: Timeout in milliseconds
 - `deduplicationID`: Prevent duplicate enqueues
 - `priority`: Queue priority (lower = higher priority)
+- `delaySeconds`: Delay before becoming eligible for execution
 - `queuePartitionKey`: Partition key for partitioned queues
+- `appVersion`: Pin the workflow to a specific application version
 
 Always call `client.destroy()` when done.
 
