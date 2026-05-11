@@ -130,4 +130,24 @@ Set `destroy_registry=True` only if you also want to un-register all decorated f
 
 `DBOS.reset_system_database()` wipes the system DB's internal state — **destructive, test-only**.
 
+## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
+
+When connecting through a connection pooler in **transaction mode**, set `use_listen_notify` to `False`:
+
+```python
+config: DBOSConfig = {
+    "name": "my-app",
+    "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
+    "use_listen_notify": False,
+}
+```
+
+**Why:** Postgres LISTEN is connection-scoped state — the registration lives in the backend process's memory and is tied to the TCP connection. Transaction-mode poolers (PgBouncer, PlanetScale, Supabase Supavisor, Neon) return server connections to the pool after each transaction, orphaning the LISTEN registration. Subsequent NOTIFY messages are delivered to the server connection, but the pooler has no client mapped to forward them to — so notifications are **silently discarded**.
+
+**Symptom:** `DBOS.recv()` and `DBOS.get_event()` block indefinitely with no errors.
+
+**Fallback behavior:** With `use_listen_notify: False`, DBOS polls the `dbos.notifications` table every 1 second (configurable via `notification_listener_polling_interval_sec`). This adds up to 1 second of latency to message/event delivery but has negligible impact on database load since the query hits an indexed lookup.
+
+**Session-mode poolers** (PgBouncer in session mode) maintain a 1:1 client-to-server mapping for the connection lifetime, so LISTEN/NOTIFY works normally. Only transaction-mode and statement-mode poolers require this setting.
+
 Reference: [DBOS Configuration](https://docs.dbos.dev/python/reference/configuration)
