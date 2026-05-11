@@ -77,6 +77,6 @@ All fields except `name` are optional:
 | **adminPort** | Admin server port | `3001` |
 | **listenQueues** | Only listen to these queues | All declared queues |
 | **schedulerPollingIntervalMs** | Scheduler polling interval for new schedules (ms) | `30000` |
-| **serializer** | Custom serializer for system database | Default (JSON/SuperJSON) |
+| **serializer** | Custom serializer for system database | Default (SuperJSON) |
 
 Reference: [DBOS Configuration](https://docs.dbos.dev/typescript/reference/configuration)

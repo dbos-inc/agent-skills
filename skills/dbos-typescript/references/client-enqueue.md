@@ -76,6 +76,38 @@ const result = await handle.getResult(); // type: string
 - `delaySeconds`: Delay before becoming eligible for execution
 - `queuePartitionKey`: Partition key for partitioned queues
 - `appVersion`: Pin the workflow to a specific application version
+- `duplicationPolicy`: How to handle a `deduplicationID` collision. `'reject'` (default) throws `DBOSQueueDuplicatedError`; `'return-existing'` attaches to the existing workflow and returns its handle (singleton pattern — requires `deduplicationID`)
+- `serializationType`: Serialization strategy for workflow arguments (`"portable"` for cross-language interop, otherwise the configured serializer is used)
+
+**Singleton workflow example (`return-existing`):**
+
+```typescript
+const handle = await client.enqueue(
+  {
+    workflowName: "processTask",
+    queueName: "task_queue",
+    deduplicationID: "singleton",
+    duplicationPolicy: "return-existing",
+  },
+  "task-data"
+);
+// If a workflow with deduplicationID "singleton" is already enqueued or
+// running on this queue, handle resolves to that workflow's result instead
+// of throwing.
+```
+
+**Cross-language enqueue (`serializationType: "portable"`):**
+
+```typescript
+await client.enqueue(
+  {
+    workflowName: "processOrder",
+    queueName: "orders",
+    serializationType: "portable",  // Python/Java/Go workers can read these args
+  },
+  "order-123"
+);
+```
 
 Always call `client.destroy()` when done.
 
