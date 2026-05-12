@@ -12,23 +12,18 @@ Use `DBOS.listen_queues()` to make a process only handle specific queues. Useful
 **Incorrect (all workers handle all queues):**
 
 ```python
-cpu_queue = Queue("cpu_tasks")
-gpu_queue = Queue("gpu_tasks")
-
-# Every worker processes both queues
-# GPU tasks may run on CPU-only machines!
+# Every worker processes both queues - GPU tasks may run on CPU-only machines!
 if __name__ == "__main__":
     DBOS(config=config)
     DBOS.launch()
+    DBOS.register_queue("cpu_tasks")
+    DBOS.register_queue("gpu_tasks")
 ```
 
 **Correct (workers listen to specific queues):**
 
 ```python
-from dbos import DBOS, DBOSConfig, Queue
-
-cpu_queue = Queue("cpu_queue")
-gpu_queue = Queue("gpu_queue")
+from dbos import DBOS, DBOSConfig
 
 @DBOS.workflow()
 def cpu_task(data):
@@ -44,17 +39,20 @@ if __name__ == "__main__":
     DBOS(config=config)
 
     if worker_type == "gpu":
-        DBOS.listen_queues([gpu_queue])
+        DBOS.listen_queues(["gpu_queue"])
     elif worker_type == "cpu":
-        DBOS.listen_queues([cpu_queue])
+        DBOS.listen_queues(["cpu_queue"])
 
     DBOS.launch()
+    DBOS.register_queue("cpu_queue")
+    DBOS.register_queue("gpu_queue")
 ```
 
 Key points:
 - Call `DBOS.listen_queues()` **before** `DBOS.launch()`
+- Pass queue names as strings (queues do not need to exist yet)
 - Workers can still **enqueue** to any queue, just won't **dequeue** from others
-- By default, workers listen to all declared queues
+- By default, workers listen to all queues registered in the system database
 
 Use cases:
 - CPU vs GPU workers

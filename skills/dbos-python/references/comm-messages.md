@@ -2,7 +2,7 @@
 title: Use Messages for Workflow Notifications
 impact: MEDIUM
 impactDescription: Enables external signals to control workflow execution
-tags: messages, send, recv, notifications
+tags: messages, send, recv, notifications, idempotency_key
 ---
 
 ## Use Messages for Workflow Notifications
@@ -51,6 +51,38 @@ Key points:
 - `DBOS.recv()` can only be called from workflows
 - Messages are queued per topic
 - `recv()` returns `None` on timeout
-- Messages are persisted for exactly-once delivery
+- Messages are persisted
+
+### Exactly-Once Sends with `idempotency_key`
+
+Without an idempotency key, a `DBOS.send` called from outside a workflow (e.g. an HTTP handler, a retried webhook, a `DBOSClient`) may deliver the message more than once if the caller retries. Pass `idempotency_key` to deduplicate: any number of `send` calls with the same key will deliver the message exactly once.
+
+**Incorrect (retried webhook delivers duplicate messages):**
+
+```python
+@app.post("/payment_webhook/{workflow_id}/{status}")
+def payment_webhook(workflow_id: str, status: str):
+    # If the webhook provider retries on a 5xx, the workflow receives
+    # the same message multiple times.
+    DBOS.send(workflow_id, status, PAYMENT_STATUS)
+```
+
+**Correct (exactly-once with idempotency_key):**
+
+```python
+@app.post("/payment_webhook/{workflow_id}/{status}")
+def payment_webhook(workflow_id: str, status: str, request: Request):
+    # Use a stable key from the webhook payload (e.g. event ID) so retries
+    # of the same logical event are deduplicated.
+    event_id = request.headers.get("X-Event-Id")
+    DBOS.send(
+        workflow_id,
+        status,
+        PAYMENT_STATUS,
+        idempotency_key=event_id,
+    )
+```
+
+The same parameter is available on `DBOS.send_async` and `client.send` / `client.send_async`. Strongly recommended whenever calling `send` from outside a workflow.
 
 Reference: [Workflow Messaging](https://docs.dbos.dev/python/tutorials/workflow-communication#workflow-messaging-and-notifications)

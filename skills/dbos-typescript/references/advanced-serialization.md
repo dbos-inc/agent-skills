@@ -32,7 +32,7 @@ async function processOrderFn(orderId: string) {
 }
 const processOrder = DBOS.registerWorkflow(processOrderFn, {
   name: "processOrder",
-  serializationType: "portable",
+  serialization: "portable",
 });
 ```
 
@@ -47,12 +47,12 @@ Portable JSON supports JSON primitives, arrays, and objects. Some TypeScript typ
 
 ### Where to Set Serialization
 
-**On workflow registration** — affects inputs, outputs, events, and streams for that workflow:
+**On workflow registration** (key: `serialization`) — affects inputs, outputs, events, and streams for that workflow:
 
 ```typescript
 const myWorkflow = DBOS.registerWorkflow(myWorkflowFn, {
   name: "myWorkflow",
-  serializationType: "portable",
+  serialization: "portable",
 });
 ```
 
@@ -60,7 +60,7 @@ Or with a decorator:
 
 ```typescript
 class Orders {
-  @DBOS.workflow({ serializationType: "portable" })
+  @DBOS.workflow({ serialization: "portable" })
   static async processOrder(orderId: string) {
     await DBOS.setEvent("progress", 50);  // Portable by default
     return { done: true };                // Portable by default
@@ -68,7 +68,7 @@ class Orders {
 }
 ```
 
-**On individual operations** — override per-operation when mixing strategies:
+**On individual operations** (key: `serializationType`) — override per-operation when mixing strategies:
 
 ```typescript
 // Explicitly set portable on send (send is never affected by workflow default)
@@ -104,11 +104,16 @@ const handle = await client.enqueue(
 ### Serialization Strategy Options
 
 ```typescript
-// On workflow registration or decorator
-serializationType: undefined   // Uses config serializer (SuperJSON by default)
-serializationType: "portable"  // Portable JSON for cross-language use
-serializationType: "native"    // Explicitly uses native TypeScript serializer
+// On workflow registration or @DBOS.workflow decorator
+serialization: undefined   // Uses config serializer (SuperJSON by default)
+serialization: "portable"  // Portable JSON for cross-language use
+serialization: "native"    // Explicitly uses native TypeScript serializer
+
+// On per-call operations (send, setEvent, writeStream, client.enqueue)
+options.serializationType: "portable" | "native"
 ```
+
+The keys differ by API: workflow/registration config uses **`serialization`**, while per-call options on `send` / `setEvent` / `writeStream` / `client.enqueue` use **`serializationType`**.
 
 ### Portable Errors
 

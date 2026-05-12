@@ -47,11 +47,11 @@ Timeout behavior:
 With queues:
 
 ```python
-queue = Queue("example_queue")
+DBOS.register_queue("example_queue")
 
 # Timeout starts when dequeued, not when enqueued
 with SetWorkflowTimeout(30):
-    queue.enqueue(my_workflow)
+    DBOS.enqueue_workflow("example_queue", my_workflow)
 ```
 
 Timeouts work with long durations (hours, days, weeks) since they're stored in the database.

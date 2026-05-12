@@ -46,13 +46,13 @@ Deploy new version alongside old version. Direct new traffic to v2.0.0, drain ol
 Use `DBOS.get_latest_application_version` to route enqueued work to the latest version:
 
 ```python
-from dbos import DBOS, Queue, SetEnqueueOptions
+from dbos import DBOS, SetEnqueueOptions
 
-queue = Queue("my_queue")
+DBOS.register_queue("my_queue")
 
 latest_version = DBOS.get_latest_application_version()
 with SetEnqueueOptions(app_version=latest_version["version_name"]):
-    queue.enqueue(my_workflow, arg1, arg2)
+    DBOS.enqueue_workflow("my_queue", my_workflow, arg1, arg2)
 ```
 
 Scheduled workflows are automatically enqueued to the latest version.
@@ -68,6 +68,13 @@ if not active:
     print("Safe to retire version 1.0.0")
 ```
 
+### Reading the Current Version
+
+```python
+# Read the version this process is running as
+print(DBOS.application_version)
+```
+
 ### Version Management APIs
 
 ```python
@@ -79,6 +86,16 @@ latest = DBOS.get_latest_application_version()
 
 # Roll back: promote a previous version to latest
 DBOS.set_latest_application_version("1.0.0")
+```
+
+Each `VersionInfo` is a dict with:
+
+```python
+class VersionInfo(TypedDict):
+    version_id: str           # Unique ID
+    version_name: str         # Unique name (matches the application_version config field)
+    version_timestamp: int    # Epoch ms - determines which version is "latest"
+    created_at: int           # Epoch ms when first registered
 ```
 
 ### Forking Workflows to a New Version

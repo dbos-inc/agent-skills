@@ -2,7 +2,7 @@
 title: Schedule Workflows with the Schedule API
 impact: MEDIUM
 impactDescription: Run workflows exactly once per time interval with full runtime management
-tags: scheduled, cron, recurring, timer, schedule, create_schedule, apply_schedules
+tags: scheduled, cron, recurring, timer, schedule, create_schedule, apply_schedules, cron_timezone, automatic_backfill
 ---
 
 ## Schedule Workflows with the Schedule API
@@ -12,7 +12,7 @@ Use `DBOS.create_schedule` to schedule workflows on a cron interval. Schedules a
 **Incorrect (using the deprecated `@DBOS.scheduled` decorator):**
 
 ```python
-# Deprecated - do not use decorator-based scheduling
+# Deprecated - cannot be paused, resumed, or managed at runtime
 @DBOS.scheduled("* * * * *")
 @DBOS.workflow()
 def run_every_minute(scheduled_time, actual_time):
@@ -45,29 +45,57 @@ if __name__ == "__main__":
 
 Scheduled workflow requirements:
 - Must accept two arguments: `scheduled_time` (`datetime`) and `context` (any serializable value)
-- Not supported for workflows that are methods on configured instances
-- `create_schedule` fails if the schedule already exists
+- Not supported for workflows that are methods on configured instances; use plain functions or `@staticmethod`
+- `create_schedule` fails if the schedule already exists; use `apply_schedules` for idempotent setup
+- Scheduled workflows are automatically routed to the latest application version
 
-### Static Schedules with `apply_schedules`
-
-For a set of schedules created on program start, use `apply_schedules` to create them atomically, updating them if they already exist:
+### `create_schedule` Parameters
 
 ```python
-DBOS.apply_schedules([
-    {
-        "schedule_name": "schedule-a",
-        "workflow_fn": workflow_a,
-        "schedule": "*/10 * * * *",
-        "context": "context-a",
-    },
-    {
-        "schedule_name": "schedule-b",
-        "workflow_fn": workflow_b,
-        "schedule": "0 0 * * *",
-        "context": "context-b",
-    },
-])
+DBOS.create_schedule(
+    schedule_name="my-task",
+    workflow_fn=my_periodic_task,
+    schedule="*/5 * * * *",
+    context="my context",
+    cron_timezone="America/New_York",   # Optional - IANA tz; defaults to UTC
+    automatic_backfill=True,            # Optional - auto-backfill missed runs on startup
+    queue_name="scheduled_queue",       # Optional - enqueue on a declared queue
+)
 ```
+
+`apply_schedules` accepts a list of dicts with the same fields.
+
+### Routing Scheduled Workflows to a Queue
+
+By default, scheduled workflows run on an internal queue. Set `queue_name` to enforce concurrency or rate limits:
+
+```python
+DBOS.register_queue("scheduled_queue", concurrency=1)
+
+DBOS.create_schedule(
+    schedule_name="my-task",
+    workflow_fn=my_periodic_task,
+    schedule="*/5 * * * *",
+    queue_name="scheduled_queue",
+)
+```
+
+### Cron Timezone
+
+Cron expressions are evaluated in UTC by default. Set `cron_timezone` to an IANA timezone (e.g. `"America/New_York"`) to evaluate in local time, handling DST correctly:
+
+```python
+DBOS.create_schedule(
+    schedule_name="daily-9am-ny",
+    workflow_fn=daily_task,
+    schedule="0 9 * * *",
+    cron_timezone="America/New_York",
+)
+```
+
+### Automatic Backfill
+
+Set `automatic_backfill=True` so missed executions are re-run on startup or when a paused schedule resumes. Otherwise, use `DBOS.backfill_schedule` manually (see below).
 
 ### Dynamic Per-Entity Schedules
 
@@ -94,9 +122,11 @@ schedules = DBOS.list_schedules(status="ACTIVE")
 schedule = DBOS.get_schedule("my-task")
 ```
 
-### Backfilling and Triggering
+`list_schedules` and `get_schedule` return `WorkflowSchedule` dicts with fields: `schedule_id`, `schedule_name`, `workflow_name`, `workflow_class_name`, `schedule`, `status` (`"ACTIVE"` or `"PAUSED"`), `context`, `last_fired_at`, `automatic_backfill`, `cron_timezone`, `queue_name`.
 
-Backfill missed executions (already-executed times are automatically skipped):
+### Manual Backfill and Trigger
+
+Backfill missed executions between two timestamps (already-executed times are skipped):
 
 ```python
 from datetime import datetime, timezone
@@ -108,7 +138,7 @@ DBOS.backfill_schedule(
 )
 ```
 
-Immediately trigger a schedule:
+Immediately trigger a schedule once:
 
 ```python
 handle = DBOS.trigger_schedule("my-task")
@@ -127,5 +157,18 @@ handle = DBOS.trigger_schedule("my-task")
 ```
 
 Common patterns: `* * * * *` (every minute), `0 * * * *` (hourly), `0 0 * * *` (daily), `0 0 * * 0` (weekly Sunday).
+
+### Managing Schedules from Another Application
+
+Use `DBOSClient` to create/manage schedules from outside the DBOS application. The client takes a `workflow_name` string instead of a function reference:
+
+```python
+client.create_schedule(
+    schedule_name="my-task",
+    workflow_name="my_periodic_task",
+    schedule="*/5 * * * *",
+    context="my context",
+)
+```
 
 Reference: [Scheduling Workflows](https://docs.dbos.dev/python/tutorials/scheduled-workflows)

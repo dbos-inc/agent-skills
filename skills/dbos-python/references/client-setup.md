@@ -59,6 +59,11 @@ DBOSClient mirrors the DBOS API for workflow interaction:
 | `client.retrieve_workflow()` | `DBOS.retrieve_workflow()` |
 | `client.fork_workflow()` | `DBOS.fork_workflow()` |
 | `client.wait_first()` | `DBOS.wait_first()` |
+| `client.set_workflow_delay()` | `DBOS.set_workflow_delay()` |
+| `client.register_queue()` | `DBOS.register_queue()` |
+| `client.retrieve_queue()` | `DBOS.retrieve_queue()` |
+| `client.list_queues()` | `DBOS.list_queues()` |
+| `client.delete_queue()` | `DBOS.delete_queue()` |
 
 All methods have `_async` variants.
 

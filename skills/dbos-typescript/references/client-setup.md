@@ -50,6 +50,15 @@ try {
   await client.resumeWorkflow(workflowID);
   await client.forkWorkflow(workflowID, stepID, { applicationVersion: "2.0.0" });
 
+  // Update queued workflows in place
+  await client.setWorkflowPriority(workflowID, 1);
+  await client.setWorkflowDelay(workflowID, { delaySeconds: 10 });
+
+  // Manage database-backed queues
+  await client.registerQueue("email", { concurrency: 10 });
+  const q = await client.retrieveQueue("email");
+  await client.deleteQueue("email");
+
   // Wait for first of multiple workflows
   const first = await client.waitFirst(handles);
 } finally {

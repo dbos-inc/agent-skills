@@ -2,18 +2,27 @@
 title: Schedule Workflows with the Schedule API
 impact: MEDIUM
 impactDescription: Run workflows exactly once per time interval with full runtime management
-tags: pattern, scheduled, cron, recurring, createSchedule, applySchedules
+tags: pattern, scheduled, cron, recurring, createSchedule, applySchedules, cronTimezone, automaticBackfill
 ---
 
 ## Schedule Workflows with the Schedule API
 
 Use `DBOS.createSchedule` to schedule workflows on a cron interval. Schedules are stored in the database and can be created, paused, resumed, and deleted at runtime.
 
-**Incorrect (using the deprecated `DBOS.registerScheduled`):**
+**Incorrect (using the deprecated static scheduling APIs):**
 
 ```typescript
-// Deprecated - do not use static scheduling
+// Both APIs below are deprecated - cannot be paused, resumed, or managed at runtime
+
 DBOS.registerScheduled(myWorkflow, { crontab: "*/30 * * * * *" });
+
+class ScheduledExample {
+  @DBOS.workflow()
+  @DBOS.scheduled({ crontab: "*/30 * * * * *" })  // Also deprecated
+  static async scheduledWorkflow(schedTime: Date, startTime: Date) {
+    // ...
+  }
+}
 ```
 
 **Correct (using `DBOS.applySchedules` for startup schedules):**
@@ -41,6 +50,72 @@ Scheduled workflow requirements:
 - Must accept two arguments: `scheduledTime` (`Date`) and `context` (any serializable value)
 - Not supported for workflows on instantiated objects
 - `createSchedule` fails if the schedule already exists; use `applySchedules` for startup
+- Scheduled workflows are automatically routed to the latest application version
+
+### `createSchedule` Parameters
+
+`createSchedule` takes a top-level `scheduleName`/`workflowFn`/`schedule`/`context`, plus a nested `options` object for the runtime tuning fields:
+
+```typescript
+await DBOS.createSchedule({
+  scheduleName: "my-task",
+  workflowFn: everyFiveMinutes,
+  schedule: "*/5 * * * *",
+  context: "my context",
+  options: {
+    cronTimezone: "America/New_York",   // IANA tz; default: system local timezone
+    automaticBackfill: true,            // Auto-backfill missed runs on startup
+    queueName: "scheduled_queue",       // Enqueue on a declared queue
+  },
+});
+```
+
+`applySchedules` accepts the same fields **flattened** (no nested `options`):
+
+```typescript
+await DBOS.applySchedules([
+  {
+    scheduleName: "my-task",
+    workflowFn: everyFiveMinutes,
+    schedule: "*/5 * * * *",
+    cronTimezone: "America/New_York",
+    automaticBackfill: true,
+    queueName: "scheduled_queue",
+  },
+]);
+```
+
+### Routing Scheduled Workflows to a Queue
+
+By default, scheduled workflows run on an internal queue. Set `queueName` to enforce concurrency or rate limits:
+
+```typescript
+await DBOS.registerQueue("scheduled_queue", { concurrency: 1 });
+
+await DBOS.createSchedule({
+  scheduleName: "my-task",
+  workflowFn: everyFiveMinutes,
+  schedule: "*/5 * * * *",
+  options: { queueName: "scheduled_queue" },
+});
+```
+
+### Cron Timezone
+
+Cron expressions default to the **system's local timezone**. Set `cronTimezone` to an IANA timezone to evaluate explicitly:
+
+```typescript
+await DBOS.createSchedule({
+  scheduleName: "daily-9am-ny",
+  workflowFn: dailyTask,
+  schedule: "0 9 * * *",
+  options: { cronTimezone: "America/New_York" },
+});
+```
+
+### Automatic Backfill
+
+Set `automaticBackfill: true` so missed executions are re-run on startup or when a paused schedule resumes. Otherwise, use `DBOS.backfillSchedule` manually (see below).
 
 ### Dynamic Per-Entity Schedules
 
@@ -73,7 +148,25 @@ const schedules = await DBOS.listSchedules({ status: "ACTIVE" });
 const schedule = await DBOS.getSchedule("my-task");
 ```
 
-### Backfilling and Triggering
+`listSchedules` and `getSchedule` return `WorkflowSchedule` objects:
+
+```typescript
+interface WorkflowSchedule {
+  scheduleId: string;
+  scheduleName: string;
+  workflowName: string;
+  workflowClassName: string;
+  schedule: string;
+  status: string;              // "ACTIVE" or "PAUSED"
+  context: unknown;
+  lastFiredAt: string | null;
+  automaticBackfill: boolean;
+  cronTimezone: string | null; // null = system local time
+  queueName: string | null;    // null = internal queue
+}
+```
+
+### Manual Backfill and Trigger
 
 Backfill missed executions (already-executed times are automatically skipped):
 
@@ -85,7 +178,7 @@ await DBOS.backfillSchedule(
 );
 ```
 
-Immediately trigger a schedule:
+Immediately trigger a schedule once:
 
 ```typescript
 const handle = await DBOS.triggerSchedule("my-task");

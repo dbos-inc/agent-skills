@@ -30,8 +30,8 @@ from dbos import DBOS, DBOSConfiguredInstance
 class URLFetcher(DBOSConfiguredInstance):
     def __init__(self, url: str):
         self.url = url
-        # instance_name must be unique and passed to super()
-        super().__init__(instance_name=url)
+        # config_name must be unique and passed to super()
+        super().__init__(config_name=url)
 
     @DBOS.workflow()
     def fetch_workflow(self):
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 Requirements:
 - Class must be decorated with `@DBOS.dbos_class()`
 - Class must inherit from `DBOSConfiguredInstance`
-- `instance_name` must be unique and passed to `super().__init__()`
+- `config_name` must be unique and passed to `super().__init__()`
 - All instances must be created before `DBOS.launch()`
 
 Steps can be added to any class without these requirements.

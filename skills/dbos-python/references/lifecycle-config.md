@@ -81,10 +81,14 @@ All fields except `name` are optional:
 | **system_database_engine** | Custom SQLAlchemy engine (skips engine creation) | `None` |
 | **use_listen_notify** | Use Postgres LISTEN/NOTIFY vs polling | `True` (Postgres) |
 | **notification_listener_polling_interval_sec** | Polling interval when LISTEN/NOTIFY is off | `1.0` |
+| **conductor_key** | API key for DBOS Conductor (from console.dbos.dev) | `None` |
+| **conductor_url** | Conductor service URL (only for self-hosted) | `None` |
+| **conductor_executor_metadata** | JSON dict of metadata sent to Conductor (region, instance type, etc.) | `None` |
 | **enable_otlp** | Enable OpenTelemetry tracing and export | `False` |
 | **otlp_traces_endpoints** | OTLP trace receiver URLs | `None` |
 | **otlp_logs_endpoints** | OTLP log receiver URLs | `None` |
 | **otlp_attributes** | Key-value pairs applied to all OTLP exports | `None` |
+| **otel_attribute_format** | `"legacy"` (camelCase) or `"semconv"` (`dbos.*` namespace) | `"legacy"` |
 | **log_level** | DBOS logger severity | `"INFO"` |
 | **otlp_log_level** | OTLP-specific log level (>= `log_level`) | `log_level` |
 | **console_log_level** | Console-specific log level (>= `log_level`) | `log_level` |
@@ -93,6 +97,38 @@ All fields except `name` are optional:
 | **max_executor_threads** | Max threads for sync workflow/step execution | `None` |
 | **scheduler_polling_interval_sec** | Scheduler polling interval for new schedules | `30.0` |
 | **serializer** | Custom serializer for system database | Default (pickle) |
+
+## Lifecycle Methods
+
+### Listening to Specific Queues
+
+Use `DBOS.listen_queues` **before** `DBOS.launch()` to restrict a process to dequeuing from specific queues only (useful for heterogeneous worker pools). Pass queue names as strings or `Queue` objects:
+
+```python
+if __name__ == "__main__":
+    DBOS(config=config)
+    DBOS.listen_queues(["gpu_queue"])   # GPU worker
+    DBOS.launch()
+    DBOS.register_queue("cpu_queue")
+    DBOS.register_queue("gpu_queue")
+```
+
+A process can still **enqueue** to any queue; `listen_queues` only controls dequeueing. See [queue-listening](queue-listening.md) for details.
+
+### Tearing Down DBOS
+
+`DBOS.destroy` shuts down the singleton (close connections, cancel polling, etc.) so it can be re-initialized — primarily used in tests.
+
+```python
+DBOS.destroy(
+    workflow_completion_timeout_sec=30,   # Wait up to 30s for active workflows
+    destroy_registry=False,               # Keep decorator registrations across destroy
+)
+```
+
+Set `destroy_registry=True` only if you also want to un-register all decorated functions. Leave it `False` for normal teardown.
+
+`DBOS.reset_system_database()` wipes the system DB's internal state — **destructive, test-only**.
 
 ## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
 

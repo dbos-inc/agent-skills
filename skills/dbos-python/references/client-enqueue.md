@@ -27,6 +27,9 @@ from dbos import DBOSClient, EnqueueOptions
 
 client = DBOSClient(system_database_url=db_url)
 
+# Optionally register the queue from the client (persists to system database)
+client.register_queue("task_queue", concurrency=10)
+
 options: EnqueueOptions = {
     "workflow_name": "process_task",  # Required
     "queue_name": "task_queue",       # Required
@@ -36,7 +39,9 @@ result = handle.get_result()
 client.destroy()
 ```
 
-With optional parameters:
+The queue does not need to exist when `enqueue` is called. If no queue with the given name has been registered, the workflow is still durably recorded as `ENQUEUED` and starts running once the queue is registered and a worker becomes available.
+
+Optional parameters:
 
 ```python
 options: EnqueueOptions = {
@@ -46,6 +51,12 @@ options: EnqueueOptions = {
     "workflow_timeout": 300,
     "deduplication_id": "user-123",
     "priority": 1,
+    "delay_seconds": 60,            # Delay before becoming eligible
+    "queue_partition_key": "user-123",
+    "app_version": "1.0.0",
+    "max_recovery_attempts": 50,
+    "authenticated_user": "alice",
+    "authenticated_roles": ["admin"],
 }
 ```
 

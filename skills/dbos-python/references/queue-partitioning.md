@@ -12,20 +12,20 @@ Partitioned queues apply flow control limits per partition, not globally. Useful
 **Incorrect (global limit affects all users):**
 
 ```python
-queue = Queue("user_tasks", concurrency=1)  # Only 1 task total
+DBOS.register_queue("user_tasks", concurrency=1)  # Only 1 task total
 
 def handle_user_task(user_id, task):
     # One user blocks all other users!
-    queue.enqueue(process_task, task)
+    DBOS.enqueue_workflow("user_tasks", process_task, task)
 ```
 
 **Correct (per-user limits with partitioning):**
 
 ```python
-from dbos import Queue, SetEnqueueOptions
+from dbos import DBOS, SetEnqueueOptions
 
 # Partition queue with concurrency=1 per partition
-queue = Queue("user_tasks", partition_queue=True, concurrency=1)
+DBOS.register_queue("user_tasks", partition_queue=True, concurrency=1)
 
 @DBOS.workflow()
 def process_task(task):
@@ -34,25 +34,25 @@ def process_task(task):
 def handle_user_task(user_id: str, task):
     # Each user gets their own "subqueue" with concurrency=1
     with SetEnqueueOptions(queue_partition_key=user_id):
-        queue.enqueue(process_task, task)
+        DBOS.enqueue_workflow("user_tasks", process_task, task)
 ```
 
 For both per-partition AND global limits, use two-level queueing:
 
 ```python
 # Global limit of 5 concurrent tasks
-global_queue = Queue("global_queue", concurrency=5)
+DBOS.register_queue("global_queue", concurrency=5)
 # Per-user limit of 1 concurrent task
-user_queue = Queue("user_queue", partition_queue=True, concurrency=1)
+DBOS.register_queue("user_queue", partition_queue=True, concurrency=1)
 
 def handle_task(user_id: str, task):
     with SetEnqueueOptions(queue_partition_key=user_id):
-        user_queue.enqueue(concurrency_manager, task)
+        DBOS.enqueue_workflow("user_queue", concurrency_manager, task)
 
 @DBOS.workflow()
 def concurrency_manager(task):
     # Enforces global limit
-    return global_queue.enqueue(process_task, task).get_result()
+    return DBOS.enqueue_workflow("global_queue", process_task, task).get_result()
 
 @DBOS.workflow()
 def process_task(task):
