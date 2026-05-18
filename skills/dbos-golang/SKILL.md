@@ -4,9 +4,9 @@ description: DBOS Go SDK for building reliable, fault-tolerant applications with
 license: MIT
 metadata:
   author: dbos
-  version: "1.0.0"
+  version: "1.1.0"
   organization: DBOS
-  date: February 2026
+  date: May 2026
   abstract: Comprehensive guide for building fault-tolerant Go applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
 ---
 
