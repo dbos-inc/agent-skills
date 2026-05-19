@@ -41,7 +41,10 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 ## Available References
 
 **Advanced** (`advanced-`):
+- `references/advanced-application-versions.md`
+- `references/advanced-interops.md`
 - `references/advanced-patching.md`
+- `references/advanced-serialization.md`
 - `references/advanced-versioning.md`
 
 **Client** (`client-`):
@@ -58,6 +61,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 **Pattern** (`pattern-`):
 - `references/pattern-debouncing.md`
+- `references/pattern-delayed-execution.md`
 - `references/pattern-idempotency.md`
 - `references/pattern-scheduled.md`
 - `references/pattern-sleep.md`
@@ -80,6 +84,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/test-setup.md`
 
 **Workflow** (`workflow-`):
+- `references/workflow-aggregates.md`
 - `references/workflow-background.md`
 - `references/workflow-constraints.md`
 - `references/workflow-control.md`
@@ -89,4 +94,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*29 reference files across 9 categories*
+*34 reference files across 9 categories*

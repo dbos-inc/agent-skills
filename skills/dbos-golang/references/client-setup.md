@@ -45,20 +45,47 @@ workflows, err := client.ListWorkflows(
 
 // Workflow management
 err = client.CancelWorkflow(workflowID)
+err = client.CancelWorkflows([]string{"wf-1", "wf-2"})       // Bulk
 handle, err = client.ResumeWorkflow(workflowID)
+handles, err := client.ResumeWorkflows([]string{"wf-1", "wf-2"},
+    dbos.WithResumeQueue("priority"))                          // Bulk + queue
+err = client.SetWorkflowDelay(workflowID,
+    dbos.WithDelayDuration(30*time.Minute))                    // Delay a queued workflow
+err = client.DeleteWorkflows([]string{"wf-1"})
 
 // Read a stream
 values, closed, err := client.ClientReadStream(workflowID, "results")
-
-// Read a stream asynchronously
 ch, err := client.ClientReadStreamAsync(workflowID, "results")
+
+// Schedule management (DB-backed schedules)
+client.CreateSchedule(dbos.ClientScheduleInput{
+    ScheduleName: "daily",
+    WorkflowName: "dailyReport",
+    Schedule:     "0 0 9 * * *",
+})
+client.ApplySchedules([]dbos.ClientScheduleInput{ /* ... */ })
+schedules, _ := client.ListSchedules()
+sched, _ := client.GetSchedule("daily")
+client.PauseSchedule("daily")
+client.ResumeSchedule("daily")
+client.DeleteSchedule("daily")
+ids, _ := client.BackfillSchedule("daily",
+    time.Now().Add(-7*24*time.Hour), time.Now())
+handle, _ := client.TriggerSchedule("daily")
+
+// Application versions
+versions, _ := client.ListApplicationVersions()
+latest, _ := client.GetLatestApplicationVersion()
+client.SetLatestApplicationVersion("v1.2.3")
 ```
 
 ClientConfig options:
-- `DatabaseURL` (required unless `SystemDBPool` is set): PostgreSQL connection string
-- `SystemDBPool`: Custom `*pgxpool.Pool`
+- `DatabaseURL` (required unless `SystemDBPool` or `SqliteSystemDB` is set): PostgreSQL/CockroachDB connection string
+- `SystemDBPool`: Custom `*pgxpool.Pool` (mutually exclusive with `SqliteSystemDB`)
+- `SqliteSystemDB`: Custom `*sql.DB` for SQLite
 - `DatabaseSchema`: Schema name (default: `"dbos"`)
 - `Logger`: Custom `*slog.Logger`
+- `Serializer`: Custom `Serializer[any]` for inputs/outputs/events (defaults to JSON). The serializer must match the application that owns the workflows. See [advanced-serialization.md](advanced-serialization.md).
 
 Always call `client.Shutdown()` when done.
 

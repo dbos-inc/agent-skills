@@ -87,4 +87,21 @@ Key points:
 - Mock `DBOSContext` for fast unit tests without Postgres
 - Use real Postgres for integration tests that verify durable behavior
 
+### Resetting registries between contexts
+
+`dbos.ClearRegistries(ctx)` clears the workflow and queue registries on a context so workflows/queues can be re-registered against a fresh context in the same test process. Registration is panic-on-duplicate, so use this when a single test process spins up multiple `DBOSContext`s that register the same workflow names:
+
+```go
+ctx, _ := dbos.NewDBOSContext(context.Background(), config)
+dbos.RegisterWorkflow(ctx, myWorkflow)
+dbos.Launch(ctx)
+// ... test ...
+dbos.Shutdown(ctx, 10*time.Second)
+
+dbos.ClearRegistries(ctx) // Wipe workflow and queue registries
+
+ctx2, _ := dbos.NewDBOSContext(context.Background(), config)
+dbos.RegisterWorkflow(ctx2, myWorkflow) // No "already registered" panic
+```
+
 Reference: [Testing DBOS](https://docs.dbos.dev/golang/tutorials/testing)
