@@ -42,6 +42,18 @@ workflows, err := dbos.ListWorkflows(ctx,
 )
 ```
 
+Other useful filters:
+
+- `WithStartTime` / `WithEndTime`: creation time range
+- `WithCompletedAfter` / `WithCompletedBefore`: when the workflow reached a terminal state (`SUCCESS`, `ERROR`, `CANCELLED`)
+- `WithDequeuedAfter` / `WithDequeuedBefore`: when the workflow started executing
+- `WithQueueName` / `WithQueuesOnly`: queued workflows
+- `WithHasParent(bool)`: whether the workflow has a parent (child workflows)
+- `WithWasForkedFrom(bool)`: whether the workflow has been forked from
+- `WithWorkflowIDPrefix`, `WithAppVersion`, `WithExecutorIDs`, `WithOffset`
+
+Each `WorkflowStatus` includes timing and lineage fields: `CreatedAt`, `StartedAt`, `CompletedAt`, `ParentWorkflowID`, `ForkedFrom`, and `WasForkedFrom`.
+
 List workflow steps:
 
 ```go
@@ -55,6 +67,12 @@ for _, step := range steps {
 		fmt.Printf("  Child: %s\n", step.ChildWorkflowID)
 	}
 }
+```
+
+Control whether step outputs are loaded with `dbos.WithStepsLoadOutput(bool)` — when unset, outputs are loaded only if the DBOS context has been launched:
+
+```go
+steps, err := dbos.GetWorkflowSteps(ctx, workflowID, dbos.WithStepsLoadOutput(false))
 ```
 
 Workflow status values: `WorkflowStatusPending`, `WorkflowStatusEnqueued`, `WorkflowStatusSuccess`, `WorkflowStatusError`, `WorkflowStatusCancelled`, `WorkflowStatusMaxRecoveryAttemptsExceeded`

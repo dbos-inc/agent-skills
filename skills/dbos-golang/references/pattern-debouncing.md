@@ -44,4 +44,12 @@ Key behaviors:
 
 Type signature: `Debouncer[P any, R any]` — the type parameters match the target workflow.
 
+To debounce a workflow method of a configured instance (registered with `WithInstance`), pass the instance with `WithDebouncerInstance`:
+
+```go
+debouncer := dbos.NewDebouncer(ctx, slack.Send, dbos.WithDebouncerInstance(slack))
+```
+
+From an external application, use `dbos.NewDebouncerClient` with a `Client` and the workflow name; for instance workflows pass the config name with `WithDebouncerConfigName("slack")`.
+
 Reference: [Debouncing Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#debouncing)

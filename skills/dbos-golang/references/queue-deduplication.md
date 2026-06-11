@@ -42,6 +42,21 @@ func handleClick(ctx dbos.DBOSContext, userID, task string) error {
 }
 ```
 
+**Returning the existing workflow instead of an error:**
+
+By default a colliding enqueue fails (`DeduplicationPolicyReject`). Use `WithDeduplicationPolicy(dbos.DeduplicationPolicyReturnExisting)` to instead get a handle to the workflow already holding the deduplication ID:
+
+```go
+handle, err := dbos.RunWorkflow(ctx, processTask, task,
+	dbos.WithQueue(queue.Name),
+	dbos.WithDeduplicationID(userID),
+	dbos.WithDeduplicationPolicy(dbos.DeduplicationPolicyReturnExisting),
+)
+// On collision, handle refers to the existing ENQUEUED/PENDING workflow
+```
+
+`WithDeduplicationPolicy` must be used alongside `WithQueue` and `WithDeduplicationID`. From the DBOS Client, use `WithEnqueueDeduplicationPolicy` with the same semantics.
+
 Deduplication is per-queue. The deduplication ID is active while the workflow has status `ENQUEUED` or `PENDING`. Once the workflow completes, a new workflow with the same deduplication ID can be enqueued.
 
 This is useful for:

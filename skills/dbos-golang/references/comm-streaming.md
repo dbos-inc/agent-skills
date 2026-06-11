@@ -64,6 +64,14 @@ for sv := range ch {
 }
 ```
 
+**Snapshot reads (non-blocking):**
+
+```go
+// Returns once all currently-available values are drained, starting at offset 0
+values, closed, err := dbos.ReadStream[string](ctx, workflowID, "results",
+	dbos.WithReadStreamSnapshot(0))
+```
+
 Key behaviors:
 - A workflow may have any number of streams, each identified by a unique key
 - Streams are immutable and append-only
@@ -71,5 +79,6 @@ Key behaviors:
 - Streams are automatically closed when the workflow terminates
 - `ReadStream` blocks until the workflow is inactive or the stream is closed
 - `ReadStreamAsync` returns a channel of `StreamValue[R]` for non-blocking reads
+- `WithReadStreamSnapshot(fromOffset)` makes a read return as soon as currently-available values are drained, instead of blocking until the stream closes
 
 Reference: [Workflow Streaming](https://docs.dbos.dev/golang/tutorials/workflow-communication#workflow-streaming)
