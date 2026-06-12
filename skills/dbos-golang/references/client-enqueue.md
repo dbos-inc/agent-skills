@@ -53,10 +53,15 @@ handle, err := client.Enqueue("task_queue", "processTask", "task-data",
 Enqueue options:
 - `WithEnqueueWorkflowID`: Custom workflow ID
 - `WithEnqueueDeduplicationID`: Prevent duplicate enqueues
+- `WithEnqueueDeduplicationPolicy`: How a colliding deduplication ID is handled — `DeduplicationPolicyReject` (default, returns a `QueueDeduplicated` error) or `DeduplicationPolicyReturnExisting` (returns a handle to the existing workflow)
 - `WithEnqueuePriority`: Queue priority (lower = higher priority)
 - `WithEnqueueTimeout`: Workflow timeout
 - `WithEnqueueQueuePartitionKey`: Partition key for partitioned queues
 - `WithEnqueueApplicationVersion`: Override application version
+- `WithEnqueueDelay`: Delay execution; the workflow stays in `DELAYED` status until the delay expires
+- `WithEnqueueClassName`: Class/namespace name, required when enqueueing to Python, TypeScript, or Java targets
+- `WithEnqueueConfigName`: Config/instance name, required when the target workflow is registered on a configured instance (Go's `WithInstance`, Python/TypeScript/Java class instances)
+- `WithEnqueueAuthenticatedUser`, `WithEnqueueAssumedRole`, `WithEnqueueAuthenticatedRoles`: Attach authentication metadata
 
 The workflow name must match the registered name or custom name set with `WithWorkflowName` during registration.
 

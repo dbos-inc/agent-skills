@@ -35,4 +35,6 @@ Key timeout behaviors:
 - Cancellation happens at the **beginning of the next step** - the current step completes first
 - Cancelling a workflow also cancels all **child workflows**
 
+For manual cancellation without a deadline, derive a cancellable context with `dbos.WithCancel(ctx)` (or `dbos.WithCancelCause(ctx)`) and call the returned cancel function. Use `dbos.WithoutCancel(ctx)` to detach a child workflow from its parent's cancellation.
+
 Reference: [Workflow Timeouts](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#workflow-timeouts)

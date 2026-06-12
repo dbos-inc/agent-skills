@@ -89,9 +89,10 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/workflow-constraints.md`
 - `references/workflow-control.md`
 - `references/workflow-determinism.md`
+- `references/workflow-instances.md`
 - `references/workflow-introspection.md`
 - `references/workflow-timeout.md`
 
 ---
 
-*34 reference files across 9 categories*
+*35 reference files across 9 categories*
