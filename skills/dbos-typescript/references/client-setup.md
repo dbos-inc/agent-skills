@@ -30,7 +30,9 @@ try {
   // Send a message to a workflow
   await client.send(workflowID, "notification", "topic");
 
-  // Get an event from a workflow
+  // Get an event from a workflow.
+  // getEvent, getResult, and waitFirst accept an optional pollingIntervalMs
+  // to set the interval between system-database polls while waiting.
   const event = await client.getEvent<string>(workflowID, "status");
 
   // Read a stream from a workflow
@@ -69,8 +71,11 @@ try {
 Constructor options:
 - `systemDatabaseUrl`: Connection string to the Postgres system database (required)
 - `systemDatabasePool`: Optional custom `node-postgres` connection pool
+- `systemDatabasePoolSize`: Maximum size for the system database connection pool. Defaults to 10. Ignored if you pass a custom `systemDatabasePool`.
+- `systemDatabasePollingConcurrency`: Maximum number of concurrent database-backed polling reads from wait operations. Defaults to half the pool size (minimum 1).
 - `serializer`: Optional custom serializer (must match the DBOS application's serializer)
 - `systemDatabaseSchemaName`: Optional Postgres schema name (default: `"dbos"`)
+- `logger`: A custom logger implementing the `DLogger` interface, to which the client directs all its logging, replacing the built-in console logger.
 
 ## Schedule Management
 

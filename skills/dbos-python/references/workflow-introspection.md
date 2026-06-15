@@ -72,6 +72,10 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **workflow_ids**: List of specific IDs to fetch
 - **status**: Single status or list (see status values below)
 - **start_time** / **end_time**: RFC 3339 timestamps
+- **completed_after**: Retrieve workflows that completed after this RFC 3339 timestamp
+- **completed_before**: Retrieve workflows that completed before this RFC 3339 timestamp
+- **dequeued_after**: Retrieve workflows that were dequeued after this RFC 3339 timestamp
+- **dequeued_before**: Retrieve workflows that were dequeued before this RFC 3339 timestamp
 - **name**: Fully-qualified workflow function name (or list)
 - **app_version**: Application version(s)
 - **forked_from**: Source workflow ID(s) for forks
@@ -97,6 +101,8 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - `SUCCESS` / `ERROR`: terminal
 - `CANCELLED`: cancelled via `cancel_workflow` (or timed out)
 - `MAX_RECOVERY_ATTEMPTS_EXCEEDED`: exceeded retry attempts on recovery
+
+`cancel_workflow(workflow_id, *, cancel_children=False)` and `cancel_workflows(workflow_ids, *, cancel_children=False)` cancel only the named workflows by default. Set `cancel_children=True` to also recursively cancel all child workflows.
 
 ### WorkflowStatus Fields
 
@@ -127,6 +133,9 @@ class WorkflowStatus:
     was_forked_from: bool
     parent_workflow_id: Optional[str]
     dequeued_at: Optional[int]
+    completed_at: Optional[int]          # Unix epoch ms at which the workflow
+                                         # completed (SUCCESS, ERROR, or CANCELLED),
+                                         # if it has completed
 ```
 
 ### Listing Steps

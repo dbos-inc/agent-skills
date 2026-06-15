@@ -83,6 +83,41 @@ def payment_webhook(workflow_id: str, status: str, request: Request):
     )
 ```
 
-The same parameter is available on `DBOS.send_async` and `client.send` / `client.send_async`. Strongly recommended whenever calling `send` from outside a workflow.
+The same parameter is available on `DBOS.send_async` and `client.send` / `client.send_async`. Strongly recommended whenever calling `send` from outside a workflow. The idempotency key is scoped per destination workflow, so the same key sent to different destinations delivers to each.
+
+### Sending to Forks with `send_to_forks`
+
+`DBOS.send` / `DBOS.send_async` (and `client.send` / `client.send_async`) accept `send_to_forks: bool = False`. If `True`, also deliver the message to every workflow recursively forked from `destination_id`. Defaults to `False`.
+
+```python
+DBOS.send(workflow_id, status, PAYMENT_STATUS, send_to_forks=True)
+```
+
+### Atomic Multi-Send with `send_bulk`
+
+`DBOS.send_bulk(messages: List[SendMessage], *, send_to_forks: bool = False) -> None` sends many messages in a single atomic transaction: if any message can't be delivered, the entire batch rolls back and nothing is sent. Also available as `DBOS.send_bulk_async`, `client.send_bulk`, and `client.send_bulk_async`.
+
+Each message is a `SendMessage` dataclass:
+
+```python
+@dataclass
+class SendMessage:
+    destination_id: str            # workflow to send to
+    message: Any                   # must be serializable
+    topic: Optional[str] = None
+    idempotency_key: Optional[str] = None
+```
+
+```python
+from dbos import SendMessage
+
+DBOS.send_bulk([
+    SendMessage(workflow_a, "paid", PAYMENT_STATUS),
+    SendMessage(workflow_b, "paid", PAYMENT_STATUS),
+])
+```
+
+- Two messages in the same call may not share an idempotency key.
+- Use `send_bulk_async` (not `send_bulk`) inside coroutine workflows.
 
 Reference: [Workflow Messaging](https://docs.dbos.dev/python/tutorials/workflow-communication#workflow-messaging-and-notifications)

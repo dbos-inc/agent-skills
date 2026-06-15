@@ -28,7 +28,14 @@ const handle = await DBOS.resumeWorkflow<string>(workflowID);
 const result = await handle.getResult();
 ```
 
-Cancellation sets the workflow status to `CANCELLED` and preempts execution at the beginning of the next step. Cancelling also cancels all child workflows.
+Cancellation sets the workflow status to `CANCELLED` and preempts execution at the beginning of the next step. Child workflows are not cancelled by default; pass `{ cancelChildren: true }` to also recursively cancel all child workflows:
+
+```typescript
+// cancelWorkflow(workflowID, options?: { cancelChildren?: boolean }) — defaults to false
+await DBOS.cancelWorkflow(workflowID, { cancelChildren: true });
+```
+
+The same `options?: { cancelChildren?: boolean }` is available on `cancelWorkflows(workflowIDs, options?)`.
 
 Resume restarts a workflow from its last completed step. Use this for workflows that are cancelled or have exceeded their maximum recovery attempts. You can also use this to start an enqueued workflow immediately, bypassing its queue.
 

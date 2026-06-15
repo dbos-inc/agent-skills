@@ -37,13 +37,15 @@ async function onUserTask(userID: string, task: string) {
 **Two-level queueing (per-user + global limits):**
 
 ```typescript
-await DBOS.registerQueue("concurrency-queue", { concurrency: 5 });
+// concurrency-queue has a worker concurrency limit of 5, meaning that no more
+// than 5 tasks can run per worker
+await DBOS.registerQueue("concurrency-queue", { workerConcurrency: 5 });
 await DBOS.registerQueue("partitioned-queue", {
   partitionQueue: true,
   concurrency: 1,
 });
 
-// At most 1 task per user AND at most 5 tasks globally
+// At most 1 task per user AND at most 5 tasks per worker
 async function onUserTask(userID: string, task: string) {
   await DBOS.startWorkflow(concurrencyManager, {
     queueName: "partitioned-queue",

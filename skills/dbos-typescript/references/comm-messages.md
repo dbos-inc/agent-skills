@@ -47,6 +47,7 @@ async function paymentWebhook(workflowID: string, status: string) {
 interface RecvOptions {
   timeoutSeconds?: number;     // Relative timeout from now (default 60)
   deadlineEpochMS?: number;    // Absolute deadline as Unix epoch ms
+  pollingIntervalMs?: number;  // Interval between system-database polls while waiting; applies only to handles that wait by polling the DB
 }
 ```
 
