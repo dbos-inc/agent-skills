@@ -86,16 +86,20 @@ async def bad_parallel_workflow():
 
 If you need concurrent sequences, use child workflows instead of interleaving steps.
 
-For transactions in async workflows, use `asyncio.to_thread`:
+For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, which runs transactions natively in `async def`:
 
 ```python
-@DBOS.transaction()
-def sync_transaction(data):
-    DBOS.sql_session.execute(...)
+from dbos import AsyncSQLAlchemyDatasource
+
+ads = await AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"])
+
+@ads.transaction()
+async def insert_data(data):
+    await ads.sql_session().execute(...)
 
 @DBOS.workflow()
-async def async_workflow():
-    result = await asyncio.to_thread(sync_transaction, data)
+async def async_workflow(data):
+    await insert_data(data)
 ```
 
 Reference: [Async Workflows](https://docs.dbos.dev/python/tutorials/workflow-tutorial#coroutine-async-workflows)

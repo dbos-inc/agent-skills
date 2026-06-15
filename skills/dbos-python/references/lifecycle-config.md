@@ -71,7 +71,6 @@ All fields except `name` are optional:
 |-------|-------------|---------|
 | **name** | Application name | (required) |
 | **system_database_url** | System DB connection string (Postgres or SQLite) | `sqlite:///[name].sqlite` |
-| **application_database_url** | App DB for `@DBOS.transaction` | Same as system DB |
 | **enable_patching** | Enable patching strategy for workflow upgrades | `False` |
 | **application_version** | Version tag for versioning strategy | Auto-computed hash |
 | **executor_id** | Unique process ID for distributed environments | Auto-set by Conductor |

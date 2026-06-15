@@ -1,58 +1,91 @@
 ---
-title: Use Transactions for Database Operations
+title: Use Datasources for Database Operations
 impact: HIGH
-impactDescription: Transactions provide atomic database operations
-tags: transaction, database, postgres, sqlalchemy
+impactDescription: Datasource transactions provide exactly-once database execution within workflows
+tags: datasource, transaction, database, postgres, sqlite, sqlalchemy, async
 ---
 
-## Use Transactions for Database Operations
+## Use Datasources for Database Operations
 
-Transactions are a special type of step optimized for database access. They execute as a single database transaction. Only use with Postgres.
+Datasources wrap a SQLAlchemy engine with DBOS transaction tracking so each database operation inside a workflow runs exactly once, even if the workflow is interrupted and retried. Use `SQLAlchemyDatasource` for synchronous code and `AsyncSQLAlchemyDatasource` for `async def` code. Datasources connect to any PostgreSQL or SQLite database.
 
-**Incorrect (database access in regular step):**
+**Incorrect (raw database access in a workflow — not checkpointed):**
 
 ```python
-@DBOS.step()
-def save_to_db(data):
-    # For Postgres, use transactions instead of steps
-    # This doesn't get transaction guarantees
-    engine.execute("INSERT INTO table VALUES (?)", data)
+@DBOS.workflow()
+def add_greeting(name: str, note: str):
+    # Direct DB access isn't tracked; on replay it runs again
+    engine.execute("INSERT INTO greetings (name, note) VALUES (?, ?)", name, note)
 ```
 
-**Correct (using transaction):**
+**Correct (synchronous datasource):**
 
 ```python
+import os
+from dbos import DBOS, SQLAlchemyDatasource
 from sqlalchemy import text
 
-@DBOS.transaction()
-def save_to_db(name: str, value: str) -> None:
-    sql = text("INSERT INTO my_table (name, value) VALUES (:name, :value)")
-    DBOS.sql_session.execute(sql, {"name": name, "value": value})
+ds = SQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"])
 
-@DBOS.transaction()
-def get_from_db(name: str) -> str | None:
-    sql = text("SELECT value FROM my_table WHERE name = :name LIMIT 1")
-    row = DBOS.sql_session.execute(sql, {"name": name}).first()
-    return row[0] if row else None
+@ds.transaction()
+def insert_greeting(name: str, note: str) -> None:
+    session = ds.sql_session()  # sqlalchemy.orm.Session
+    session.execute(
+        text("INSERT INTO greetings (name, note) VALUES (:name, :note)"),
+        {"name": name, "note": note},
+    )
+
+@DBOS.workflow()
+def greeting_workflow(name: str, note: str) -> None:
+    insert_greeting(name, note)
 ```
 
-With SQLAlchemy ORM:
+**Async datasource (native `async def` transactions):**
 
 ```python
-from sqlalchemy import Table, Column, String, MetaData, select
+from dbos import AsyncSQLAlchemyDatasource
 
-greetings = Table("greetings", MetaData(),
-    Column("name", String),
-    Column("note", String))
+# create() is a coroutine for the async datasource — await it
+ads = await AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"])
 
-@DBOS.transaction()
-def insert_greeting(name: str, note: str) -> None:
-    DBOS.sql_session.execute(greetings.insert().values(name=name, note=note))
+@ads.transaction()
+async def insert_greeting(name: str, note: str) -> None:
+    session = ads.sql_session()  # sqlalchemy.ext.asyncio.AsyncSession
+    await session.execute(
+        text("INSERT INTO greetings (name, note) VALUES (:name, :note)"),
+        {"name": name, "note": note},
+    )
+
+@DBOS.workflow()
+async def greeting_workflow(name: str, note: str) -> None:
+    await insert_greeting(name, note)
 ```
 
-Important:
-- Only use transactions with Postgres databases
-- For other databases, use regular steps
-- Never use `async def` with transactions
+### Running Inline Without a Decorator
 
-Reference: [DBOS Transactions](https://docs.dbos.dev/python/reference/decorators#transactions)
+Use `run_tx_step` (sync) or `run_tx_step_async` (async) to run an undecorated function as a datasource transaction:
+
+```python
+def insert_greeting(name: str, note: str) -> None:
+    ds.sql_session().execute(
+        text("INSERT INTO greetings (name, note) VALUES (:name, :note)"),
+        {"name": name, "note": note},
+    )
+
+@DBOS.workflow()
+def greeting_workflow(name: str, note: str) -> None:
+    # First arg is a DatasourceOptions dict ({"name", "isolation_level"}) or None
+    ds.run_tx_step({"name": "insert_greeting"}, insert_greeting, name, note)
+```
+
+For async code, use `await ads.run_tx_step_async({...}, async_fn, *args)`.
+
+### Options and Notes
+
+- `@ds.transaction(name=..., isolation_level=...)`: `isolation_level` is one of `"SERIALIZABLE"` (default), `"REPEATABLE READ"`, or `"READ COMMITTED"`. `name` is the step name recorded in the workflow log.
+- `SQLAlchemyDatasource` only supports `def` functions; `AsyncSQLAlchemyDatasource` only supports `async def`. Decorating the wrong kind raises `DBOSException` at decoration time.
+- Call `ds.sql_session()` / `ads.sql_session()` only inside a datasource transaction; it raises otherwise.
+- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=...)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only).
+- Outside a workflow, datasource transactions run as ordinary SQLAlchemy transactions with no tracking overhead.
+
+Reference: [Transactions & Datasources](https://docs.dbos.dev/python/tutorials/transaction-tutorial)
