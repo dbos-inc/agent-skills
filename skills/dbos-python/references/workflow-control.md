@@ -45,6 +45,8 @@ DBOS.cancel_workflow(workflow_id, cancel_children=True)
 
 By default `cancel_workflow` cancels only the named workflow. Pass `cancel_children=True` to also recursively cancel every child workflow it started. The same `cancel_children` kwarg is available on `cancel_workflows(workflow_ids, *, cancel_children=False)`.
 
+Cancellation interrupts the workflow at the **beginning of its next step**; a step that is already executing runs to completion first. To cancel an executing async step immediately, mark it [`preemptible`](step-basics.md) (`@DBOS.step(preemptible=True)`).
+
 ### Resume
 
 Restart a stopped workflow from its last completed step:

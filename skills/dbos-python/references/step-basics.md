@@ -50,4 +50,18 @@ When to use steps:
 - Getting current time
 - Any non-deterministic operation
 
+### Preemptible Async Steps
+
+By default, cancelling (or timing out) a workflow interrupts it at the **beginning of the next step** — a step that is already executing first runs to completion. To cancel an executing **async** step immediately instead, mark it `preemptible`:
+
+```python
+@DBOS.step(preemptible=True)
+async def long_poll():
+    # Cancelled immediately when the workflow is cancelled,
+    # instead of running to completion
+    return await poll_external_service()
+```
+
+`preemptible=True` is only supported for async (`async def`) steps.
+
 Reference: [DBOS Steps](https://docs.dbos.dev/python/tutorials/step-tutorial)
