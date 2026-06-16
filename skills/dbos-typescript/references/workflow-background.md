@@ -71,6 +71,6 @@ const firstDone = await DBOS.waitFirst(handles);
 const result = await firstDone.getResult();
 ```
 
-`waitFirst` takes a non-empty array of `WorkflowHandle` and throws if the array is empty. It accepts `DBOS.waitFirst(handles, options?: { pollingIntervalMs?: number })` to set the system-database poll interval, applying only to handles that wait by polling the DB.
+`waitFirst` takes a non-empty array of `WorkflowHandle` and throws if the array is empty. It accepts `DBOS.waitFirst(handles, options?: { pollingIntervalMs?: number })` to set the interval between system-database polls while waiting.
 
 Reference: [Starting Workflows in Background](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#starting-workflows-in-the-background)
