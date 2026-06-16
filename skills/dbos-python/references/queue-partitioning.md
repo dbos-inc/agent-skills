@@ -40,8 +40,8 @@ def handle_user_task(user_id: str, task):
 For both per-partition AND global limits, use two-level queueing:
 
 ```python
-# Global limit of 5 concurrent tasks
-DBOS.register_queue("global_queue", concurrency=5)
+# Worker concurrency limit of 5, meaning that no more than 5 tasks can run per worker
+DBOS.register_queue("global_queue", worker_concurrency=5)
 # Per-user limit of 1 concurrent task
 DBOS.register_queue("user_queue", partition_queue=True, concurrency=1)
 
@@ -51,7 +51,7 @@ def handle_task(user_id: str, task):
 
 @DBOS.workflow()
 def concurrency_manager(task):
-    # Enforces global limit
+    # Enforces worker concurrency limit
     return DBOS.enqueue_workflow("global_queue", process_task, task).get_result()
 
 @DBOS.workflow()

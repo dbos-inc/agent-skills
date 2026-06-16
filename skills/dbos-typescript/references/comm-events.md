@@ -49,6 +49,7 @@ const progress = await DBOS.getEvent<number>(workflowID, "progress");
 interface GetEventOptions {
   timeoutSeconds?: number;     // Relative timeout from now (default 60)
   deadlineEpochMS?: number;    // Absolute deadline as Unix epoch ms
+  pollingIntervalMs?: number;  // Interval between system-database polls while waiting
 }
 ```
 

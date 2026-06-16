@@ -69,6 +69,8 @@ const page = await DBOS.listWorkflows({ limit: 50, offset: 100, sortDesc: true }
 - **workflowName**: Workflow function name (or array)
 - **status**: Single status or array (see status values below)
 - **startTime** / **endTime**: RFC 3339 timestamps
+- **completedAfter** / **completedBefore**: RFC 3339 timestamps; completed at-or-after / at-or-before that timestamp
+- **dequeuedAfter** / **dequeuedBefore**: RFC 3339 timestamps; dequeued at-or-after / at-or-before that timestamp
 - **applicationVersion**: Version(s) the workflow ran on
 - **executorId**: Executor process ID(s)
 - **workflow_id_prefix**: Match workflows whose IDs start with this
@@ -94,6 +96,8 @@ const page = await DBOS.listWorkflows({ limit: 50, offset: 100, sortDesc: true }
 - `CANCELLED`: cancelled via `cancelWorkflow` (or timed out)
 - `MAX_RECOVERY_ATTEMPTS_EXCEEDED`: exceeded retry attempts on recovery
 
+`cancelWorkflow(workflowID, options?: { cancelChildren?: boolean })` and `cancelWorkflows(workflowIDs, options?: { cancelChildren?: boolean })` cancel workflows. Child workflows are not cancelled by default; pass `{ cancelChildren: true }` to also recursively cancel all child workflows.
+
 ### `WorkflowStatus` Fields
 
 ```typescript
@@ -118,6 +122,7 @@ interface WorkflowStatus {
 
   createdAt: number;           // Unix epoch ms
   updatedAt?: number;
+  completedAt?: number;        // The time the workflow completed (SUCCESS, ERROR, or CANCELLED), as a Unix epoch timestamp in milliseconds. Undefined if not completed.
 
   timeoutMS?: number;
   deadlineEpochMS?: number;    // Computed deadline from start time + timeoutMS

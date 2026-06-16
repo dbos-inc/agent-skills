@@ -41,7 +41,7 @@ with SetWorkflowTimeout(60):
 Timeout behavior:
 - Timeout is **start-to-completion** (doesn't count queue wait time)
 - Timeouts are **durable** (persist across restarts)
-- Cancellation happens at the **beginning of the next step**
+- Cancellation happens at the **beginning of the next step** (mark an async step [`preemptible`](step-basics.md) to cancel it immediately mid-execution)
 - **All child workflows** are also cancelled
 
 With queues:

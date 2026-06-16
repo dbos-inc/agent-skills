@@ -54,4 +54,18 @@ def producer():
     DBOS.close_stream("data")  # Signal completion
 ```
 
+### Reading from an Offset
+
+`DBOS.read_stream(workflow_id, key, *, offset: int = 0)` accepts an `offset`: the offset to start reading from. Defaults to 0 (start of stream). A higher offset skips that many values from the beginning of the stream.
+
+```python
+# Skip the first 10 values
+for value in DBOS.read_stream(workflow_id, "response", offset=10):
+    yield value
+```
+
+`DBOS.read_stream_async` additionally accepts `polling_interval_sec: Optional[float] = None`: the polling interval in seconds when waiting for new values when not using LISTEN/NOTIFY. Defaults to the configured `notification_listener_polling_interval_sec` (1.0 if not configured).
+
+Both params also exist on the `DBOSClient` read_stream methods (the client supports `offset` but not `polling_interval_sec`).
+
 Reference: [Workflow Streaming](https://docs.dbos.dev/python/tutorials/workflow-communication#workflow-streaming)

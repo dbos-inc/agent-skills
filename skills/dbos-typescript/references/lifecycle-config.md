@@ -67,6 +67,7 @@ All fields except `name` are optional:
 | **applicationVersion** | Version tag for versioning strategy | Auto-computed hash |
 | **executorID** | Unique process ID for distributed environments | Auto-set by Conductor |
 | **systemDatabasePoolSize** | System DB connection pool size | `10` |
+| **systemDatabasePollingConcurrency** | Max database-backed polling reads from wait operations (such as `getResult`, `waitFirst`, `recv`, and `getEvent`) that may run concurrently against the system database pool. Prevents high-fan-out polling from starving control-plane operations (enqueue/dequeue, status writes, recovery, cancellation). | Half the `systemDatabasePoolSize` (min 1) |
 | **systemDatabaseSchemaName** | Postgres schema for DBOS system tables | `"dbos"` |
 | **systemDatabasePool** | Custom `node-postgres` pool (skips pool creation) | `undefined` |
 | **enableOTLP** | Enable OpenTelemetry tracing and export | `false` |
@@ -78,5 +79,6 @@ All fields except `name` are optional:
 | **listenQueues** | Only listen to these queues | All declared queues |
 | **schedulerPollingIntervalMs** | Scheduler polling interval for new schedules (ms) | `30000` |
 | **serializer** | Custom serializer for system database | Default (SuperJSON) |
+| **logger** | Custom logger implementing the `DLogger` interface, to which DBOS directs all its internal logging, replacing the built-in console and OTLP log sinks | `undefined` |
 
 Reference: [DBOS Configuration](https://docs.dbos.dev/typescript/reference/configuration)

@@ -14,7 +14,7 @@ This file defines the rule categories for DBOS Python best practices. Rules are 
 
 ## 3. Step (step)
 **Impact:** HIGH
-**Description:** Step creation, retries, transactions, and when to use steps vs workflows.
+**Description:** Step creation, retries, transactions via datasources, and when to use steps vs workflows.
 
 ## 4. Queue (queue)
 **Impact:** HIGH

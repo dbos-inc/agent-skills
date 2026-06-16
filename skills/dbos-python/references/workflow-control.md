@@ -37,8 +37,15 @@ cleanup_resources()
 Stop a workflow and remove it from its queue:
 
 ```python
-DBOS.cancel_workflow(workflow_id)  # Cancels workflow and all children
+DBOS.cancel_workflow(workflow_id)  # Cancels this workflow only, NOT its children
+
+# Opt in to recursively cancel all child workflows
+DBOS.cancel_workflow(workflow_id, cancel_children=True)
 ```
+
+By default `cancel_workflow` cancels only the named workflow. Pass `cancel_children=True` to also recursively cancel every child workflow it started. The same `cancel_children` kwarg is available on `cancel_workflows(workflow_ids, *, cancel_children=False)`.
+
+Cancellation interrupts the workflow at the **beginning of its next step**; a step that is already executing runs to completion first. To cancel an executing async step immediately, mark it [`preemptible`](step-basics.md) (`@DBOS.step(preemptible=True)`).
 
 ### Resume
 

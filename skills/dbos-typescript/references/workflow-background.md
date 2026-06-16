@@ -49,6 +49,12 @@ Retrieve a handle later by workflow ID:
 ```typescript
 const handle = DBOS.retrieveWorkflow<string>(workflowID);
 const result = await handle.getResult();
+
+// getResult accepts options?: { pollingIntervalMs?: number } to set the
+// interval between system-database polls. This only applies to handles that
+// wait by polling the DB (e.g. from DBOS.retrieveWorkflow or the DBOS Client),
+// not to a handle from DBOS.startWorkflow in the same process.
+const slowPoll = await handle.getResult({ pollingIntervalMs: 5000 });
 ```
 
 ### Waiting for the First of Multiple Workflows
@@ -65,6 +71,6 @@ const firstDone = await DBOS.waitFirst(handles);
 const result = await firstDone.getResult();
 ```
 
-`waitFirst` takes a non-empty array of `WorkflowHandle` and throws if the array is empty.
+`waitFirst` takes a non-empty array of `WorkflowHandle` and throws if the array is empty. It accepts `DBOS.waitFirst(handles, options?: { pollingIntervalMs?: number })` to set the interval between system-database polls while waiting.
 
 Reference: [Starting Workflows in Background](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#starting-workflows-in-the-background)

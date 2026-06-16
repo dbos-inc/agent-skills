@@ -48,6 +48,6 @@ Non-deterministic operations that must be in steps:
 - Getting current time
 - Accessing external APIs
 - Reading files
-- Database queries (use transactions or steps)
+- Database queries (use datasources or steps)
 
 Reference: [Workflow Determinism](https://docs.dbos.dev/python/tutorials/workflow-tutorial#determinism)
