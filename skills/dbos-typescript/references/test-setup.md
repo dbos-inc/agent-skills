@@ -80,7 +80,7 @@ describe("integration tests", () => {
     if (!databaseUrl) throw Error("DBOS_TEST_DATABASE_URL must be set");
     await DBOS.shutdown();
     await resetDatabase(databaseUrl);
-    DBOS.setConfig({ name: "my-integration-test", systemDatabaseUrl: databaseUrl });
+    DBOS.setConfig({ name: "my-integration-test", applicationVersion: "0.1.0", systemDatabaseUrl: databaseUrl });
     await DBOS.launch();
   }, 10000);
 

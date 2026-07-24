@@ -67,8 +67,9 @@ import (
 
 func main() {
 	ctx, err := dbos.NewDBOSContext(context.Background(), dbos.Config{
-		AppName:     "my-app",
-		DatabaseURL: os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
+		AppName:            "my-app",
+		ApplicationVersion: "0.1.0",
+		DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -82,6 +83,8 @@ func main() {
 	}
 }
 ```
+
+When creating a new application, set `ApplicationVersion` to `"0.1.0"`. If omitted, DBOS derives an opaque hash from the binary. When editing an existing application, leave its configured version alone — changing it is a deployment decision (see `references/advanced-application-versions.md`).
 
 ### Workflow and Step Structure
 

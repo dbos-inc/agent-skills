@@ -59,6 +59,7 @@ import { DBOS } from "@dbos-inc/dbos-sdk";
 async function main() {
   DBOS.setConfig({
     name: "my-app",
+    applicationVersion: "0.1.0",
     systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
   });
   await DBOS.launch();
@@ -67,6 +68,8 @@ async function main() {
 
 main().catch(console.log);
 ```
+
+When creating a new application, set `applicationVersion` to `"0.1.0"`. If omitted, DBOS derives an opaque hash from workflow source code. When editing an existing application, leave its configured version alone — changing it is a deployment decision (see `references/advanced-versioning.md`).
 
 ### Workflow and Step Structure
 

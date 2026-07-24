@@ -36,7 +36,7 @@ async function everyFiveMinutesFn(scheduledTime: Date, context: unknown) {
 const everyFiveMinutes = DBOS.registerWorkflow(everyFiveMinutesFn);
 
 async function main() {
-  DBOS.setConfig({ name: "my-app", systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL });
+  DBOS.setConfig({ name: "my-app", applicationVersion: "0.1.0", systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL });
   await DBOS.launch();
 
   // applySchedules is idempotent - safe to call on every restart

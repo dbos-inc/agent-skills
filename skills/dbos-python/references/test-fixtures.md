@@ -34,6 +34,7 @@ def reset_dbos():
     DBOS.destroy()
     config: DBOSConfig = {
         "name": "test-app",
+        "application_version": "0.1.0",
         "system_database_url": os.environ.get("TESTING_DATABASE_URL"),
     }
     DBOS(config=config)
@@ -65,6 +66,7 @@ To minimize test dependencies, you can point `system_database_url` at SQLite ins
 ```python
 config: DBOSConfig = {
     "name": "test-app",
+    "application_version": "0.1.0",
     "system_database_url": "sqlite:///my_test_db.sqlite",
 }
 ```

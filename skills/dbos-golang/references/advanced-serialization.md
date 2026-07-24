@@ -20,8 +20,9 @@ type Event struct {
 // Default JSON serializer turns Event.Payload into a map[string]any after
 // the workflow recovers — every step downstream now reads the wrong type.
 ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
-    AppName:     "my-app",
-    DatabaseURL: os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
+    AppName:            "my-app",
+    ApplicationVersion: "0.1.0",
+    DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 })
 ```
 
@@ -37,9 +38,10 @@ func init() {
 }
 
 ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
-    AppName:     "my-app",
-    DatabaseURL: os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
-    Serializer:  dbos.NewGobSerializer(),
+    AppName:            "my-app",
+    ApplicationVersion: "0.1.0",
+    DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
+    Serializer:         dbos.NewGobSerializer(),
 })
 ```
 

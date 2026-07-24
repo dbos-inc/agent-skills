@@ -17,6 +17,7 @@ from dbos import DBOS, DBOSConfig
 # Don't configure at module level!
 config: DBOSConfig = {
     "name": "my-app",
+    "application_version": "0.1.0",
 }
 DBOS(config=config)
 
@@ -42,6 +43,7 @@ def my_workflow():
 if __name__ == "__main__":
     config: DBOSConfig = {
         "name": "my-app",
+        "application_version": "0.1.0",
         "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
     }
     DBOS(config=config)
@@ -72,7 +74,7 @@ All fields except `name` are optional:
 | **name** | Application name | (required) |
 | **system_database_url** | System DB connection string (Postgres or SQLite) | `sqlite:///[name].sqlite` |
 | **enable_patching** | Enable patching strategy for workflow upgrades | `False` |
-| **application_version** | Version tag for versioning strategy | Auto-computed hash |
+| **application_version** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash |
 | **executor_id** | Unique process ID for distributed environments | Auto-set by Conductor |
 | **sys_db_pool_size** | System DB connection pool size | `20` |
 | **db_engine_kwargs** | Extra kwargs for SQLAlchemy `create_engine` | `None` |
@@ -136,6 +138,7 @@ When connecting through a connection pooler in **transaction mode**, set `use_li
 ```python
 config: DBOSConfig = {
     "name": "my-app",
+    "application_version": "0.1.0",
     "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
     "use_listen_notify": False,
 }
