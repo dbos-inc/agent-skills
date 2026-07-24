@@ -35,7 +35,7 @@ def gpu_task(data):
 
 if __name__ == "__main__":
     worker_type = os.environ.get("WORKER_TYPE")  # "cpu" or "gpu"
-    config: DBOSConfig = {"name": "worker"}
+    config: DBOSConfig = {"name": "worker", "application_version": "0.1.0"}
     DBOS(config=config)
 
     if worker_type == "gpu":

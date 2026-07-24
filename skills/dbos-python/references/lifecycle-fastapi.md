@@ -18,7 +18,7 @@ from dbos import DBOS, DBOSConfig
 app = FastAPI()
 
 # Don't configure at module level!
-config: DBOSConfig = {"name": "my-app"}
+config: DBOSConfig = {"name": "my-app", "application_version": "0.1.0"}
 DBOS(config=config)
 
 @app.get("/")
@@ -54,6 +54,7 @@ def endpoint():
 if __name__ == "__main__":
     config: DBOSConfig = {
         "name": "my-app",
+        "application_version": "0.1.0",
         "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
     }
     DBOS(config=config)

@@ -18,6 +18,7 @@ import { DBOS } from "@dbos-inc/dbos-sdk";
 // GPU tasks on CPU workers will fail or be slow!
 DBOS.setConfig({
   name: "my-app",
+  applicationVersion: "0.1.0",
   systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
 });
 await DBOS.launch();
@@ -35,6 +36,7 @@ async function main() {
 
   const config: any = {
     name: "my-app",
+    applicationVersion: "0.1.0",
     systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
   };
 

@@ -35,6 +35,7 @@ const myWorkflow = DBOS.registerWorkflow(myWorkflowFn);
 async function main() {
   DBOS.setConfig({
     name: "my-app",
+    applicationVersion: "0.1.0",
     systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
   });
   await DBOS.launch();
@@ -48,7 +49,7 @@ For scheduled-only applications, create schedules after launch:
 
 ```typescript
 async function main() {
-  DBOS.setConfig({ name: "my-app", systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL });
+  DBOS.setConfig({ name: "my-app", applicationVersion: "0.1.0", systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL });
   await DBOS.launch();
   await DBOS.applySchedules([
     { scheduleName: "my-task", workflowFn: scheduledTask, schedule: "* * * * *" },
@@ -64,7 +65,7 @@ All fields except `name` are optional:
 |-------|-------------|---------|
 | **name** | Application name | (required) |
 | **systemDatabaseUrl** | Postgres connection string for system DB | `postgresql://postgres:dbos@localhost:5432/[name]_dbos_sys` |
-| **applicationVersion** | Version tag for versioning strategy | Auto-computed hash |
+| **applicationVersion** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash |
 | **executorID** | Unique process ID for distributed environments | Auto-set by Conductor |
 | **systemDatabasePoolSize** | System DB connection pool size | `10` |
 | **systemDatabasePollingConcurrency** | Max database-backed polling reads from wait operations (such as `getResult`, `waitFirst`, `recv`, and `getEvent`) that may run concurrently against the system database pool. Prevents high-fan-out polling from starving control-plane operations (enqueue/dequeue, status writes, recovery, cancellation). | Half the `systemDatabasePoolSize` (min 1) |

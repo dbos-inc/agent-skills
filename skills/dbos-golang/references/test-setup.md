@@ -53,8 +53,9 @@ func setupDBOS(t *testing.T) dbos.DBOSContext {
 	}
 
 	ctx, err := dbos.NewDBOSContext(context.Background(), dbos.Config{
-		AppName:     "test-" + t.Name(),
-		DatabaseURL: databaseURL,
+		AppName:            "test-" + t.Name(),
+		ApplicationVersion: "0.1.0",
+		DatabaseURL:        databaseURL,
 	})
 	require.NoError(t, err)
 

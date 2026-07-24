@@ -32,8 +32,9 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 
 func main() {
 	ctx, err := dbos.NewDBOSContext(context.Background(), dbos.Config{
-		AppName:     "my-app",
-		DatabaseURL: os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
+		AppName:            "my-app",
+		ApplicationVersion: "0.1.0",
+		DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +68,7 @@ Config fields:
 - `ConductorURL`: DBOS Conductor service URL (optional)
 - `ConductorAPIKey`: DBOS Conductor API key (optional)
 - `ConductorExecutorMetadata`: `map[string]any` of metadata to identify this executor in the Conductor dashboard (must be JSON-serializable)
-- `ApplicationVersion`: App version (overridden by `DBOS__APPVERSION` env var; auto-computed from binary hash if not set)
+- `ApplicationVersion`: App version — set to `"0.1.0"` in new applications (overridden by `DBOS__APPVERSION` env var; auto-computed from binary hash if not set)
 - `ExecutorID`: Executor identifier (overridden by `DBOS__VMID` env var; default: `"local"`)
 - `EnablePatching`: Enable code patching system (default: `false`)
 - `Serializer`: Custom `Serializer[any]` for workflow inputs/outputs/events (defaults to JSON). See [advanced-serialization.md](advanced-serialization.md).
