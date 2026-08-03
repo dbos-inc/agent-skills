@@ -21,14 +21,17 @@ for _, task := range tasks {
 **Correct (using a queue):**
 
 ```go
-// Create queue before Launch()
-queue := dbos.NewWorkflowQueue(ctx, "task_queue")
+// Register the queue - its configuration is persisted in the system database
+queue, err := dbos.RegisterQueue(ctx, "task_queue")
+if err != nil {
+	panic(err)
+}
 
-func processAllTasks(ctx dbos.DBOSContext, tasks []string) ([]string, error) {
+func processAllTasks(ctx dbos.Context, tasks []string) ([]string, error) {
 	var handles []dbos.WorkflowHandle[string]
 	for _, task := range tasks {
 		handle, err := dbos.RunWorkflow(ctx, processTask, task,
-			dbos.WithQueue(queue.Name),
+			dbos.WithQueue(queue),
 		)
 		if err != nil {
 			return nil, err
@@ -48,6 +51,6 @@ func processAllTasks(ctx dbos.DBOSContext, tasks []string) ([]string, error) {
 }
 ```
 
-Queues process workflows in FIFO order. All queues must be created with `dbos.NewWorkflowQueue` before `Launch()`.
+Queues process workflows in FIFO order. Create queues with `dbos.RegisterQueue`, which persists the configuration in the system database and returns a `dbos.Queue` handle to pass to `dbos.WithQueue`.
 
 Reference: [DBOS Queues](https://docs.dbos.dev/golang/tutorials/queue-tutorial)

@@ -19,7 +19,7 @@ ch := make(chan string) // Not durable!
 **Correct (using DBOS messages):**
 
 ```go
-func checkoutWorkflow(ctx dbos.DBOSContext, orderID string) (string, error) {
+func checkoutWorkflow(ctx dbos.Context, orderID string) (string, error) {
 	// Wait for payment notification (timeout 120 seconds)
 	notification, err := dbos.Recv[string](ctx, "payment_status", 120*time.Second)
 	if err != nil {
@@ -39,14 +39,15 @@ func checkoutWorkflow(ctx dbos.DBOSContext, orderID string) (string, error) {
 }
 
 // Send a message from a webhook handler
-func paymentWebhook(ctx dbos.DBOSContext, workflowID, status string) error {
+func paymentWebhook(ctx dbos.Context, workflowID, status string) error {
 	return dbos.Send(ctx, workflowID, status, "payment_status")
 }
 ```
 
 Key behaviors:
-- `Recv` waits for and consumes the next message for the specified topic
-- Returns the zero value if the wait times out, with a `DBOSError` with code `TimeoutError`
+- `Recv` waits for and consumes the next message for the specified topic; it can only be called inside a workflow
+- Returns the zero value if the wait times out, with a `dbos.Error` with code `ErrorCodeTimeout` (matches `dbos.ErrTimeout`)
+- `Send` takes a `dbos.Client`, so it also works from external applications using the DBOS Client (a `dbos.Context` satisfies `Client`)
 - Messages without a topic can only be received by `Recv` without a topic
 - Messages are queued per-topic (FIFO)
 

@@ -13,7 +13,7 @@ tags: workflow, step, aggregates, analytics, observability
 
 ```go
 workflows, _ := dbos.ListWorkflows(ctx,
-    dbos.WithStartTime(time.Now().Add(-24*time.Hour)))
+    dbos.WithFilterCreatedAfter(time.Now().Add(-24*time.Hour)))
 counts := map[string]int{}
 for _, w := range workflows {
     counts[string(w.Status)]++
@@ -26,12 +26,13 @@ for _, w := range workflows {
 rows, err := dbos.GetWorkflowAggregates(ctx, dbos.GetWorkflowAggregatesInput{
     GroupByStatus: true,
     GroupByName:   true,
+    SelectCount:   true,
     StartTime:     time.Now().Add(-24 * time.Hour),
 })
 for _, r := range rows {
     status := *r.Group["status"]
     name := *r.Group["name"]
-    log.Printf("status=%s name=%s count=%d", status, name, r.Count)
+    log.Printf("status=%s name=%s count=%d", status, name, *r.Count)
 }
 ```
 
@@ -39,16 +40,18 @@ Input fields:
 
 - Grouping flags (at least one must be true, or `TimeBucketSize > 0`):
   `GroupByStatus`, `GroupByName`, `GroupByQueueName`, `GroupByExecutorID`, `GroupByApplicationVersion`
+- Aggregate flags (at least one must be true): `SelectCount`, `SelectMinCreatedAt`, `SelectMaxQueueWaitMs`, `SelectMaxTotalLatencyMs`
 - `TimeBucketSize time.Duration`: when non-zero, also groups by `created_at` bucket of this duration
-- Filters (all optional, AND-ed together): `Status []WorkflowStatusType`, `StartTime`, `EndTime time.Time`, `Name`, `ApplicationVersion`, `ExecutorID`, `QueueName`, `WorkflowIDPrefix []string`
+- Filters (all optional, AND-ed together): `Status []WorkflowStatusType`, `StartTime`, `EndTime`, `CompletedAfter`, `CompletedBefore`, `DequeuedAfter`, `DequeuedBefore time.Time`, `Name`, `ApplicationVersion`, `ExecutorID`, `QueueName`, `WorkflowIDPrefix`, `WorkflowIDs`, `AuthenticatedUser`, `ForkedFrom`, `ParentWorkflowID []string`, `WasForkedFrom`, `HasParent *bool`, `Attributes map[string]any`
 
-Each `WorkflowAggregateRow` has a `Count int64` and a `Group map[string]*string` with one entry per enabled grouping column (`"status"`, `"name"`, `"queue_name"`, `"executor_id"`, `"application_version"`, `"time_bucket"`). Map values are pointers so `nil` represents NULL grouping values (e.g. workflows without a queue name).
+Each `WorkflowAggregateRow` has a `Group map[string]*string` with one entry per enabled grouping column (`"status"`, `"name"`, `"queue_name"`, `"executor_id"`, `"application_version"`, `"time_bucket"`) and pointer fields `Count`, `MinCreatedAt`, `MaxQueueWaitMs`, and `MaxTotalLatencyMs`, populated only for the enabled `Select*` flags. Group map values are pointers so `nil` represents NULL grouping values (e.g. workflows without a queue name).
 
 Time bucket example — hourly histogram of failed workflows over the last day:
 
 ```go
 rows, err := dbos.GetWorkflowAggregates(ctx, dbos.GetWorkflowAggregatesInput{
     TimeBucketSize: time.Hour,
+    SelectCount:    true,
     Status:         []dbos.WorkflowStatusType{dbos.WorkflowStatusError},
     StartTime:      time.Now().Add(-24 * time.Hour),
 })

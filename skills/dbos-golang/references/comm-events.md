@@ -14,7 +14,7 @@ Workflows can publish events (key-value pairs) with `dbos.SetEvent`. Other code 
 ```go
 var progress int // Global variable - not durable!
 
-func processData(ctx dbos.DBOSContext, input string) (string, error) {
+func processData(ctx dbos.Context, input string) (string, error) {
 	progress = 50 // Not persisted, lost on restart
 	return input, nil
 }
@@ -23,7 +23,7 @@ func processData(ctx dbos.DBOSContext, input string) (string, error) {
 **Correct (using events):**
 
 ```go
-func processData(ctx dbos.DBOSContext, input string) (string, error) {
+func processData(ctx dbos.Context, input string) (string, error) {
 	dbos.SetEvent(ctx, "status", "processing")
 	_, err := dbos.RunAsStep(ctx, stepOne, dbos.WithStepName("stepOne"))
 	if err != nil {
@@ -47,7 +47,7 @@ progress, err := dbos.GetEvent[int](ctx, workflowID, "progress", 60*time.Second)
 Events are useful for interactive workflows. For example, a checkout workflow can publish a payment URL for the caller to redirect to:
 
 ```go
-func checkoutWorkflow(ctx dbos.DBOSContext, order Order) (string, error) {
+func checkoutWorkflow(ctx dbos.Context, order Order) (string, error) {
 	paymentURL, err := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
 		return createPayment(order)
 	}, dbos.WithStepName("createPayment"))
@@ -64,6 +64,6 @@ handle, _ := dbos.RunWorkflow(ctx, checkoutWorkflow, order)
 url, _ := dbos.GetEvent[string](ctx, handle.GetWorkflowID(), "paymentURL", 300*time.Second)
 ```
 
-`GetEvent` blocks until the event is set or the timeout expires. It returns the zero value of the type if the timeout is reached.
+`GetEvent` blocks until the event is set or the timeout expires. It returns the zero value of the type and a timeout error if the timeout is reached. It takes a `dbos.Client`, so it also works from external applications using the DBOS Client (a `dbos.Context` satisfies `Client`).
 
 Reference: [Workflow Events](https://docs.dbos.dev/golang/tutorials/workflow-communication#workflow-events)

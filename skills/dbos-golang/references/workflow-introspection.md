@@ -22,7 +22,7 @@ dbos.RunWorkflow(ctx, processTask, "data")
 ```go
 // List workflows by status
 erroredWorkflows, err := dbos.ListWorkflows(ctx,
-	dbos.WithStatus([]dbos.WorkflowStatusType{dbos.WorkflowStatusError}),
+	dbos.WithFilterStatus(dbos.WorkflowStatusError),
 )
 
 for _, wf := range erroredWorkflows {
@@ -34,23 +34,23 @@ List workflows with multiple filters:
 
 ```go
 workflows, err := dbos.ListWorkflows(ctx,
-	dbos.WithName("processOrder"),
-	dbos.WithStatus([]dbos.WorkflowStatusType{dbos.WorkflowStatusSuccess}),
-	dbos.WithLimit(100),
-	dbos.WithSortDesc(),
-	dbos.WithLoadOutput(true),
+	dbos.WithFilterName("processOrder"),
+	dbos.WithFilterStatus(dbos.WorkflowStatusSuccess),
+	dbos.WithFilterLimit(100),
+	dbos.WithFilterSortDesc(),
+	dbos.WithFilterLoadOutput(true),
 )
 ```
 
 Other useful filters:
 
-- `WithStartTime` / `WithEndTime`: creation time range
-- `WithCompletedAfter` / `WithCompletedBefore`: when the workflow reached a terminal state (`SUCCESS`, `ERROR`, `CANCELLED`)
-- `WithDequeuedAfter` / `WithDequeuedBefore`: when the workflow started executing
-- `WithQueueName` / `WithQueuesOnly`: queued workflows
-- `WithHasParent(bool)`: whether the workflow has a parent (child workflows)
-- `WithWasForkedFrom(bool)`: whether the workflow has been forked from
-- `WithWorkflowIDPrefix`, `WithAppVersion`, `WithExecutorIDs`, `WithOffset`
+- `WithFilterCreatedAfter` / `WithFilterCreatedBefore`: creation time range
+- `WithFilterCompletedAfter` / `WithFilterCompletedBefore`: when the workflow reached a terminal state (`SUCCESS`, `ERROR`, `CANCELLED`)
+- `WithFilterDequeuedAfter` / `WithFilterDequeuedBefore`: when the workflow started executing
+- `WithFilterQueueName` / `WithFilterQueuesOnly`: queued workflows
+- `WithFilterHasParent(bool)`: whether the workflow has a parent (child workflows)
+- `WithFilterWasForkedFrom(bool)`: whether the workflow has been forked from
+- `WithFilterWorkflowIDPrefix`, `WithFilterAppVersion`, `WithFilterExecutorIDs`, `WithFilterOffset`
 
 Each `WorkflowStatus` includes timing and lineage fields: `CreatedAt`, `StartedAt`, `CompletedAt`, `ParentWorkflowID`, `ForkedFrom`, and `WasForkedFrom`.
 

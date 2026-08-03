@@ -19,7 +19,7 @@ type Event struct {
 }
 // Default JSON serializer turns Event.Payload into a map[string]any after
 // the workflow recovers — every step downstream now reads the wrong type.
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
     AppName:            "my-app",
     ApplicationVersion: "0.1.0",
     DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
@@ -37,7 +37,7 @@ func init() {
     gob.Register(MyStepOutput{})
 }
 
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
     AppName:            "my-app",
     ApplicationVersion: "0.1.0",
     DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
@@ -59,7 +59,7 @@ type Serializer[T any] interface {
 }
 ```
 
-`Name()` must be stable for the lifetime of the database — workflows written under one name can only be decoded by a serializer that returns the same name. `nil` inputs/outputs must round-trip to `nil` (`Encode(nil)` should return `(nil, nil)`).
+`Name()` must be stable for the lifetime of the database — workflows written under one name can only be decoded by a serializer that returns the same name. `nil` inputs/outputs must round-trip to `nil`: `Encode` of a nil value must produce something `Decode` maps back to `nil`, and `Decode(nil)` must return `(nil, nil)`.
 
 Pass an instance of `Serializer[any]` via `Config.Serializer`. Custom serializers are looked up by `Name()` at decode time, so register the same instance on every executor that recovers workflows from this database.
 

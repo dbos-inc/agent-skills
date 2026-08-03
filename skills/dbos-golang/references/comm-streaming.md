@@ -12,7 +12,7 @@ Workflows can stream data to clients in real-time using `dbos.WriteStream`, `dbo
 **Incorrect (accumulating results then returning at end):**
 
 ```go
-func processWorkflow(ctx dbos.DBOSContext, items []string) ([]string, error) {
+func processWorkflow(ctx dbos.Context, items []string) ([]string, error) {
 	var results []string
 	for _, item := range items {
 		result, _ := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
@@ -27,7 +27,7 @@ func processWorkflow(ctx dbos.DBOSContext, items []string) ([]string, error) {
 **Correct (streaming results as they become available):**
 
 ```go
-func processWorkflow(ctx dbos.DBOSContext, items []string) (string, error) {
+func processWorkflow(ctx dbos.Context, items []string) (string, error) {
 	for _, item := range items {
 		result, err := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
 			return processItem(item)
@@ -67,9 +67,13 @@ for sv := range ch {
 **Snapshot reads (non-blocking):**
 
 ```go
-// Returns once all currently-available values are drained, starting at offset 0
+// Returns once all currently-available values are drained
 values, closed, err := dbos.ReadStream[string](ctx, workflowID, "results",
-	dbos.WithReadStreamSnapshot(0))
+	dbos.WithReadStreamSnapshot())
+
+// Start reading at offset 100, skipping earlier values
+values, closed, err = dbos.ReadStream[string](ctx, workflowID, "results",
+	dbos.WithReadStreamFromOffset(100))
 ```
 
 Key behaviors:
@@ -79,6 +83,9 @@ Key behaviors:
 - Streams are automatically closed when the workflow terminates
 - `ReadStream` blocks until the workflow is inactive or the stream is closed
 - `ReadStreamAsync` returns a channel of `StreamValue[R]` for non-blocking reads
-- `WithReadStreamSnapshot(fromOffset)` makes a read return as soon as currently-available values are drained, instead of blocking until the stream closes
+- `ReadStream` and `ReadStreamAsync` take a `dbos.Client`, so they also work from external applications using the DBOS Client (a `dbos.Context` satisfies `Client`)
+- `WithReadStreamSnapshot()` makes a read return as soon as currently-available values are drained, instead of blocking until the stream closes
+- `WithReadStreamFromOffset(offset)` starts the read at a 0-based offset, skipping earlier values
+- `WriteStream` may be called inside a step; `CloseStream` must be called from workflow code and returns an error if called inside a step
 
 Reference: [Workflow Streaming](https://docs.dbos.dev/golang/tutorials/workflow-communication#workflow-streaming)

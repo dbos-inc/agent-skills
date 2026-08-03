@@ -13,7 +13,7 @@ Every DBOS application must create a context, register workflows and queues, the
 
 ```go
 // No context or launch!
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	return input, nil
 }
 
@@ -26,12 +26,12 @@ func main() {
 **Correct (create context, register, launch):**
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	return input, nil
 }
 
 func main() {
-	ctx, err := dbos.NewDBOSContext(context.Background(), dbos.Config{
+	ctx, err := dbos.NewContext(context.Background(), dbos.Config{
 		AppName:            "my-app",
 		ApplicationVersion: "0.1.0",
 		DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
@@ -58,9 +58,9 @@ func main() {
 
 Config fields:
 - `AppName` (required): Application identifier
-- `DatabaseURL` (required unless `SystemDBPool` or `SqliteSystemDB` is set): PostgreSQL/CockroachDB connection string
-- `SystemDBPool`: Custom `*pgxpool.Pool` (takes precedence over `DatabaseURL`, mutually exclusive with `SqliteSystemDB`)
-- `SqliteSystemDB`: Custom `*sql.DB` for SQLite (mutually exclusive with `SystemDBPool`)
+- `DatabaseURL` (required unless `SystemDBPool` or `SQLiteSystemDB` is set): PostgreSQL/CockroachDB connection string, or a SQLite URL (`sqlite:/path/to.db`, `sqlite:relative.db`, `sqlite::memory:`). SQLite requires the blank import `_ "github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite"`
+- `SystemDBPool`: Custom `*pgxpool.Pool` (takes precedence over `DatabaseURL`, mutually exclusive with `SQLiteSystemDB`)
+- `SQLiteSystemDB`: Custom `*sql.DB` for SQLite (mutually exclusive with `SystemDBPool`; requires the sqlite driver import)
 - `DatabaseSchema`: Schema name (default: `"dbos"`)
 - `Logger`: Custom `*slog.Logger` (defaults to stdout)
 - `AdminServer`: Enable HTTP admin server (default: `false`)
@@ -73,6 +73,7 @@ Config fields:
 - `EnablePatching`: Enable code patching system (default: `false`)
 - `Serializer`: Custom `Serializer[any]` for workflow inputs/outputs/events (defaults to JSON). See [advanced-serialization.md](advanced-serialization.md).
 - `SchedulerPollingInterval`: How often DB-backed schedules are reconciled (default: 30s)
+- `SystemDBStartupTimeout`: Maximum time for system-database connection and migrations (default: 2m)
 
 ### Alert Handler
 

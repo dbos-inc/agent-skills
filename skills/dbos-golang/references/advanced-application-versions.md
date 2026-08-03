@@ -16,7 +16,7 @@ DBOS tracks an application version for every workflow. Recovery only re-runs wor
 ```go
 // Binary hash changes on every recompile, so recovery thinks every workflow
 // belongs to a different version and refuses to re-run them.
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
     AppName:     "my-app",
     DatabaseURL: os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 })
@@ -27,7 +27,7 @@ ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
 `Config.ApplicationVersion` overrides the auto-computed binary hash. The env var `DBOS__APPVERSION` overrides the config field:
 
 ```go
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
     AppName:            "my-app",
     DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
     ApplicationVersion: "v1.2.3",
@@ -37,14 +37,14 @@ ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
 Read the resolved values from the context:
 
 ```go
-version := ctx.GetApplicationVersion()
-executorID := ctx.GetExecutorID()
-appID := ctx.GetApplicationID()
+version := dbos.GetApplicationVersion(ctx)
+executorID := dbos.GetExecutorID(ctx)
+appID := dbos.GetApplicationID(ctx)
 ```
 
 ### Inspecting and promoting versions
 
-DBOS records every version that runs against the database. Promote a previously-seen version to "latest" without redeploying:
+DBOS records every version that runs against the database. These functions take any `Client`, so they also work from a `dbos.Client` outside the app. Promote a previously-seen version to "latest" without redeploying:
 
 ```go
 versions, _ := dbos.ListApplicationVersions(ctx)

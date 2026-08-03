@@ -27,15 +27,16 @@ go func() {
 
 ```go
 // Relative delay on a queued workflow
+queue, _ := dbos.RegisterQueue(ctx, "notifications")
 handle, _ := dbos.RunWorkflow(ctx, sendReminder, userID,
-    dbos.WithQueue("notifications"),
+    dbos.WithQueue(queue),
     dbos.WithDelay(24*time.Hour))
 ```
 
 From the client (external app):
 
 ```go
-handle, _ := client.Enqueue("notifications", "sendReminder", userID,
+handle, _ := dbos.Enqueue[string](client, "notifications", "sendReminder", userID,
     dbos.WithEnqueueDelay(24*time.Hour))
 ```
 
@@ -53,7 +54,7 @@ dbos.SetWorkflowDelay(ctx, workflowID,
     dbos.WithDelayUntil(time.Date(2026, 6, 1, 9, 0, 0, 0, time.UTC)))
 ```
 
-Calling with both options or neither returns an error. The same option is available from `Client.SetWorkflowDelay`.
+Calling with both options or neither returns an error. `SetWorkflowDelay` takes a `Client`, so it works the same from an external `dbos.Client`.
 
 ### Cancelling a delayed workflow
 

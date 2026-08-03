@@ -12,14 +12,14 @@ Set rate limits on a queue to control how many workflows start in a given period
 **Incorrect (no rate limiting):**
 
 ```go
-queue := dbos.NewWorkflowQueue(ctx, "llm_tasks")
+queue, err := dbos.RegisterQueue(ctx, "llm_tasks")
 // Could send hundreds of requests per second to a rate-limited API
 ```
 
 **Correct (rate-limited queue):**
 
 ```go
-queue := dbos.NewWorkflowQueue(ctx, "llm_tasks",
+queue, err := dbos.RegisterQueue(ctx, "llm_tasks",
 	dbos.WithRateLimiter(&dbos.RateLimiter{
 		Limit:  50,
 		Period: 30 * time.Second,
@@ -33,7 +33,7 @@ This queue starts at most 50 workflows per 30 seconds.
 
 ```go
 // At most 5 concurrent and 50 per 30 seconds
-queue := dbos.NewWorkflowQueue(ctx, "api_tasks",
+queue, err := dbos.RegisterQueue(ctx, "api_tasks",
 	dbos.WithWorkerConcurrency(5),
 	dbos.WithRateLimiter(&dbos.RateLimiter{
 		Limit:  50,

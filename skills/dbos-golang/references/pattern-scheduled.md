@@ -25,8 +25,9 @@ go func() {
 
 ```go
 // DB-backed scheduled workflows must use the ScheduledWorkflowFunc signature
-func dailyReport(ctx dbos.DBOSContext, input dbos.ScheduledWorkflowInput) (any, error) {
-    fmt.Println("Tick at", input.ScheduledTime, "context", input.Context)
+func dailyReport(ctx dbos.Context, input dbos.ScheduledWorkflowInput) (any, error) {
+    cfg, _ := dbos.DecodeScheduleContext[map[string]string](input)
+    fmt.Println("Tick at", input.ScheduledTime, "region", cfg["region"])
     _, err := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
         return generateReport()
     }, dbos.WithStepName("generateReport"))
@@ -34,21 +35,21 @@ func dailyReport(ctx dbos.DBOSContext, input dbos.ScheduledWorkflowInput) (any, 
 }
 
 func main() {
-    ctx, _ := dbos.NewDBOSContext(context.Background(), config)
+    ctx, _ := dbos.NewContext(context.Background(), config)
     defer dbos.Shutdown(ctx, 30*time.Second)
 
     dbos.RegisterWorkflow(ctx, dailyReport)
     dbos.Launch(ctx)
 
-    err := dbos.CreateSchedule(ctx, dailyReport, dbos.CreateScheduleRequest{
-        ScheduleName: "daily-report",
-        Schedule:     "0 0 9 * * *", // 9 AM daily
-    },
-        dbos.WithScheduleContext(map[string]string{"region": "us-west"}),
-        dbos.WithCronTimezone("America/Los_Angeles"),
-        dbos.WithAutomaticBackfill(true),
-        dbos.WithScheduleQueueName("scheduled"),
-    )
+    err := dbos.CreateSchedule(ctx, dbos.ScheduleSpec{
+        ScheduleName:      "daily-report",
+        Schedule:          "0 0 9 * * *", // 9 AM daily
+        Workflow:          dailyReport,
+        Context:           map[string]string{"region": "us-west"},
+        CronTimezone:      "America/Los_Angeles",
+        AutomaticBackfill: true,
+        QueueName:         "scheduled",
+    })
     if err != nil {
         log.Fatal(err)
     }
@@ -56,7 +57,7 @@ func main() {
 }
 ```
 
-Scheduled workflow functions must conform to `ScheduledWorkflowFunc`: they take a `DBOSContext` and a `ScheduledWorkflowInput` whose `ScheduledTime` is the cron tick time and whose `Context` carries the user-defined value attached to the schedule.
+Scheduled workflow functions must conform to `ScheduledWorkflowFunc`: they take a `Context` and a `ScheduledWorkflowInput` whose `ScheduledTime` is the cron tick time and whose `Context` carries the user-defined value attached to the schedule (JSON-serialized; decode it with `dbos.DecodeScheduleContext[T](input)`). In `ScheduleSpec`, set `Workflow` to a registered Go function, or `WorkflowName` (plus optionally `WorkflowClassName`) to reference a workflow by name — including one owned by another process or language.
 
 DBOS crontab uses 6 fields with second precision:
 ```text
@@ -73,9 +74,9 @@ DBOS crontab uses 6 fields with second precision:
 
 ```go
 // Apply (create-or-update) many schedules atomically
-dbos.ApplySchedules(ctx, []dbos.ApplySchedulesRequest{{
+dbos.ApplySchedules(ctx, []dbos.ScheduleSpec{{
     ScheduleName: "daily-report",
-    WorkflowFn:   dailyReport,
+    Workflow:     dailyReport,
     Schedule:     "0 0 9 * * *",
     Context:      "ctx-value",
 }})
@@ -92,8 +93,8 @@ dbos.PauseSchedule(ctx, "daily-report")
 dbos.ResumeSchedule(ctx, "daily-report")
 dbos.DeleteSchedule(ctx, "daily-report")
 
-// Trigger immediately (returns a handle to the enqueued workflow)
-handle, _ := dbos.TriggerSchedule(ctx, "daily-report")
+// Trigger immediately (returns a typed handle to the enqueued workflow)
+handle, _ := dbos.TriggerSchedule[any](ctx, "daily-report")
 
 // Backfill historical ticks (returns enqueued workflow IDs)
 ids, _ := dbos.BackfillSchedule(ctx, "daily-report",
@@ -102,6 +103,6 @@ ids, _ := dbos.BackfillSchedule(ctx, "daily-report",
 
 The reconciler polls the DB every `Config.SchedulerPollingInterval` (default 30s) to install or remove schedule entries — useful for multi-executor deployments where one node can create a schedule that another node picks up. Each `dbos.Config` may set this interval.
 
-`Client.CreateSchedule` / `Client.ApplySchedules` use a `ClientScheduleInput` struct (workflow referenced by name) for external creation. See [client-setup.md](client-setup.md).
+All schedule functions take a `Client`, so they also work from an external `dbos.Client` — reference the workflow by `WorkflowName` since a function pointer is only available in-process. See [client-setup.md](client-setup.md).
 
 Reference: [Scheduled Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#scheduled-workflows)
