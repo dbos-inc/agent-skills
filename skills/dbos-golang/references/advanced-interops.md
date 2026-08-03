@@ -16,7 +16,7 @@ When a single DBOS deployment mixes Go executors with Python or TypeScript execu
 ```go
 // PyInput is a Go-only struct; Python cannot decode the resulting JSON
 // and the workflow will fail on dequeue.
-handle, _ := dbos.Enqueue[PyInput, any](client, "task_queue", "py_workflow", PyInput{...})
+handle, _ := dbos.Enqueue[any](client, "task_queue", "py_workflow", PyInput{...})
 ```
 
 **Correct (PortableWorkflowArgs envelope):**
@@ -29,12 +29,14 @@ args := dbos.PortableWorkflowArgs{
     NamedArgs:      map[string]any{"key": "value"},
 }
 
-handle, err := dbos.Enqueue[dbos.PortableWorkflowArgs, any](
+handle, err := dbos.Enqueue[any](
     client, "task_queue", "py_workflow", args,
     dbos.WithEnqueueClassName("MyPyClass"),       // optional
     dbos.WithEnqueueConfigName("default"),        // optional
 )
 ```
+
+To schedule a foreign class-based workflow, set `WorkflowClassName` alongside `WorkflowName` in the `dbos.ScheduleSpec` passed to `dbos.CreateSchedule`.
 
 ### Running a portable workflow in Go
 

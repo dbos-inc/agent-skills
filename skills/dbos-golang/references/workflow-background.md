@@ -12,7 +12,7 @@ Use `dbos.RunWorkflow` to start a workflow and get a handle to track it. The wor
 **Incorrect (no way to track background work):**
 
 ```go
-func processData(ctx dbos.DBOSContext, data string) (string, error) {
+func processData(ctx dbos.Context, data string) (string, error) {
 	// ...
 	return "processed: " + data, nil
 }
@@ -26,7 +26,7 @@ go func() {
 **Correct (using RunWorkflow):**
 
 ```go
-func processData(ctx dbos.DBOSContext, data string) (string, error) {
+func processData(ctx dbos.Context, data string) (string, error) {
 	return "processed: " + data, nil
 }
 

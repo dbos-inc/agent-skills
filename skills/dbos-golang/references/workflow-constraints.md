@@ -18,10 +18,10 @@ func myStep(ctx context.Context) (string, error) {
 	return "", nil
 }
 
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	// Starting a child workflow inside a step breaks determinism
 	dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
-		handle, _ := dbos.RunWorkflow(ctx.(dbos.DBOSContext), otherWorkflow, "data") // WRONG
+		handle, _ := dbos.RunWorkflow(ctx.(dbos.Context), otherWorkflow, "data") // WRONG
 		return handle.GetWorkflowID(), nil
 	})
 	return "", nil
@@ -42,7 +42,7 @@ func fetchData(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	data, err := dbos.RunAsStep(ctx, fetchData, dbos.WithStepName("fetchData"))
 	if err != nil {
 		return "", err
@@ -59,6 +59,8 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 	return data, nil
 }
 ```
+
+Workflow operations that return an error when called inside a step: starting or enqueueing workflows, `RunAsTransaction`, `handle.GetResult`, `CloseStream`, `Send`, `Recv`, `GetEvent`, `Sleep`, and `Go`. Read operations (e.g. `ListWorkflows`), `SetEvent`, and `WriteStream` are allowed inside steps.
 
 Additional constraints:
 - Don't modify global variables from workflows or steps

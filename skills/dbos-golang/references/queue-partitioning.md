@@ -13,7 +13,7 @@ Partitioned queues apply flow control limits per partition key instead of the en
 
 ```go
 // Global concurrency=1 blocks ALL users, not per-user
-queue := dbos.NewWorkflowQueue(ctx, "tasks",
+queue, err := dbos.RegisterQueue(ctx, "tasks",
 	dbos.WithGlobalConcurrency(1),
 )
 ```
@@ -21,16 +21,16 @@ queue := dbos.NewWorkflowQueue(ctx, "tasks",
 **Correct (partitioned queue):**
 
 ```go
-queue := dbos.NewWorkflowQueue(ctx, "tasks",
+queue, err := dbos.RegisterQueue(ctx, "tasks",
 	dbos.WithPartitionQueue(),
 	dbos.WithGlobalConcurrency(1),
 )
 
-func onUserTask(ctx dbos.DBOSContext, userID, task string) error {
+func onUserTask(ctx dbos.Context, userID, task string) error {
 	// Each user gets their own partition - at most 1 task per user
 	// but tasks from different users can run concurrently
 	_, err := dbos.RunWorkflow(ctx, processTask, task,
-		dbos.WithQueue(queue.Name),
+		dbos.WithQueue(queue),
 		dbos.WithQueuePartitionKey(userID),
 	)
 	return err

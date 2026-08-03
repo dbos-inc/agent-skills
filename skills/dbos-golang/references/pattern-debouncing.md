@@ -13,7 +13,7 @@ Use `dbos.NewDebouncer` to delay workflow execution until some time has passed s
 
 ```go
 // Every keystroke triggers a new workflow - wasteful!
-func onInputChange(ctx dbos.DBOSContext, userInput string) {
+func onInputChange(ctx dbos.Context, userInput string) {
 	dbos.RunWorkflow(ctx, processInput, userInput)
 }
 ```
@@ -21,12 +21,12 @@ func onInputChange(ctx dbos.DBOSContext, userInput string) {
 **Correct (using Debouncer):**
 
 ```go
-// Create debouncer before Launch()
-debouncer := dbos.NewDebouncer(ctx, processInput,
+// The target workflow must be registered before creating the debouncer
+debouncer, err := dbos.NewDebouncer(ctx, processInput,
 	dbos.WithDebouncerTimeout(120*time.Second), // Max wait: 2 minutes
 )
 
-func onInputChange(ctx dbos.DBOSContext, userID, userInput string) error {
+func onInputChange(ctx dbos.Context, userID, userInput string) error {
 	// Delays execution by 60 seconds from the last call
 	// Uses the LAST set of inputs when finally executing
 	_, err := debouncer.Debounce(ctx, userID, 60*time.Second, userInput)
@@ -40,16 +40,16 @@ Key behaviors:
 - `WithDebouncerTimeout` sets a max wait time since the first trigger
 - When the workflow finally executes, it uses the **last** set of inputs
 - After execution begins, the next `Debounce` call starts a new cycle
-- Debouncers must be created **before** `Launch()`
+- `WithDebouncerQueue("name")` runs the debounced workflow on a specific queue (must already be registered)
 
-Type signature: `Debouncer[P any, R any]` — the type parameters match the target workflow.
+Type signature: `Debouncer[R any, P any]` — result type first, then the workflow input type.
 
 To debounce a workflow method of a configured instance (registered with `WithInstance`), pass the instance with `WithDebouncerInstance`:
 
 ```go
-debouncer := dbos.NewDebouncer(ctx, slack.Send, dbos.WithDebouncerInstance(slack))
+debouncer, err := dbos.NewDebouncer(ctx, slack.Send, dbos.WithDebouncerInstance(slack))
 ```
 
-From an external application, use `dbos.NewDebouncerClient` with a `Client` and the workflow name; for instance workflows pass the config name with `WithDebouncerConfigName("slack")`.
+From an external application, use `dbos.NewDebouncerClient[R, P](workflowName, client, opts...)` — type parameters are explicit since there is no function to infer them from. For instance workflows pass the config name with `WithDebouncerConfigName("slack")`; for workflows other runtimes resolve by class name, set it with `WithDebouncerClassName`.
 
 Reference: [Debouncing Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#debouncing)

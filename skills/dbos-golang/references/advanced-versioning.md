@@ -12,7 +12,7 @@ Set `ApplicationVersion` in configuration to tag workflows with a version. DBOS 
 **Incorrect (deploying new code that breaks in-progress workflows):**
 
 ```go
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
 	AppName:     "my-app",
 	DatabaseURL: os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 	// No version set - version auto-computed from binary hash
@@ -23,7 +23,7 @@ ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
 **Correct (versioned deployment):**
 
 ```go
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
 	AppName:            "my-app",
 	DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 	ApplicationVersion: "2.0.0",
@@ -41,8 +41,8 @@ By default, the application version is automatically computed from a SHA-256 has
 
 ```go
 oldWorkflows, _ := dbos.ListWorkflows(ctx,
-	dbos.WithAppVersion("1.0.0"),
-	dbos.WithStatus([]dbos.WorkflowStatusType{dbos.WorkflowStatusPending}),
+	dbos.WithFilterAppVersion("1.0.0"),
+	dbos.WithFilterStatus(dbos.WorkflowStatusPending),
 )
 ```
 

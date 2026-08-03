@@ -12,7 +12,7 @@ Workflow functions must be deterministic: given the same inputs and step return 
 **Incorrect (non-deterministic workflow):**
 
 ```go
-func exampleWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func exampleWorkflow(ctx dbos.Context, input string) (string, error) {
 	// Random value in workflow breaks recovery!
 	// On replay, rand.Intn returns a different value,
 	// so the workflow may take a different branch.
@@ -26,7 +26,7 @@ func exampleWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 **Correct (non-determinism in step):**
 
 ```go
-func exampleWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func exampleWorkflow(ctx dbos.Context, input string) (string, error) {
 	// Step result is checkpointed - replay uses the saved value
 	choice, err := dbos.RunAsStep(ctx, func(ctx context.Context) (int, error) {
 		return rand.Intn(2), nil

@@ -4,9 +4,9 @@ description: DBOS Go SDK for building reliable, fault-tolerant applications with
 license: MIT
 metadata:
   author: dbos
-  version: "1.2.0"
+  version: "2.0.0"
   organization: DBOS
-  date: June 2026
+  date: August 2026
   abstract: Comprehensive guide for building fault-tolerant Go applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
 ---
 
@@ -43,7 +43,7 @@ Reference these guidelines when:
 
 ### Installation
 
-Install the DBOS Go module:
+Install the DBOS Go module (v1):
 
 ```bash
 go get github.com/dbos-inc/dbos-transact-golang/dbos@latest
@@ -66,7 +66,7 @@ import (
 )
 
 func main() {
-	ctx, err := dbos.NewDBOSContext(context.Background(), dbos.Config{
+	ctx, err := dbos.NewContext(context.Background(), dbos.Config{
 		AppName:            "my-app",
 		ApplicationVersion: "0.1.0",
 		DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
@@ -86,6 +86,10 @@ func main() {
 
 When creating a new application, set `ApplicationVersion` to `"0.1.0"`. If omitted, DBOS derives an opaque hash from the binary. When editing an existing application, leave its configured version alone — changing it is a deployment decision (see `references/advanced-application-versions.md`).
 
+`DatabaseURL` accepts Postgres/CockroachDB URLs or SQLite URLs (`sqlite:/path/to.db`, `sqlite::memory:`; SQLite requires a blank import of `github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite`). See `references/lifecycle-config.md` for all configuration options.
+
+`dbos.Context` extends `dbos.Client`: management functions (`Enqueue`, `ListWorkflows`, `CancelWorkflow`, queue and schedule management, ...) take a `dbos.Client` and accept either a `Context` or a standalone client from `dbos.NewClient` (see `references/client-setup.md`).
+
 ### Workflow and Step Structure
 
 Workflows are comprised of steps. Any function performing complex operations or accessing external services must be run as a step using `dbos.RunAsStep`:
@@ -101,7 +105,7 @@ func fetchData(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	result, err := dbos.RunAsStep(ctx, fetchData, dbos.WithStepName("fetchData"))
 	if err != nil {
 		return "", err
@@ -113,10 +117,11 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 ### Key Constraints
 
 - Do NOT start or enqueue workflows from within steps
+- Do NOT call `dbos.RunAsTransaction`, `handle.GetResult`, or `dbos.CloseStream` from within steps (reads, `dbos.SetEvent`, and `dbos.WriteStream` are allowed)
 - Do NOT use uncontrolled goroutines to start workflows - use `dbos.RunWorkflow` with queues or `dbos.Go`/`dbos.Select` for concurrent steps
 - Workflows MUST be deterministic - non-deterministic operations go in steps
 - Do NOT modify global variables from workflows or steps
-- All workflows and queues MUST be registered before calling `Launch()`
+- All workflows MUST be registered before calling `Launch()`; queues are registered with `dbos.RegisterQueue` and persisted in the database
 
 ## How to Use
 

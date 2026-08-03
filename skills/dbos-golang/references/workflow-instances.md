@@ -38,7 +38,7 @@ func (m *Messenger) ConfigName() string {
 	return m.name
 }
 
-func (m *Messenger) Send(ctx dbos.DBOSContext, message string) (string, error) {
+func (m *Messenger) Send(ctx dbos.Context, message string) (string, error) {
 	// Workflow implementation using m...
 	return "sent", nil
 }

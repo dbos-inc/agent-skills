@@ -7,7 +7,7 @@ tags: testing, go-test, setup, integration, mock
 
 ## Use Proper Test Setup for DBOS
 
-DBOS applications can be tested with unit tests (mocking DBOSContext) or integration tests (real Postgres database).
+DBOS applications can be tested with unit tests (mocking `dbos.Context`) or integration tests (real Postgres database).
 
 **Incorrect (no lifecycle management between tests):**
 
@@ -24,11 +24,11 @@ func TestTwo(t *testing.T) {
 
 **Correct (unit testing with mocks):**
 
-The `DBOSContext` interface is fully mockable. Use a mocking library like `testify/mock` or `mockery`:
+The `dbos.Context` interface is fully mockable. Use a mocking library like `testify/mock` or `mockery`:
 
 ```go
 func TestWorkflow(t *testing.T) {
-	mockCtx := mocks.NewMockDBOSContext(t)
+	mockCtx := mocks.NewMockContext(t)
 
 	// Mock RunAsStep to return a canned value
 	mockCtx.On("RunAsStep", mockCtx, mock.Anything, mock.Anything).
@@ -45,14 +45,14 @@ func TestWorkflow(t *testing.T) {
 **Correct (integration testing with Postgres):**
 
 ```go
-func setupDBOS(t *testing.T) dbos.DBOSContext {
+func setupDBOS(t *testing.T) dbos.Context {
 	t.Helper()
 	databaseURL := os.Getenv("DBOS_TEST_DATABASE_URL")
 	if databaseURL == "" {
 		t.Skip("DBOS_TEST_DATABASE_URL not set")
 	}
 
-	ctx, err := dbos.NewDBOSContext(context.Background(), dbos.Config{
+	ctx, err := dbos.NewContext(context.Background(), dbos.Config{
 		AppName:            "test-" + t.Name(),
 		ApplicationVersion: "0.1.0",
 		DatabaseURL:        databaseURL,
@@ -85,23 +85,21 @@ func TestWorkflowIntegration(t *testing.T) {
 Key points:
 - Use `t.Cleanup` to ensure `Shutdown` is called after each test
 - Use unique `AppName` per test to avoid collisions
-- Mock `DBOSContext` for fast unit tests without Postgres
+- Mock `dbos.Context` for fast unit tests without Postgres
 - Use real Postgres for integration tests that verify durable behavior
 
-### Resetting registries between contexts
+### Resetting state between contexts
 
-`dbos.ClearRegistries(ctx)` clears the workflow and queue registries on a context so workflows/queues can be re-registered against a fresh context in the same test process. Registration is panic-on-duplicate, so use this when a single test process spins up multiple `DBOSContext`s that register the same workflow names:
+`dbos.Shutdown` clears the context's workflow registry, and each `dbos.NewContext` starts with a fresh registry. Registration is panic-on-duplicate only within a single context, so a test process can spin up successive contexts that register the same workflow names:
 
 ```go
-ctx, _ := dbos.NewDBOSContext(context.Background(), config)
+ctx, _ := dbos.NewContext(context.Background(), config)
 dbos.RegisterWorkflow(ctx, myWorkflow)
 dbos.Launch(ctx)
 // ... test ...
-dbos.Shutdown(ctx, 10*time.Second)
+dbos.Shutdown(ctx, 10*time.Second) // Also clears the registries
 
-dbos.ClearRegistries(ctx) // Wipe workflow and queue registries
-
-ctx2, _ := dbos.NewDBOSContext(context.Background(), config)
+ctx2, _ := dbos.NewContext(context.Background(), config)
 dbos.RegisterWorkflow(ctx2, myWorkflow) // No "already registered" panic
 ```
 

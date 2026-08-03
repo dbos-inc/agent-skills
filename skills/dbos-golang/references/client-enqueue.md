@@ -7,16 +7,16 @@ tags: client, enqueue, external, queue
 
 ## Enqueue Workflows from External Applications
 
-Use `client.Enqueue()` to submit workflows from outside your DBOS application. Since the Client runs externally, workflow and queue metadata must be specified explicitly by name.
+Use `dbos.Enqueue` with a client to submit workflows from outside your DBOS application. Since the Client runs externally, workflow and queue metadata must be specified explicitly by name, and the result type is given as the type parameter.
 
 **Incorrect (trying to use RunWorkflow from external code):**
 
 ```go
 // RunWorkflow requires a full DBOS context with registered workflows
-dbos.RunWorkflow(ctx, processTask, "data", dbos.WithQueue("myQueue"))
+dbos.RunWorkflow(ctx, processTask, "data", dbos.WithQueue(queue))
 ```
 
-**Correct (using Client.Enqueue):**
+**Correct (using Enqueue with a client):**
 
 ```go
 client, err := dbos.NewClient(context.Background(), dbos.ClientConfig{
@@ -25,10 +25,10 @@ client, err := dbos.NewClient(context.Background(), dbos.ClientConfig{
 if err != nil {
 	log.Fatal(err)
 }
-defer client.Shutdown(10 * time.Second)
+defer dbos.Shutdown(client, 10*time.Second)
 
-// Basic enqueue - specify workflow and queue by name
-handle, err := client.Enqueue("task_queue", "processTask", "task-data")
+// Basic enqueue - specify workflow and queue by name, result type as type parameter
+handle, err := dbos.Enqueue[string](client, "task_queue", "processTask", "task-data")
 if err != nil {
 	log.Fatal(err)
 }
@@ -40,7 +40,7 @@ result, err := handle.GetResult()
 **Enqueue with options:**
 
 ```go
-handle, err := client.Enqueue("task_queue", "processTask", "task-data",
+handle, err := dbos.Enqueue[string](client, "task_queue", "processTask", "task-data",
 	dbos.WithEnqueueWorkflowID("custom-id"),
 	dbos.WithEnqueueDeduplicationID("unique-id"),
 	dbos.WithEnqueuePriority(10),
@@ -65,6 +65,6 @@ Enqueue options:
 
 The workflow name must match the registered name or custom name set with `WithWorkflowName` during registration.
 
-Always call `client.Shutdown()` when done.
+Always call `dbos.Shutdown(client, timeout)` when done.
 
 Reference: [DBOS Client Enqueue](https://docs.dbos.dev/golang/reference/client#enqueue)

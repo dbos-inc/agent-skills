@@ -7,15 +7,15 @@ tags: queue, deduplication, idempotent, duplicate
 
 ## Deduplicate Queued Workflows
 
-Set a deduplication ID when enqueuing to prevent duplicate workflow executions. If a workflow with the same deduplication ID is already enqueued or executing, a `DBOSError` with code `QueueDeduplicated` is returned.
+Set a deduplication ID when enqueuing to prevent duplicate workflow executions. If a workflow with the same deduplication ID is already enqueued or executing, an error matching `dbos.ErrQueueDeduplicated` is returned.
 
 **Incorrect (no deduplication):**
 
 ```go
 // Multiple calls could enqueue duplicates
-func handleClick(ctx dbos.DBOSContext, userID, task string) error {
+func handleClick(ctx dbos.Context, userID, task string) error {
 	_, err := dbos.RunWorkflow(ctx, processTask, task,
-		dbos.WithQueue(queue.Name),
+		dbos.WithQueue(queue),
 	)
 	return err
 }
@@ -24,15 +24,14 @@ func handleClick(ctx dbos.DBOSContext, userID, task string) error {
 **Correct (with deduplication):**
 
 ```go
-func handleClick(ctx dbos.DBOSContext, userID, task string) error {
+func handleClick(ctx dbos.Context, userID, task string) error {
 	_, err := dbos.RunWorkflow(ctx, processTask, task,
-		dbos.WithQueue(queue.Name),
+		dbos.WithQueue(queue),
 		dbos.WithDeduplicationID(userID),
 	)
 	if err != nil {
 		// Check if it was deduplicated
-		var dbosErr *dbos.DBOSError
-		if errors.As(err, &dbosErr) && dbosErr.Code == dbos.QueueDeduplicated {
+		if errors.Is(err, dbos.ErrQueueDeduplicated) {
 			fmt.Println("Task already in progress for user:", userID)
 			return nil
 		}
@@ -48,14 +47,14 @@ By default a colliding enqueue fails (`DeduplicationPolicyReject`). Use `WithDed
 
 ```go
 handle, err := dbos.RunWorkflow(ctx, processTask, task,
-	dbos.WithQueue(queue.Name),
+	dbos.WithQueue(queue),
 	dbos.WithDeduplicationID(userID),
 	dbos.WithDeduplicationPolicy(dbos.DeduplicationPolicyReturnExisting),
 )
 // On collision, handle refers to the existing ENQUEUED/PENDING workflow
 ```
 
-`WithDeduplicationPolicy` must be used alongside `WithQueue` and `WithDeduplicationID`. From the DBOS Client, use `WithEnqueueDeduplicationPolicy` with the same semantics.
+`WithDeduplicationPolicy` must be used alongside `WithQueue` and `WithDeduplicationID`. When enqueuing by name with `dbos.Enqueue`, use `WithEnqueueDeduplicationID` and `WithEnqueueDeduplicationPolicy` with the same semantics.
 
 Deduplication is per-queue. The deduplication ID is active while the workflow has status `ENQUEUED` or `PENDING`. Once the workflow completes, a new workflow with the same deduplication ID can be enqueued.
 

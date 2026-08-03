@@ -12,7 +12,7 @@ Assign a workflow ID to ensure a workflow executes only once, even if called mul
 **Incorrect (no idempotency):**
 
 ```go
-func processPayment(ctx dbos.DBOSContext, orderID string) (string, error) {
+func processPayment(ctx dbos.Context, orderID string) (string, error) {
 	_, err := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
 		return chargeCard(orderID)
 	}, dbos.WithStepName("chargeCard"))
@@ -27,7 +27,7 @@ dbos.RunWorkflow(ctx, processPayment, "order-123") // Double charge!
 **Correct (with workflow ID):**
 
 ```go
-func processPayment(ctx dbos.DBOSContext, orderID string) (string, error) {
+func processPayment(ctx dbos.Context, orderID string) (string, error) {
 	_, err := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
 		return chargeCard(orderID)
 	}, dbos.WithStepName("chargeCard"))
@@ -48,7 +48,7 @@ dbos.RunWorkflow(ctx, processPayment, "order-123",
 Access the current workflow ID inside a workflow:
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	currentID, err := dbos.GetWorkflowID(ctx)
 	if err != nil {
 		return "", err

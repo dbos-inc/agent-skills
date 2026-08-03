@@ -13,14 +13,14 @@ Use `dbos.Patch` to safely deploy breaking changes to workflow code. Breaking ch
 
 ```go
 // BEFORE: original workflow
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	result, _ := dbos.RunAsStep(ctx, foo, dbos.WithStepName("foo"))
 	_, _ = dbos.RunAsStep(ctx, bar, dbos.WithStepName("bar"))
 	return result, nil
 }
 
 // AFTER: breaking change - recovery will fail for in-progress workflows!
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	result, _ := dbos.RunAsStep(ctx, baz, dbos.WithStepName("baz")) // Changed step
 	_, _ = dbos.RunAsStep(ctx, bar, dbos.WithStepName("bar"))
 	return result, nil
@@ -30,7 +30,7 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 **Correct (using patch):**
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	useBaz, err := dbos.Patch(ctx, "use-baz")
 	if err != nil {
 		return "", err
@@ -51,7 +51,7 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 **Deprecating patches (after all old workflows complete):**
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	dbos.DeprecatePatch(ctx, "use-baz") // Always takes the new path
 	result, _ := dbos.RunAsStep(ctx, baz, dbos.WithStepName("baz"))
 	_, _ = dbos.RunAsStep(ctx, bar, dbos.WithStepName("bar"))
@@ -62,7 +62,7 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 **Removing patches (after all workflows using DeprecatePatch complete):**
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	result, _ := dbos.RunAsStep(ctx, baz, dbos.WithStepName("baz"))
 	_, _ = dbos.RunAsStep(ctx, bar, dbos.WithStepName("bar"))
 	return result, nil
@@ -74,7 +74,7 @@ Lifecycle: `Patch()` → deploy → wait for old workflows → `DeprecatePatch()
 **Required configuration** — patching must be explicitly enabled:
 
 ```go
-ctx, _ := dbos.NewDBOSContext(context.Background(), dbos.Config{
+ctx, _ := dbos.NewContext(context.Background(), dbos.Config{
 	AppName:        "my-app",
 	DatabaseURL:    os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 	EnablePatching: true, // Required for dbos.Patch and dbos.DeprecatePatch

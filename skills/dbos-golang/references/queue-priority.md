@@ -12,26 +12,26 @@ Enable priority on a queue to process higher-priority workflows first. Lower num
 **Incorrect (no priority - FIFO only):**
 
 ```go
-queue := dbos.NewWorkflowQueue(ctx, "tasks")
+queue, err := dbos.RegisterQueue(ctx, "tasks")
 // All tasks processed in FIFO order regardless of importance
 ```
 
 **Correct (priority-enabled queue):**
 
 ```go
-queue := dbos.NewWorkflowQueue(ctx, "tasks",
+queue, err := dbos.RegisterQueue(ctx, "tasks",
 	dbos.WithPriorityEnabled(),
 )
 
 // High priority task (lower number = higher priority)
 dbos.RunWorkflow(ctx, processTask, "urgent-task",
-	dbos.WithQueue(queue.Name),
+	dbos.WithQueue(queue),
 	dbos.WithPriority(1),
 )
 
 // Low priority task
 dbos.RunWorkflow(ctx, processTask, "background-task",
-	dbos.WithQueue(queue.Name),
+	dbos.WithQueue(queue),
 	dbos.WithPriority(100),
 )
 ```

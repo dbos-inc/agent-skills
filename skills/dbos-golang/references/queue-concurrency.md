@@ -12,14 +12,14 @@ Queues support worker-level and global concurrency limits to prevent resource ex
 **Incorrect (no concurrency control):**
 
 ```go
-queue := dbos.NewWorkflowQueue(ctx, "heavy_tasks") // No limits - could exhaust memory
+queue, err := dbos.RegisterQueue(ctx, "heavy_tasks") // No limits - could exhaust memory
 ```
 
 **Correct (worker concurrency):**
 
 ```go
 // Each process runs at most 5 tasks from this queue
-queue := dbos.NewWorkflowQueue(ctx, "heavy_tasks",
+queue, err := dbos.RegisterQueue(ctx, "heavy_tasks",
 	dbos.WithWorkerConcurrency(5),
 )
 ```
@@ -28,7 +28,7 @@ queue := dbos.NewWorkflowQueue(ctx, "heavy_tasks",
 
 ```go
 // At most 10 tasks run across ALL processes
-queue := dbos.NewWorkflowQueue(ctx, "limited_tasks",
+queue, err := dbos.RegisterQueue(ctx, "limited_tasks",
 	dbos.WithGlobalConcurrency(10),
 )
 ```
@@ -37,12 +37,14 @@ queue := dbos.NewWorkflowQueue(ctx, "limited_tasks",
 
 ```go
 // Only one task at a time - guarantees order
-serialQueue := dbos.NewWorkflowQueue(ctx, "sequential_queue",
+serialQueue, err := dbos.RegisterQueue(ctx, "sequential_queue",
 	dbos.WithGlobalConcurrency(1),
 )
 ```
 
 Worker concurrency is recommended for most use cases. Take care with global concurrency as any `PENDING` workflow on the queue counts toward the limit, including workflows from previous application versions.
+
+Limits can be changed at runtime with the `Queue` setters (e.g. `queue.SetWorkerConcurrency(ctx, &n)`); changes persist to the database and live workers pick them up without a restart. Pass `nil` to clear a limit.
 
 When using worker concurrency, each process must have a unique `ExecutorID` set in configuration (this is automatic with DBOS Conductor or Cloud).
 

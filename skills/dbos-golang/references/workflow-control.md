@@ -28,7 +28,7 @@ handle, err := dbos.ResumeWorkflow[string](ctx, workflowID)
 result, err := handle.GetResult()
 ```
 
-Cancellation sets the workflow status to `CANCELLED` and preempts execution at the beginning of the next step. Cancelling also cancels all child workflows.
+Cancellation sets the workflow status to `CANCELLED` and preempts execution at the beginning of the next step. Pass `dbos.WithCancelChildren()` to also cancel all child workflows.
 
 Resume restarts a workflow from its last completed step. Use this for workflows that are cancelled or have exceeded their maximum recovery attempts. You can also use this to start an enqueued workflow immediately, bypassing its queue.
 

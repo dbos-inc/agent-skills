@@ -12,7 +12,7 @@ Any function that performs complex operations, accesses external APIs, or has si
 **Incorrect (external call in workflow):**
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	// External API call directly in workflow - not checkpointed!
 	resp, err := http.Get("https://api.example.com/data")
 	if err != nil {
@@ -37,7 +37,7 @@ func fetchData(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	data, err := dbos.RunAsStep(ctx, fetchData, dbos.WithStepName("fetchData"))
 	if err != nil {
 		return "", err
@@ -49,7 +49,7 @@ func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
 `dbos.RunAsStep` can also accept an inline closure:
 
 ```go
-func myWorkflow(ctx dbos.DBOSContext, input string) (string, error) {
+func myWorkflow(ctx dbos.Context, input string) (string, error) {
 	data, err := dbos.RunAsStep(ctx, func(ctx context.Context) (string, error) {
 		resp, err := http.Get("https://api.example.com/data")
 		if err != nil {
