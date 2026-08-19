@@ -105,6 +105,10 @@ public DBOSConfigCustomizer myCustomizer() {
 }
 ```
 
+Settings with no `dbos.*` property yet — notably `withNotificationCoalesceInterval` and
+`withDatabasePollingConcurrency` (see [lifecycle-config.md](lifecycle-config.md)) — are set the same way, through a
+customizer.
+
 Requirements and behavior:
 
 - Beans with `@Workflow` or `@Step` methods must be singletons; prototype scope throws `IllegalStateException`
