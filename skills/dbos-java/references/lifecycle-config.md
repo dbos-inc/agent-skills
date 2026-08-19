@@ -73,12 +73,21 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
 - `withEnablePatching(boolean)`: enable workflow patching (default `false`)
 - `withListenQueues(String...)`: only dequeue from these queues (default: all)
 - `withSchedulerPollingInterval(Duration)`: how often scheduled workflows are polled (default 30s)
-- `withUseListenNotify(boolean)`: use PostgreSQL `LISTEN`/`NOTIFY` for `recv`/`getEvent` (default `true`;
-  automatically disabled on CockroachDB)
+- `withUseListenNotify(boolean)`: use PostgreSQL `LISTEN`/`NOTIFY` for `recv`/`getEvent`/`readStream` (default
+  `true`; automatically disabled on CockroachDB)
+- `withNotificationCoalesceInterval(Duration)`: how often this process flushes the stream and workflow-event
+  wake-ups it has queued for other processes (default 10ms, minimum 1ms). Raising it batches harder — fewer
+  notifying commits, up to that much extra delivery latency
+- `withDatabasePollingConcurrency(Integer)`: cap on concurrent DB-backed polling reads — the re-queries behind
+  awaiting a result, `recv`, `getEvent`, and `readStream` (default: half the connection pool, minimum 1; a
+  non-positive value removes the cap). The cap keeps a fan-out of waiters from holding every connection and
+  starving enqueue/dequeue, status writes, recovery, and cancellation
 - `withSerializer(DBOSSerializer)`: custom serializer, see [advanced-serialization.md](advanced-serialization.md)
 
 To tune the system database connection pool, build your own pooled `DataSource` (DBOS uses HikariCP by default) and
-pass it with `withDataSource(...)`.
+pass it with `withDataSource(...)`. Size the pool for the workload, not just the polling cap: thousands of
+concurrent waiters are fine on a small pool because each holds a connection only for its query, but the default cap
+is derived from the pool size, so a bigger pool also raises how much of it polling may occupy.
 
 Lifecycle rules:
 
