@@ -57,8 +57,8 @@ func main() {
 ```
 
 Config fields:
-- `AppName` (required): Application identifier
-- `DatabaseURL` (required unless `SystemDBPool` or `SQLiteSystemDB` is set): PostgreSQL/CockroachDB connection string, or a SQLite URL (`sqlite:/path/to.db`, `sqlite:relative.db`, `sqlite::memory:`). SQLite requires the blank import `_ "github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite"`
+- `AppName` (required): Application identifier. Applications [sharing a system database](advanced-shared-database.md) must each have a distinct name — the name identifies which application owns each workflow, queue, schedule, and version, and applications only run their own workflows
+- `DatabaseURL` (required unless `SystemDBPool` or `SQLiteSystemDB` is set): PostgreSQL/CockroachDB connection string, or a SQLite URL (`sqlite:/path/to.db`, `sqlite:relative.db`, `sqlite::memory:`). SQLite requires the blank import `_ "github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite"`. A `pool_max_conns` URL parameter overrides the default maximum pool size (20)
 - `SystemDBPool`: Custom `*pgxpool.Pool` (takes precedence over `DatabaseURL`, mutually exclusive with `SQLiteSystemDB`)
 - `SQLiteSystemDB`: Custom `*sql.DB` for SQLite (mutually exclusive with `SystemDBPool`; requires the sqlite driver import)
 - `DatabaseSchema`: Schema name (default: `"dbos"`)

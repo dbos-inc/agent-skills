@@ -66,6 +66,9 @@ dbos.SetLatestApplicationVersion(ctx, "v1.2.3")
 - `Name string` — the version name (binary hash by default)
 - `Timestamp int64` — epoch ms, bumped by `SetLatestApplicationVersion`
 - `CreatedAt int64` — epoch ms when the version was first registered
+- `ApplicationName string` — owning application; empty if owned by no application
+
+Versions are tracked per application: when multiple applications [share a system database](advanced-shared-database.md), these functions only see the calling application's versions (plus unowned ones), and promoting a version registered by a different application returns an error.
 
 ### Pinning a single workflow to a version
 

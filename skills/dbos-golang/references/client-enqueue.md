@@ -57,7 +57,8 @@ Enqueue options:
 - `WithEnqueuePriority`: Queue priority (lower = higher priority)
 - `WithEnqueueTimeout`: Workflow timeout
 - `WithEnqueueQueuePartitionKey`: Partition key for partitioned queues
-- `WithEnqueueApplicationVersion`: Override application version
+- `WithEnqueueApplicationVersion`: Override application version. When unset, a client leaves the version unset and the workflow is dequeued at the owning application's latest registered version
+- `WithEnqueueApplicationName`: The application that owns, dequeues, and runs the enqueued workflow (defaults to the enqueueing handle's own application). See [advanced-shared-database.md](advanced-shared-database.md)
 - `WithEnqueueDelay`: Delay execution; the workflow stays in `DELAYED` status until the delay expires
 - `WithEnqueueClassName`: Class/namespace name, required when enqueueing to Python, TypeScript, or Java targets
 - `WithEnqueueConfigName`: Config/instance name, required when the target workflow is registered on a configured instance (Go's `WithInstance`, Python/TypeScript/Java class instances)

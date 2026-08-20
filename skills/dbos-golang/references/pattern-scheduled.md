@@ -57,7 +57,7 @@ func main() {
 }
 ```
 
-Scheduled workflow functions must conform to `ScheduledWorkflowFunc`: they take a `Context` and a `ScheduledWorkflowInput` whose `ScheduledTime` is the cron tick time and whose `Context` carries the user-defined value attached to the schedule (JSON-serialized; decode it with `dbos.DecodeScheduleContext[T](input)`). In `ScheduleSpec`, set `Workflow` to a registered Go function, or `WorkflowName` (plus optionally `WorkflowClassName`) to reference a workflow by name — including one owned by another process or language.
+Scheduled workflow functions must conform to `ScheduledWorkflowFunc`: they take a `Context` and a `ScheduledWorkflowInput` whose `ScheduledTime` is the cron tick time and whose `Context` carries the user-defined value attached to the schedule (JSON-serialized; decode it with `dbos.DecodeScheduleContext[T](input)`). In `ScheduleSpec`, set `Workflow` to a registered Go function, or `WorkflowName` (plus optionally `WorkflowClassName`) to reference a workflow by name — including one owned by another process or language. `ScheduleSpec.ApplicationName` sets the application that owns the schedule and runs its workflows (defaults to the caller's own application); a schedule is fired only by its owning application — see [advanced-shared-database.md](advanced-shared-database.md).
 
 DBOS crontab uses 6 fields with second precision:
 ```text
@@ -81,7 +81,9 @@ dbos.ApplySchedules(ctx, []dbos.ScheduleSpec{{
     Context:      "ctx-value",
 }})
 
-// Inspect / filter
+// Inspect / filter. Lists the calling application's schedules by default;
+// filter by exact name(s) with WithScheduleNames, or list other applications'
+// schedules with WithScheduleApplicationNames.
 schedules, _ := dbos.ListSchedules(ctx,
     dbos.WithScheduleStatuses(dbos.ScheduleStatusActive),
     dbos.WithScheduleWorkflowNames("dailyReport"),

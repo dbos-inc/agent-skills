@@ -51,8 +51,9 @@ Other useful filters:
 - `WithFilterHasParent(bool)`: whether the workflow has a parent (child workflows)
 - `WithFilterWasForkedFrom(bool)`: whether the workflow has been forked from
 - `WithFilterWorkflowIDPrefix`, `WithFilterAppVersion`, `WithFilterExecutorIDs`, `WithFilterOffset`
+- `WithFilterApplicationName`: workflows owned by these applications, when multiple applications [share a system database](advanced-shared-database.md). By default only the calling application's workflows (plus unowned ones) are listed; a client with no `AppName` lists everything
 
-Each `WorkflowStatus` includes timing and lineage fields: `CreatedAt`, `StartedAt`, `CompletedAt`, `ParentWorkflowID`, `ForkedFrom`, and `WasForkedFrom`.
+Each `WorkflowStatus` includes timing and lineage fields: `CreatedAt`, `StartedAt`, `CompletedAt`, `ParentWorkflowID`, `ForkedFrom`, and `WasForkedFrom`, plus the owning `ApplicationName`.
 
 List workflow steps:
 
