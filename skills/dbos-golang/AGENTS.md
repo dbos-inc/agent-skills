@@ -45,6 +45,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/advanced-interops.md`
 - `references/advanced-patching.md`
 - `references/advanced-serialization.md`
+- `references/advanced-shared-database.md`
 - `references/advanced-versioning.md`
 
 **Client** (`client-`):
@@ -95,4 +96,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*35 reference files across 9 categories*
+*36 reference files across 9 categories*

@@ -53,4 +53,6 @@ func processAllTasks(ctx dbos.Context, tasks []string) ([]string, error) {
 
 Queues process workflows in FIFO order. Create queues with `dbos.RegisterQueue`, which persists the configuration in the system database and returns a `dbos.Queue` handle to pass to `dbos.WithQueue`.
 
+Each queue is owned by the application that registers it, and only that application dequeues workflows from it — this matters when multiple applications [share a system database](advanced-shared-database.md). List queues with `dbos.ListQueues(ctx)`, which defaults to the calling application's queues; pass `dbos.WithListQueuesApplicationNames(names...)` to list other applications' queues.
+
 Reference: [DBOS Queues](https://docs.dbos.dev/golang/tutorials/queue-tutorial)

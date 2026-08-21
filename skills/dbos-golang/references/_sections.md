@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS Go best practices. Rules are auto
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Workflow versioning, patching, and safe code upgrades.
+**Description:** Workflow versioning, patching, safe code upgrades, cross-language interop, and sharing a system database between applications.

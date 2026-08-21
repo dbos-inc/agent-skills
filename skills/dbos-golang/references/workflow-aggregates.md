@@ -39,12 +39,12 @@ for _, r := range rows {
 Input fields:
 
 - Grouping flags (at least one must be true, or `TimeBucketSize > 0`):
-  `GroupByStatus`, `GroupByName`, `GroupByQueueName`, `GroupByExecutorID`, `GroupByApplicationVersion`
+  `GroupByStatus`, `GroupByName`, `GroupByQueueName`, `GroupByExecutorID`, `GroupByApplicationVersion`, `GroupByApplicationName`
 - Aggregate flags (at least one must be true): `SelectCount`, `SelectMinCreatedAt`, `SelectMaxQueueWaitMs`, `SelectMaxTotalLatencyMs`
 - `TimeBucketSize time.Duration`: when non-zero, also groups by `created_at` bucket of this duration
-- Filters (all optional, AND-ed together): `Status []WorkflowStatusType`, `StartTime`, `EndTime`, `CompletedAfter`, `CompletedBefore`, `DequeuedAfter`, `DequeuedBefore time.Time`, `Name`, `ApplicationVersion`, `ExecutorID`, `QueueName`, `WorkflowIDPrefix`, `WorkflowIDs`, `AuthenticatedUser`, `ForkedFrom`, `ParentWorkflowID []string`, `WasForkedFrom`, `HasParent *bool`, `Attributes map[string]any`
+- Filters (all optional, AND-ed together): `Status []WorkflowStatusType`, `StartTime`, `EndTime`, `CompletedAfter`, `CompletedBefore`, `DequeuedAfter`, `DequeuedBefore time.Time`, `Name`, `ApplicationVersion`, `ExecutorID`, `QueueName`, `WorkflowIDPrefix`, `WorkflowIDs`, `AuthenticatedUser`, `ForkedFrom`, `ParentWorkflowID`, `ApplicationName []string`, `WasForkedFrom`, `HasParent *bool`, `Attributes map[string]any`. When `ApplicationName` is unset, only the calling application's workflows (plus unowned ones) are aggregated — see [advanced-shared-database.md](advanced-shared-database.md)
 
-Each `WorkflowAggregateRow` has a `Group map[string]*string` with one entry per enabled grouping column (`"status"`, `"name"`, `"queue_name"`, `"executor_id"`, `"application_version"`, `"time_bucket"`) and pointer fields `Count`, `MinCreatedAt`, `MaxQueueWaitMs`, and `MaxTotalLatencyMs`, populated only for the enabled `Select*` flags. Group map values are pointers so `nil` represents NULL grouping values (e.g. workflows without a queue name).
+Each `WorkflowAggregateRow` has a `Group map[string]*string` with one entry per enabled grouping column (`"status"`, `"name"`, `"queue_name"`, `"executor_id"`, `"application_version"`, `"application_name"`, `"time_bucket"`) and pointer fields `Count`, `MinCreatedAt`, `MaxQueueWaitMs`, and `MaxTotalLatencyMs`, populated only for the enabled `Select*` flags. Group map values are pointers so `nil` represents NULL grouping values (e.g. workflows without a queue name).
 
 Time bucket example — hourly histogram of failed workflows over the last day:
 
@@ -78,7 +78,7 @@ for _, r := range rows {
 
 - Grouping flags (at least one must be true, or `TimeBucketSize > 0`): `GroupByFunctionName`, `GroupByStatus`
 - Aggregate flags (at least one must be true): `SelectCount`, `SelectMaxDurationMs`
-- Filters: `Status []string`, `FunctionName []string`, `WorkflowIDPrefix []string`, `CompletedAfter`, `CompletedBefore time.Time`
+- Filters: `Status []string`, `FunctionName []string`, `WorkflowIDPrefix []string`, `CompletedAfter`, `CompletedBefore time.Time`, `ApplicationName []string` (unset defaults to the calling application's steps, plus unowned ones)
 - Step status is derived from the recorded outcome: no recorded error means `SUCCESS`, otherwise `ERROR`
 
 Each `StepAggregateRow` has a `Group map[string]*string` (entries: `"function_name"`, `"status"`, `"time_bucket"`) and pointer fields `Count` and `MaxDurationMs`, populated only for the enabled `Select*` flags.

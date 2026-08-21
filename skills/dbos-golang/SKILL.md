@@ -4,7 +4,7 @@ description: DBOS Go SDK for building reliable, fault-tolerant applications with
 license: MIT
 metadata:
   author: dbos
-  version: "2.0.0"
+  version: "2.1.0"
   organization: DBOS
   date: August 2026
   abstract: Comprehensive guide for building fault-tolerant Go applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
@@ -89,6 +89,8 @@ When creating a new application, set `ApplicationVersion` to `"0.1.0"`. If omitt
 `DatabaseURL` accepts Postgres/CockroachDB URLs or SQLite URLs (`sqlite:/path/to.db`, `sqlite::memory:`; SQLite requires a blank import of `github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite`). See `references/lifecycle-config.md` for all configuration options.
 
 `dbos.Context` extends `dbos.Client`: management functions (`Enqueue`, `ListWorkflows`, `CancelWorkflow`, queue and schedule management, ...) take a `dbos.Client` and accept either a `Context` or a standalone client from `dbos.NewClient` (see `references/client-setup.md`).
+
+`AppName` identifies the application and owns everything it creates. Multiple applications (in any language) can share one system database, isolated by application name (v1.2.0+, see `references/advanced-shared-database.md`).
 
 ### Workflow and Step Structure
 

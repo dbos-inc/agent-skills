@@ -79,12 +79,18 @@ schedHandle, _ := dbos.TriggerSchedule[any](client, "daily")
 versions, _ := dbos.ListApplicationVersions(client)
 latest, _ := dbos.GetLatestApplicationVersion(client)
 dbos.SetLatestApplicationVersion(client, "v1.2.3")
+
+// Transfer ownership after renaming an application (stop the app first)
+counts, _ := dbos.RenameApplication(client, dbos.RenameApplicationInput{
+    OldName: "old-name", NewName: "new-name",
+})
 ```
 
 ClientConfig options:
 - `DatabaseURL` (required unless `SystemDBPool` or `SQLiteSystemDB` is set): PostgreSQL/CockroachDB connection string, or a SQLite URL (`sqlite:/path/to.db`, `sqlite::memory:`; requires the blank import `_ "github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite"`)
 - `SystemDBPool`: Custom `*pgxpool.Pool` (mutually exclusive with `SQLiteSystemDB`)
 - `SQLiteSystemDB`: Custom `*sql.DB` for SQLite (requires the sqlite driver import)
+- `AppName`: The application this client acts on behalf of — what it enqueues and registers is owned by that application, and its listing operations default to that application's rows. Always set it when multiple applications [share the system database](advanced-shared-database.md); a client with no `AppName` sees every application's rows but creates unowned ones.
 - `DatabaseSchema`: Schema name (default: `"dbos"`)
 - `Logger`: Custom `*slog.Logger`
 - `Serializer`: Custom `Serializer[any]` for inputs/outputs/events (defaults to JSON). The serializer must match the application that owns the workflows. See [advanced-serialization.md](advanced-serialization.md).
