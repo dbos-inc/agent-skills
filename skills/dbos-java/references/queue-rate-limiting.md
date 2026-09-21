@@ -44,7 +44,11 @@ Behavior:
 - The limit counts workflow *starts* in a rolling window; long-running workflows do not hold a slot
 - Limits are enforced globally through the system database, so they hold no matter how many processes are running
 - Workflows above the limit stay `ENQUEUED` and start as the window opens up
-- Pass `null` for both parameters (`QueueOptions.setRateLimit(null, null)`) to clear an existing rate limit
-- Rate limits and concurrency limits compose; a partitioned queue applies both per partition key
+- A rate limit is set and cleared as a pair: pass `null` for both parameters
+  (`QueueOptions.setRateLimit(null, null)`) to clear one. Updating or clearing only the max or only the period is
+  rejected
+- Rate limits and concurrency limits compose
+- `andPartitionRateLimit(max, period)` applies a rate limit per partition key, alongside rather than instead of the
+  queue-wide one ([queue-partitioning.md](queue-partitioning.md))
 
 Reference: [Rate Limiting](https://docs.dbos.dev/java/tutorials/queue-tutorial#rate-limiting)

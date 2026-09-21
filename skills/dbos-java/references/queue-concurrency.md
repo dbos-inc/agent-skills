@@ -43,7 +43,7 @@ left behind by earlier application versions. A stuck workflow therefore consumes
 resumed.
 
 To rate-limit starts rather than cap in-flight work, use a rate limit
-([queue-rate-limiting.md](queue-rate-limiting.md)). To apply limits per tenant or user, use a partitioned queue
-([queue-partitioning.md](queue-partitioning.md)).
+([queue-rate-limiting.md](queue-rate-limiting.md)). To apply limits per tenant or user, set a per-partition limit,
+which can sit alongside the queue-wide limits on the same queue ([queue-partitioning.md](queue-partitioning.md)).
 
 Reference: [Managing Concurrency](https://docs.dbos.dev/java/tutorials/queue-tutorial#managing-concurrency)

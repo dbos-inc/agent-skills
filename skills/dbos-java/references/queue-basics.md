@@ -51,10 +51,12 @@ Key points:
 - Enqueued workflows are dequeued in FIFO order (unless priority is enabled) by any process listening to the queue
 - Enqueueing is durable: once `startWorkflow` returns, the workflow will run even if this process dies
 - `QueueOptions` factories: `empty()`, `setConcurrency`, `setWorkerConcurrency`, `setRateLimit`,
-  `setPriorityEnabled`, `setPartitionQueue`, `setPollingInterval`; chain more with the matching `and*` methods
+  `setPartitionConcurrency`, `setPartitionWorkerConcurrency`, `setPartitionRateLimit`, `setPriorityEnabled`,
+  `setPollingInterval`; chain more with the matching `and*` methods
 - Enqueue from outside the application with `DBOSClient` ([client-enqueue.md](client-enqueue.md))
 - The legacy in-memory `Queue` record with `dbos.registerQueue(Queue)` before launch is deprecated; prefer the
-  database-backed form. Both accept the same settings and existing code using `new Queue("name")` still works.
+  database-backed form. Existing code using `new Queue("name")` still works, but per-partition limits are supported
+  only on database-backed queues ([queue-partitioning.md](queue-partitioning.md)).
 
 To receive results as each task finishes instead of waiting in order, have each child workflow `send` a message to
 the parent and `recv` them as they arrive ([comm-messages.md](comm-messages.md)).
