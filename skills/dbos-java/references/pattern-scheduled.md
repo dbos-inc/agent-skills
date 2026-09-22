@@ -75,6 +75,10 @@ dbos.backfillSchedule("every-minute",
     Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-01-02T00:00:00Z"));
 ```
 
+On a shared system database, a schedule is owned and fired by one application: `withApplicationName(String)` sets
+it (default: the creating application), and `listSchedules(status, workflowName, namePrefix, applicationName)`
+filters by owner ([advanced-shared-database.md](advanced-shared-database.md)).
+
 Backfills use the schedule's *current* cron expression, so widening a schedule and then backfilling generates one
 execution per tick of the new expression. Tune how often the scheduler polls with
 `DBOSConfig.withSchedulerPollingInterval(Duration)` (default 30 seconds).

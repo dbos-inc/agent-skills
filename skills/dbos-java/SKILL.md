@@ -103,6 +103,10 @@ When creating a new application, set `withAppVersion("0.1.0")`. If omitted, DBOS
 workflow source code. When editing an existing application, leave its configured version alone — changing it is a
 deployment decision (see `references/advanced-versioning.md`).
 
+The name passed to `DBOSConfig.defaults(appName)` / `defaultsFromEnv(appName)` identifies the application and owns
+everything it creates. Multiple applications (in any language) can share one system database, isolated by
+application name (1.1+, see `references/advanced-shared-database.md`).
+
 ### Workflow and Step Structure
 
 Workflows are ordinary methods annotated `@Workflow` on a class registered with `registerProxy`. Any operation that

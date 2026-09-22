@@ -86,5 +86,8 @@ Notes:
 - `QueueConflictResolution.UPDATE_IF_LATEST_VERSION` is not available to clients since they have no application
   version — use `ALWAYS_UPDATE` (the client default) or `NEVER_UPDATE`
 - To start work rather than inspect it, enqueue ([client-enqueue.md](client-enqueue.md))
+- On a system database shared by several applications, pass `applicationName`: an unnamed client sees every
+  application's rows but owns nothing it creates. `renameApplication(oldName, newName)` re-owns rows after a rename
+  ([advanced-shared-database.md](advanced-shared-database.md))
 
 Reference: [DBOS Client](https://docs.dbos.dev/java/reference/client)

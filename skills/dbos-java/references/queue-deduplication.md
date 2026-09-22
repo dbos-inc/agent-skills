@@ -48,6 +48,9 @@ Behavior:
   fails, or is cancelled — the next call then enqueues a fresh workflow
 - Enqueueing a duplicate throws, so callers must handle `DBOSQueueDuplicatedException`
 - Deduplication IDs cannot be combined with queue partition keys
+- The deduplication index is global across applications sharing a system database: a peer's active workflow with
+  the same queue and ID blocks yours. `DBOSClient.findDeduplicationHolder(queue, id)` reports the holder and its
+  owning application
 - To collapse a burst of calls into one delayed execution instead of rejecting them, use the debouncer
   ([pattern-debouncing.md](pattern-debouncing.md)); to make repeated calls resolve to the same execution, set an
   explicit workflow ID ([pattern-idempotency.md](pattern-idempotency.md))

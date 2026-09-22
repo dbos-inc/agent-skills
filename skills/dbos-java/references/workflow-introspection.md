@@ -55,6 +55,9 @@ Useful `ListWorkflowsInput` filters (all optional, each returns a new instance):
 - `withStartTime` / `withEndTime` (creation time), `withCompletedAfter` / `withCompletedBefore`,
   `withDequeuedAfter` / `withDequeuedBefore`
 - `withQueueName(...)`, `withQueuesOnly(true)`, `withExecutorIds(...)`, `withApplicationVersion(...)`
+- `withApplicationName(...)` — owning applications on a shared system database; unset lists this application's
+  workflows plus unclaimed ones, an empty list lists every application's
+  ([advanced-shared-database.md](advanced-shared-database.md))
 - `withParentWorkflowId(...)`, `withHasParent(true)`, `withForkedFrom(...)`, `withWasForkedFrom(true)`
 - `withAttributes(Map<String, Object>)` — match workflows whose custom attributes contain these pairs
 - `withLimit` / `withOffset` / `withSortDesc` for pagination and ordering

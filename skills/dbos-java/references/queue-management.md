@@ -60,4 +60,9 @@ registered later, which is rarely intended. Cancel or drain pending workflows be
 
 The same management methods are available on `DBOSClient` for admin tooling that runs outside the application.
 
+On a shared system database, a queue is owned and polled by the application that registered it, `listQueues()`
+lists this application's queues (plus unclaimed ones; `listQueues(List<String>)` names others), and registering a
+name another application owns throws `DBOSApplicationNameConflictException`
+([advanced-shared-database.md](advanced-shared-database.md)).
+
 Reference: [Reconfiguring Queues at Runtime](https://docs.dbos.dev/java/tutorials/queue-tutorial#reconfiguring-queues-at-runtime)

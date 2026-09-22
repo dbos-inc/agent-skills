@@ -45,8 +45,14 @@ VersionInfo latest = dbos.getLatestApplicationVersion();
 dbos.setLatestApplicationVersion("2.0.0");                    // promote during cutover
 ```
 
-`VersionInfo` carries `versionId`, `versionName`, `versionTimestamp`, and `createdAt`. The promoted "latest"
-version determines which executors may claim queued workflows that have no version assigned.
+`VersionInfo` carries `versionId`, `versionName`, `versionTimestamp`, `createdAt`, and `applicationName`. The
+promoted "latest" version determines which executors may claim queued workflows that have no version assigned.
+Versions are tracked per application on a shared system database
+([advanced-shared-database.md](advanced-shared-database.md)).
+
+A computed version hashes the DBOS SDK version and the application name along with the workflow code, so upgrading
+the SDK changes it and strands `PENDING` workflows from the old version, as a code change would. Another reason to
+set the version explicitly.
 
 A workflow's version cannot be changed in place. To move an in-flight workflow onto new code, fork it with
 `dbos.forkWorkflow(workflowId, startStep, new ForkOptions().withApplicationVersion("2.0.0"))`

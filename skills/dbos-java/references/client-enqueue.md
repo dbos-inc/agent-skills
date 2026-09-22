@@ -44,7 +44,10 @@ the class name makes DBOS search all registered classes for that workflow name. 
 
 - `withClassName(String)` / `withInstanceName(String)` — disambiguate the target class or named instance
 - `withWorkflowId(String)` — idempotency key
-- `withAppVersion(String)` — pin the application version that should process the workflow
+- `withAppVersion(String)` — pin the application version that should process the workflow; left unset, the
+  owning application's latest version dequeues it
+- `withApplicationName(String)` — the application that owns and runs the workflow (default: the client's own, or
+  unclaimed for an unnamed client) ([advanced-shared-database.md](advanced-shared-database.md))
 - `withTimeout(Duration)` / `withDeadline(Instant)` / `withDelay(Duration)`
 - `withDeduplicationId(String)` / `withPriority(Integer)` / `withQueuePartitionKey(String)`
 - `withSerialization(SerializationStrategy)` — use `PORTABLE` for cross-language arguments
@@ -54,6 +57,9 @@ the class name makes DBOS search all registered classes for that workflow name. 
 Arguments are passed as an `Object[]` and serialized, so they must match the workflow method's parameters and be
 JSON-serializable. To call a workflow implemented in Python or TypeScript, use `enqueuePortableWorkflow(options,
 positionalArgs, namedArgs)` ([advanced-interops.md](advanced-interops.md)).
+
+Inside a DBOS application, `dbos.enqueueWorkflow(options, args)` and `dbos.enqueuePortableWorkflow(...)` take the
+same `EnqueueOptions` to enqueue a workflow the application has no reference to.
 
 Workflows can also be enqueued straight from PostgreSQL — for example from a trigger — with the system database
 function `dbos.enqueue_workflow(workflow_name, class_name, queue_name, positional_args)`.
