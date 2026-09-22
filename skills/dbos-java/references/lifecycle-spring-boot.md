@@ -35,7 +35,7 @@ public class OrderService {
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("dev.dbos:transact-spring-boot-starter:1.0.0")
+    implementation("dev.dbos:transact-spring-boot-starter:1.1.0")
 }
 ```
 

@@ -4,9 +4,9 @@ description: DBOS Java SDK for building reliable, fault-tolerant applications wi
 license: MIT
 metadata:
   author: dbos
-  version: "1.0.0"
+  version: "1.1.0"
   organization: DBOS
-  date: July 2026
+  date: September 2026
   abstract: Comprehensive guide for building fault-tolerant Java applications with DBOS. Covers workflow registration and proxies, steps, queues, communication patterns, Spring Boot integration, and best practices for durable execution.
 ---
 
@@ -47,7 +47,7 @@ Add the DBOS dependency (Java 17+, Gradle 8+ recommended):
 
 ```kotlin
 dependencies {
-    implementation("dev.dbos:transact:1.0.0")
+    implementation("dev.dbos:transact:1.1.0")
     implementation("org.slf4j:slf4j-simple:2.0.17") // to see DBOS log messages
 }
 ```
