@@ -94,6 +94,10 @@ client.applicationName(); // "order-service"
   the name from `DBOS_APP_NAME`)
 - A computed application version (no `withAppVersion`) hashes the application name, so two applications built from
   one jar do not share a version row — and upgrading to 1.1 changes existing computed versions
+- An explicit version string is a globally unique name too: if two applications both set `withAppVersion("0.1.0")`,
+  the second fails launch with `DBOSApplicationNameConflictException`. Give each application its own version strings,
+  for example prefixed with the application name (`"billing-0.1.0"`). Enabling patching without `withAppVersion`
+  sets the version to `PATCHING_ENABLED`, which collides the same way — set an explicit version alongside patching
 
 ### Renaming an application
 

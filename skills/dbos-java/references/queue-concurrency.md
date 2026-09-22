@@ -31,6 +31,18 @@ dbos.registerQueue("mixed-queue",
     QueueOptions.setConcurrency(10).andWorkerConcurrency(2));
 ```
 
+**In-order processing (sequential):**
+
+```java
+// Only one workflow at a time across all processes - guarantees order
+dbos.registerQueue("sequential-queue", QueueOptions.setConcurrency(1));
+
+void onEvent(String event) {
+  dbos.startWorkflow(() -> proxy.processEvent(event),
+      new StartWorkflowOptions().withQueue("sequential-queue"));
+}
+```
+
 Choosing a limit:
 
 - `workerConcurrency` — maximum concurrent workflows from this queue in a single process. Use it for CPU- or
@@ -41,6 +53,12 @@ Choosing a limit:
 Caveat for global concurrency: every `PENDING` workflow on the queue counts toward the limit, including workflows
 left behind by earlier application versions. A stuck workflow therefore consumes a slot until it is cancelled or
 resumed.
+
+When using worker concurrency, each process must have a unique executor ID (`DBOSConfig.withExecutorId`); this is
+automatic with DBOS Conductor or Cloud.
+
+Limits can be changed at runtime without redeploying, with `dbos.updateQueue(name, options)`; workers pick
+up the new configuration on their next polling iteration ([queue-management.md](queue-management.md)).
 
 To rate-limit starts rather than cap in-flight work, use a rate limit
 ([queue-rate-limiting.md](queue-rate-limiting.md)). To apply limits per tenant or user, set a per-partition limit,

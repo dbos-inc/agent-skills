@@ -77,8 +77,8 @@ proxy.workflow("input"); // durable
 
 - `name`: workflow name, unique within the class (defaults to the method name). Changing it changes the identity
   used to recover existing workflows.
-- `maxRecoveryAttempts`: dead-letter limit. After this many attempts, the workflow's status becomes
-  `MAX_RECOVERY_ATTEMPTS_EXCEEDED` and it is no longer executed.
+- `maxRecoveryAttempts`: dead-letter limit. The workflow may be recovered this many times after its first run; the
+  dispatch after that sets its status to `MAX_RECOVERY_ATTEMPTS_EXCEEDED` and it is no longer executed.
 - `serializationStrategy`: set to `SerializationStrategy.PORTABLE` for cross-language invocation, see
   [advanced-interops.md](advanced-interops.md).
 

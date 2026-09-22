@@ -7,8 +7,9 @@ tags: queue, priority, ordering, fifo
 
 ## Prioritize Workflows on a Queue
 
-Enable priority on a queue to dequeue urgent work first. Priority values range from 1 to 2,147,483,647 where a
-*lower* number means higher priority; workflows with the same priority keep FIFO order.
+Set a priority on enqueued workflows to dequeue urgent work first. Every queue dequeues in priority order; no queue
+configuration is needed. Priority values range from 0 to 2,147,483,647 where a *lower* number means higher
+priority; workflows with the same priority keep FIFO order.
 
 **Incorrect (separate queues to fake priority):**
 
@@ -19,10 +20,10 @@ dbos.registerQueue("urgent-queue", QueueOptions.empty());
 dbos.registerQueue("normal-queue", QueueOptions.empty());
 ```
 
-**Correct (one queue with priority enabled):**
+**Correct (one queue, priority set per workflow):**
 
 ```java
-dbos.registerQueue("task-queue", QueueOptions.setPriorityEnabled(true));
+dbos.registerQueue("task-queue", QueueOptions.empty());
 
 // Higher priority (dequeued first)
 dbos.startWorkflow(() -> proxy.processTask(urgentTask),
@@ -35,9 +36,11 @@ dbos.startWorkflow(() -> proxy.processTask(bulkTask),
 
 Behavior:
 
-- `priorityEnabled` must be set on the queue; setting a priority on a queue without it has no effect
-- Workflows enqueued *without* a priority outrank every prioritized workflow — either assign priorities
-  consistently on a queue or not at all
+- `setPriorityEnabled` is deprecated for removal since 1.1 and ignored: every queue already dequeues in priority order
+- A negative priority throws `IllegalArgumentException` as soon as it is set (`withPriority` on `StartWorkflowOptions`
+  or `EnqueueOptions`), or from `debounce()` for a debouncer
+- Workflows enqueued *without* a priority get priority 0, the highest, so they outrank every prioritized workflow —
+  either assign priorities consistently on a queue or not at all
 - Priority affects dequeue order only; it does not preempt workflows that are already running
 - Priority composes with concurrency and rate limits, which still cap how much runs at once
 

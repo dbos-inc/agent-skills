@@ -20,7 +20,15 @@ for (String task : tasks) {
 }
 ```
 
-**Correct (enqueue with flow control):**
+**Incorrect (deprecated in-memory `Queue` registered before launch):**
+
+```java
+// Deprecated for removal: in-memory only, not visible to other processes or clients
+dbos.registerQueue(new Queue("task-queue").withWorkerConcurrency(5));
+dbos.launch();
+```
+
+**Correct (database-backed queue, enqueue with flow control):**
 
 ```java
 import dev.dbos.transact.StartWorkflowOptions;
@@ -48,15 +56,21 @@ public List<String> processAll(List<String> tasks) throws Exception {
 
 Key points:
 
-- Enqueued workflows are dequeued in FIFO order (unless priority is enabled) by any process listening to the queue
+- Enqueued workflows are dequeued in priority order, then FIFO, by any process listening to the queue
 - Enqueueing is durable: once `startWorkflow` returns, the workflow will run even if this process dies
 - `QueueOptions` factories: `empty()`, `setConcurrency`, `setWorkerConcurrency`, `setRateLimit`,
-  `setPartitionConcurrency`, `setPartitionWorkerConcurrency`, `setPartitionRateLimit`, `setPriorityEnabled`,
-  `setPollingInterval`; chain more with the matching `and*` methods
+  `setPartitionConcurrency`, `setPartitionWorkerConcurrency`, `setPartitionRateLimit`, `setPollingInterval`
+  (`setPriorityEnabled` is deprecated and ignored: every queue dequeues in priority order); chain more with the
+  matching `and*` methods
 - Enqueue from outside the application with `DBOSClient` ([client-enqueue.md](client-enqueue.md))
-- The legacy in-memory `Queue` record with `dbos.registerQueue(Queue)` before launch is deprecated; prefer the
-  database-backed form. Existing code using `new Queue("name")` still works, but per-partition limits are supported
-  only on database-backed queues ([queue-partitioning.md](queue-partitioning.md)).
+- Existing code using the in-memory `Queue` still works, but per-partition limits are supported only on
+  database-backed queues ([queue-partitioning.md](queue-partitioning.md))
+- `registerQueue(name, options, onConflict)` controls how registration treats a queue already in the system database:
+  `UPDATE_IF_LATEST_VERSION` (default), `ALWAYS_UPDATE` or `NEVER_UPDATE` (use this if you reconfigured the queue at
+  runtime with `updateQueue`) ([queue-management.md](queue-management.md))
+- Each queue is owned by the application that registers it, and only that application dequeues workflows from it —
+  this matters when multiple applications share a system database
+  ([advanced-shared-database.md](advanced-shared-database.md))
 
 **Incorrect (a bare string is a workflow ID, not a queue):**
 

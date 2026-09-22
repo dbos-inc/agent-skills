@@ -79,11 +79,13 @@ queue fails if:
 
 `andPartitionQueue(true)` is deprecated for removal since 1.1. Used alone, it enforces the *queue-wide* limits per
 partition — `setConcurrency(1).andPartitionQueue(true)` means one per key, not one per queue. Combined with any
-per-partition option it is accepted but does nothing: the queue is partitioned by its per-partition limits and
-`concurrency` goes back to meaning queue-wide, so `setConcurrency(5).andPartitionConcurrency(2).andPartitionQueue(true)`
-runs at most five tasks across the whole queue, not five per key. Do not mix them. A queue registered with the flag
-alone cannot be updated onto per-partition limits: the two modes disagree about what `concurrency` means, so migrating
-would silently rescope every limit the update did not mention. Re-register the queue with per-partition limits instead.
+per-partition option at registration it is accepted but does nothing: the queue is partitioned by its per-partition
+limits and `concurrency` goes back to meaning queue-wide, so
+`setConcurrency(5).andPartitionConcurrency(2).andPartitionQueue(true)` runs at most five tasks across the whole queue,
+not five per key. An `updateQueue` that sets the flag on a queue partitioned by its limits throws. Do not mix them. A
+queue registered with the flag alone has its limits frozen: `updateQueue` throws `IllegalArgumentException` for any
+limit change, queue-wide or per-partition (only `pollingInterval` can still change), because the two modes disagree
+about what `concurrency` means. Re-register the queue with per-partition limits instead.
 
 ```java
 // Deprecated: concurrency is enforced per key

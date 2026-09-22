@@ -99,9 +99,11 @@ public class App {
 }
 ```
 
-When creating a new application, set `withAppVersion("0.1.0")`. If omitted, DBOS derives an opaque hash from
-workflow source code. When editing an existing application, leave its configured version alone — changing it is a
-deployment decision (see `references/advanced-versioning.md`).
+When creating a new application, set `withAppVersion("0.1.0")`. If omitted, DBOS derives an opaque hash from the
+workflow code, SDK version, and application name. When editing an existing application, leave its configured version
+alone — changing it is a deployment decision (see `references/advanced-versioning.md`). Version names are unique
+across a shared system database, so applications sharing one need distinct version strings (for example
+`"billing-0.1.0"`; see `references/advanced-shared-database.md`).
 
 The name passed to `DBOSConfig.defaults(appName)` / `defaultsFromEnv(appName)` identifies the application and owns
 everything it creates. Multiple applications (in any language) can share one system database, isolated by

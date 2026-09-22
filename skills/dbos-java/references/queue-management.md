@@ -8,7 +8,8 @@ tags: queue, management, updateQueue, conflict-resolution, operations
 ## Reconfigure Queues at Runtime
 
 Queue configuration lives in the system database, so limits can be changed while the application runs. Use
-`updateQueue` to modify only the fields you pass; absent fields keep their current values.
+`updateQueue` to modify only the fields you pass; absent fields keep their current values. A queue registered with the
+deprecated `partitionQueue` flag has its limits frozen ([queue-partitioning.md](queue-partitioning.md)).
 
 **Incorrect (redeploying to change a limit):**
 

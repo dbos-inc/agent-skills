@@ -62,6 +62,15 @@ public class App {
 }
 ```
 
+For scheduled-only applications (no HTTP server), keep the process alive after launch instead of closing DBOS:
+
+```java
+dbos.launch();
+dbos.applySchedules(
+    new WorkflowSchedule("my-task", "scheduledTask", "com.example.TasksImpl", "0 * * * * *"));
+Thread.currentThread().join(); // Block forever
+```
+
 `DBOSConfig.defaultsFromEnv(appName)` reads connection settings from the environment:
 
 - `DBOS_SYSTEM_JDBC_URL` — JDBC URL of the system database, e.g. `jdbc:postgresql://localhost:5432/mydb`
@@ -70,6 +79,11 @@ public class App {
 
 Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
 
+- `withAppName(String)`: the application name (required; also the argument to `defaults`/`defaultsFromEnv`).
+  Applications sharing a system database must each have a distinct name — it identifies which application owns each
+  workflow, queue, schedule, and version ([advanced-shared-database.md](advanced-shared-database.md)). DBOS Conductor
+  accepts only 3-256 lowercase letters, digits, `-` and `_`: any other name fails launch when a Conductor key is set
+  or on DBOS Cloud, and only logs a warning otherwise
 - `withDatabaseUrl(String)` / `withDbUser(String)` / `withDbPassword(String)`: system database connection
 - `withDataSource(DataSource)`: use an existing pooled `DataSource` instead of URL/credentials
 - `withDatabaseSchema(String)`: schema for DBOS system tables (default `dbos`)
@@ -80,6 +94,8 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
   access, `--print-migrations all|N` and `--print-user-role` print the SQL instead of running it,
   `--no-listen-notify` omits the notification triggers). There is no Java `dbos` CLI
 - `withConductorKey(String)` / `withConductorDomain(String)`: connect to DBOS Conductor
+- `withConductorExecutorMetadata(Map<String, Object>)`: JSON-serializable metadata identifying this executor in the
+  Conductor dashboard (region, instance type, ...)
 - `withExecutorId(String)`: unique identifier for this process
 - `withEnablePatching(boolean)`: enable workflow patching (default `false`)
 - `withListenQueues(String...)`: only dequeue from these queues (default: all)
@@ -99,6 +115,13 @@ To tune the system database connection pool, build your own pooled `DataSource` 
 pass it with `withDataSource(...)`. Size the pool for the workload, not just the polling cap: thousands of
 concurrent waiters are fine on a small pool because each holds a connection only for its query, but the default cap
 is derived from the pool size, so a bigger pool also raises how much of it polling may occupy.
+
+Connection poolers: when connecting through a **transaction-mode** pooler (PgBouncer in transaction mode, Supabase
+Supavisor, Neon, PlanetScale), set `withUseListenNotify(false)`. `LISTEN` is connection-scoped, so a pooler that
+hands the server connection back after each transaction orphans the registration and notifications are silently
+dropped — `recv` and `getEvent` then fall back to re-checking only once a minute. With it off, DBOS polls the system
+database every second instead.
+Session-mode poolers keep a 1:1 connection mapping and work with `LISTEN`/`NOTIFY`.
 
 Lifecycle rules:
 

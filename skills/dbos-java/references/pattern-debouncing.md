@@ -45,10 +45,12 @@ Behavior and configuration:
 - Other options: `withQueue(String)` / `withQueue(QueueName)` (the `Queue` overload is deprecated for removal),
   `withPriority(Integer)`, `withAppVersion(String)`
 - `withPriority` requires a queue: `debounce()` throws `IllegalArgumentException` if a priority is set without
-  `withQueue`
+  `withQueue`, or if the priority is negative
 - `withDeduplicationId` is deprecated for removal since 1.1 and will be ignored from the next release; do not use it
 - Overloads accept a `ThrowingRunnable` for void workflows and a `ThrowingSupplier` for workflows returning a value
 - The lambda's workflow must be registered; an unregistered one throws `IllegalStateException` from `debounce()`
+- Workflows on named instances can be debounced: the call through the instance's proxy carries its instance name
+  (`DebouncerClient` takes it with `withInstanceName`)
 - A debounce key is held through the deduplication index, which is global across applications sharing a system
   database. If the key is held by another application's workflow, or by a workflow that is not a debounce of this
   one, `debounce()` throws `DBOSQueueDuplicatedException`
@@ -70,6 +72,7 @@ clientDebouncer.debounce(userId, Duration.ofSeconds(60), userInput);
 
 `DebouncerClient` also takes `withInstanceName`, `withQueue`, `withPriority`, `withAppVersion`, `withTimeout`,
 `withAttributes`, and `withSerialization(SerializationStrategy)`, which should match the strategy the workflow is
-registered with (for example `PORTABLE`). The same queue, priority, deduplication-ID, and foreign-key rules apply.
+registered with (for example `PORTABLE`). The same queue and priority rules apply, as does
+`DBOSQueueDuplicatedException` for a key held by another application or workflow.
 
 Reference: [Debouncing](https://docs.dbos.dev/java/reference/methods#debouncing)

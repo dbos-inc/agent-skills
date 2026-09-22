@@ -23,21 +23,28 @@ jdbc.update("INSERT INTO job_queue(payload, status) VALUES (?, 'pending')", payl
 ```java
 import dev.dbos.transact.DBOSClient;
 
-var client = new DBOSClient(dbUrl, dbUser, dbPassword);
+try (var client = new DBOSClient(dbUrl, dbUser, dbPassword)) {
+  // Optionally register the queue from the client (persists to the system database)
+  client.registerQueue("pipelineQueue", QueueOptions.setConcurrency(10));
 
-var options = new DBOSClient.EnqueueOptions(
-        "dataPipeline",                 // workflow name
-        "com.example.DataPipelineImpl", // class name (or @WorkflowClassName value)
-        "pipelineQueue")                // queue name
-    .withWorkflowId(requestId)          // idempotency key
-    .withPriority(10);
+  var options = new DBOSClient.EnqueueOptions(
+          "dataPipeline",                 // workflow name
+          "com.example.DataPipelineImpl", // class name (or @WorkflowClassName value)
+          "pipelineQueue")                // queue name
+      .withWorkflowId(requestId)          // idempotency key
+      .withPriority(10);
 
-WorkflowHandle<String, Exception> handle =
-    client.enqueueWorkflow(options, new Object[] {"task-123", "data"});
+  WorkflowHandle<String, Exception> handle =
+      client.enqueueWorkflow(options, new Object[] {"task-123", "data"});
 
-String workflowId = handle.workflowId();
-String result = handle.getResult(); // optional: wait for completion
+  String workflowId = handle.workflowId();
+  String result = handle.getResult(); // optional: wait for completion
+}
 ```
+
+The queue does not need to exist when `enqueueWorkflow` is called. If no queue with the given name has been
+registered, the workflow is still durably recorded as `ENQUEUED` and starts running once the queue is registered and
+a worker becomes available.
 
 `EnqueueOptions` constructors take `(workflowName, queueName)` or `(workflowName, className, queueName)`; omitting
 the class name makes DBOS search all registered classes for that workflow name. Options:
@@ -60,6 +67,12 @@ positionalArgs, namedArgs)` ([advanced-interops.md](advanced-interops.md)).
 
 Inside a DBOS application, `dbos.enqueueWorkflow(options, args)` and `dbos.enqueuePortableWorkflow(...)` take the
 same `EnqueueOptions` to enqueue a workflow the application has no reference to.
+
+Not available in Java: a `return-existing` deduplication policy (a colliding deduplication ID always throws
+`DBOSQueueDuplicatedException`), a per-enqueue maximum recovery attempts, and enqueueing inside a caller-owned
+database transaction.
+
+Always `close()` the client when done.
 
 Workflows can also be enqueued straight from PostgreSQL — for example from a trigger — with the system database
 function `dbos.enqueue_workflow(workflow_name, class_name, queue_name, positional_args)`.
