@@ -58,6 +58,38 @@ Key points:
   database-backed form. Existing code using `new Queue("name")` still works, but per-partition limits are supported
   only on database-backed queues ([queue-partitioning.md](queue-partitioning.md)).
 
+**Incorrect (a bare string is a workflow ID, not a queue):**
+
+```java
+// The single-String constructor sets the WORKFLOW ID: this starts the workflow directly,
+// with ID "task-queue", on no queue at all
+var options = new StartWorkflowOptions("task-queue");
+```
+
+**Correct (name the queue explicitly):**
+
+```java
+import dev.dbos.transact.workflow.QueueName;
+
+var options = new StartWorkflowOptions(QueueName.of("task-queue"));
+var same = new StartWorkflowOptions().withQueue("task-queue");
+```
+
+`QueueName` wraps a queue name so it cannot be mistaken for a workflow ID. `StartWorkflowOptions`, `ForkOptions`,
+`DBOSConfig.withListenQueue(s)` and `Debouncer`/`DebouncerClient.withQueue` accept either a `String` or a
+`QueueName`.
+
+Deprecated for removal since 1.1 — do not use in new code:
+
+- `dbos.getQueue(name)` (reads only the pre-launch registry); use `dbos.findQueue(name)`
+- `dbos.registerQueue(Queue)` / `dbos.registerQueues(Queue...)`; use `dbos.registerQueue(String, QueueOptions)` after
+  launch
+- The `Queue` constructors and its `with*` builders; a `Queue` is what `findQueue`/`listQueues` return, not something
+  to build
+- Every overload that takes a `Queue` value: `new StartWorkflowOptions(Queue)`, `StartWorkflowOptions.withQueue(Queue)`,
+  `ForkOptions.withQueue(Queue)`, `DBOSConfig.withListenQueue(Queue)` / `withListenQueues(Queue...)`,
+  `Debouncer.withQueue(Queue)` / `DebouncerClient.withQueue(Queue)`; pass the name or a `QueueName` instead
+
 To receive results as each task finishes instead of waiting in order, have each child workflow `send` a message to
 the parent and `recv` them as they arrive ([comm-messages.md](comm-messages.md)).
 

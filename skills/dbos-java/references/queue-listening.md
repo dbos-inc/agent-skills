@@ -42,10 +42,13 @@ Notes:
 
 - `withListenQueues` controls only dequeuing, not enqueueing — any process may enqueue onto any queue, so a CPU
   worker can hand GPU work to GPU workers
-- Overloads accept queue names or `Queue` values; `withListenQueue(...)` adds a single queue
+- Overloads accept queue names as `String` or `QueueName` (the `Queue` overloads are deprecated for removal);
+  `withListenQueue(...)` adds a single queue
 - A queue with no listening process accumulates `ENQUEUED` workflows indefinitely — make sure some deployment
   listens to every queue you enqueue onto
 - With the Spring Boot starter, set `dbos.listen-queues` in `application.yaml`
-- Workflow recovery is unaffected: a process still recovers the workflows it owns regardless of queue listening
+- Recovery goes through the queues: a recovered `PENDING` workflow is re-enqueued onto its own queue (or onto the
+  internal queue if it had none), and whichever process listens to that queue runs it — not necessarily the process
+  that recovered it. Every process always polls the internal queue, whatever `withListenQueues` says
 
 Reference: [Explicit Queue Listening](https://docs.dbos.dev/java/tutorials/queue-tutorial#explicit-queue-listening)

@@ -11,6 +11,13 @@ Every DBOS application creates a single `DBOS` instance from a `DBOSConfig`, reg
 `registerProxy`, and then calls `launch()`. Workflow recovery starts at launch, so every workflow class must be
 registered before that point.
 
+At launch, the process re-enqueues its own `PENDING` workflows from the current application version rather than
+running them in-process: each goes back onto its own queue (or the internal queue if it was started directly), and
+whichever process dequeues it runs it. The launch-time sweep is skipped when a Conductor key is configured or on DBOS
+Cloud, where Conductor decides which executors are gone and issues recovery itself. A workflow's
+`maxRecoveryAttempts` budget is counted at each dequeue, so a recovered workflow spends an attempt when it is
+dispatched from the queue, not when it is re-enqueued.
+
 **Incorrect (workflows invoked without registration or launch):**
 
 ```java
