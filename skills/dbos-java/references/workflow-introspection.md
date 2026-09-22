@@ -59,6 +59,8 @@ Useful `ListWorkflowsInput` filters (all optional, each returns a new instance):
   workflows plus unclaimed ones, an empty list lists every application's
   ([advanced-shared-database.md](advanced-shared-database.md))
 - `withParentWorkflowId(...)`, `withHasParent(true)`, `withForkedFrom(...)`, `withWasForkedFrom(true)`
+- `withScheduleName(...)` — workflows started by the named schedules; `WorkflowStatus.scheduleName()` reports the
+  schedule that started a workflow (null otherwise)
 - `withAttributes(Map<String, Object>)` — match workflows whose custom attributes contain these pairs
 - `withLimit` / `withOffset` / `withSortDesc` for pagination and ordering
 - `withLoadInput(false)` / `withLoadOutput(false)` to skip deserializing large payloads

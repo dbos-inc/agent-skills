@@ -53,6 +53,10 @@ implementation class name, or the short name set by `@WorkflowClassName`. The cr
 - `withStatus(ScheduleStatus.PAUSED)` — create the schedule paused
 - `withContext(Object)` — attach a serializable context passed to the workflow
 
+Scheduled runs are always recorded with the application's own serializer; `@Workflow(serializationStrategy = ...)`
+is ignored for them, whether they are fired, triggered, or backfilled. Find a schedule's runs with
+`ListWorkflowsInput.withScheduleName(...)` ([workflow-introspection.md](workflow-introspection.md)).
+
 `applySchedules` is idempotent and atomic: run it on every startup to keep code as the source of truth. It replaces
 the full definition of an existing schedule (so an omitted option reverts to its default) while preserving status
 and last-fired time.
