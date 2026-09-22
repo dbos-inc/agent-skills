@@ -74,7 +74,11 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
 - `withDataSource(DataSource)`: use an existing pooled `DataSource` instead of URL/credentials
 - `withDatabaseSchema(String)`: schema for DBOS system tables (default `dbos`)
 - `withAppVersion(String)`: code version for this application — set `"0.1.0"` in new applications
-- `withMigrate(boolean)`: apply system database migrations on launch (default `true`)
+- `withMigrate(boolean)`: apply system database migrations on launch (default `true`). With `false`, launch only
+  checks that the schema is at least the minimum version this SDK needs and throws `IllegalStateException` if it is
+  missing or too old; migrate out-of-band with `dbosctl sysdb migrate` (`--app-role` grants the application's role
+  access, `--print-migrations all|N` and `--print-user-role` print the SQL instead of running it,
+  `--no-listen-notify` omits the notification triggers). There is no Java `dbos` CLI
 - `withConductorKey(String)` / `withConductorDomain(String)`: connect to DBOS Conductor
 - `withExecutorId(String)`: unique identifier for this process
 - `withEnablePatching(boolean)`: enable workflow patching (default `false`)
@@ -102,6 +106,10 @@ Lifecycle rules:
 - Call `shutdown()` (or use try-with-resources) to release connections; in long-running servers, wire
   `launch()`/`shutdown()` into the server's own start/stop hooks
 - Do not call workflows before `launch()` — methods that require a launched instance throw `IllegalStateException`
+- System database failures DBOS will not retry surface as `DBOSSystemDatabaseException` (a `RuntimeException`):
+  `sqlState()` returns the SQLSTATE and `getCause()` the database's own exception (`databaseException()` is
+  deprecated). Connectivity failures arrive only after retries are exhausted; non-retryable ones (constraint
+  violation, missing relation) arrive immediately
 
 Register a handler for DBOS alerts before launch:
 

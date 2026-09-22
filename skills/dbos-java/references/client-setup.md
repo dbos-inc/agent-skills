@@ -56,14 +56,28 @@ Constructors:
 new DBOSClient(String url, String user, String password)
 new DBOSClient(String url, String user, String password, String schema)
 new DBOSClient(String url, String user, String password, String schema, DBOSSerializer serializer)
+new DBOSClient(String url, String user, String password, String schema, DBOSSerializer serializer,
+    boolean useListenNotify)
+new DBOSClient(String url, String user, String password, String schema, DBOSSerializer serializer,
+    boolean useListenNotify, String applicationName)
 new DBOSClient(DataSource dataSource)
 new DBOSClient(DataSource dataSource, String schema)
 new DBOSClient(DataSource dataSource, String schema, DBOSSerializer serializer)
+new DBOSClient(DataSource dataSource, String schema, DBOSSerializer serializer, String applicationName)
+new DBOSClient(DataSource dataSource, String schema, DBOSSerializer serializer, boolean useListenNotify)
+new DBOSClient(DataSource dataSource, String schema, DBOSSerializer serializer, boolean useListenNotify,
+    String applicationName)
 ```
 
 Notes:
 
 - `url` is the JDBC URL of the *system* database; `schema` defaults to `dbos`
+- A client never migrates the system database. Construction checks that the schema is at least the minimum version
+  this SDK needs and throws `IllegalStateException` if it is missing or too old — run the application (or
+  `dbosctl sysdb migrate`) first
+- `useListenNotify` defaults to `false` on the constructors that do not take it: it costs a dedicated connection and
+  thread, and only `getEvent` and `readStream` benefit. Pass `true` for a client that waits on events or streams;
+  leave it `false` if the database was migrated without notification triggers (`--no-listen-notify`)
 - A `DBOSClient` must use the same serializer as the application whose workflows it touches
   ([advanced-serialization.md](advanced-serialization.md))
 - The client also manages queues (`registerQueue`, `updateQueue`, `findQueue`, `listQueues`, `deleteQueue`),
