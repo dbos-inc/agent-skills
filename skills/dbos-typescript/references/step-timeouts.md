@@ -13,7 +13,7 @@ Set `timeoutMS` in a step's config to bound each attempt. An attempt that runs l
 
 ```typescript
 async function fetchData() {
-  // If the server hangs, this step (and its workflow) hangs forever
+  // No timeout: a hung server stalls this step
   return await fetch("https://example.com").then((r) => r.text());
 }
 
@@ -43,7 +43,7 @@ async function workflowFn() {
 
 `timeoutMS` works the same on `runStep`, `registerStep`, and `@DBOS.step()`. A fresh `timeoutSignal` is issued for each retry attempt. It only applies when the step is called from a workflow (outside a workflow, steps run as plain calls with no timeout).
 
-### Stopping on Workflow Cancellation (5.1+)
+### Stopping on Workflow Cancellation
 
 Cancelling a workflow (or a workflow timeout) doesn't interrupt a running step; the workflow stops at the start of its next step. `DBOS.stepStatus.cancelSignal` fires (within about a second) when the step's workflow is cancelled, so the step can stop early. Combine it with `timeoutSignal` using `AbortSignal.any`:
 

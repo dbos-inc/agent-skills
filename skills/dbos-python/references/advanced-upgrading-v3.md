@@ -13,8 +13,8 @@ DBOS Python 3.0 removed features deprecated in 2.x. When you see any API below i
 
 3.0 changes the storage format of workflow inputs and outputs. 3.0 can process workflows created by 2.x, but **2.x cannot process workflows created by 3.0**.
 
-- Don't run 2.x and 3.0 processes concurrently with the same application version. If you set `application_version` yourself, change it when you upgrade (blue-green: old version drains on 2.x).
-- If you use patching (same version across deploys), shut down all 2.x processes before launching 3.0 processes.
+- Don't run 2.x and 3.0 processes concurrently with the same application version. If you set `application_version` yourself, change it when you upgrade.
+- If you use patching, shut down all 2.x processes before launching 3.0 processes.
 - Upgrade applications that use `DBOSClient` together with your DBOS processes: a 2.x client cannot read inputs or results of workflows created by 3.0.
 
 ### `@DBOS.transaction` → Datasources
@@ -61,7 +61,7 @@ If the old config set `database_url`/`application_database_url` but not `system_
 
 ### In-Memory `Queue(...)` → `DBOS.register_queue`
 
-**Incorrect (removed in 3.0; `Queue(...)` now raises):**
+**Incorrect (removed in 3.0):**
 
 ```python
 from dbos import DBOS, Queue
@@ -82,7 +82,6 @@ handle = DBOS.enqueue_workflow("example_queue", process_task, task)
 - Register every queue the app previously declared; workflows on an unregistered queue stay `ENQUEUED`.
 - `DBOS.listen_queues` accepts only queue names.
 - Queue names starting with `_dbos_` are reserved.
-- Rename `concurrency=` to `global_concurrency=` (deprecated alias since 2.31), and `set_concurrency`/`.concurrency` to `set_global_concurrency`/`.global_concurrency`.
 
 ### Legacy Partitioned Queues and `priority_enabled`
 
@@ -100,7 +99,7 @@ DBOS.register_queue("partitioned_queue", partition_concurrency=1)
 DBOS.register_queue("priority_queue")  # priority is always enabled
 ```
 
-With `partition_queue=True`, `concurrency`/`worker_concurrency`/`limiter` applied per partition; map them to `partition_concurrency`/`partition_worker_concurrency`/`partition_limiter`. `Queue.set_priority_enabled` and `set_partition_queue` are gone. See [queue-partitioning](queue-partitioning.md).
+With `partition_queue=True`, `concurrency`/`worker_concurrency`/`limiter` applied per partition; map them to `partition_concurrency`/`partition_worker_concurrency`/`partition_limiter`. The `Queue` methods for reading and setting `priority_enabled` and `partition_queue` were also removed. See [queue-partitioning](queue-partitioning.md).
 
 ### `@DBOS.scheduled` → Schedule API
 
@@ -141,12 +140,9 @@ DBOS(fastapi=app, config=config)
 
 **Correct:** `DBOS(config=config)`, then call `DBOS.launch()` in `main` before `uvicorn.run`, or from a FastAPI lifespan (see [lifecycle-fastapi](lifecycle-fastapi.md)). For Flask, drop `flask=app` and call `DBOS.launch()` before starting the app. Use your framework's OpenTelemetry instrumentation for HTTP spans.
 
-### Other 3.0 Changes
+### Related Current Behavior
 
-- Admin server removed: drop `run_admin_server` / `admin_port` from config.
-- `max_recovery_attempts` is no longer a `DBOSClient` `EnqueueOptions` field.
-- Default workflow/step names are `__qualname__` (no module). Duplicate names across modules raise `DBOSException`; pass `name=` to disambiguate.
-- Kafka `@DBOS.kafka_consumer(in_order=True)` → `ordering="topic"` (or `"partition"`).
-- Synchronous DBOS methods raise `RuntimeError` inside a running event loop; use the `_async` variants in async code (see [advanced-async](advanced-async.md)).
+- `max_recovery_attempts` is not a `DBOSClient` `EnqueueOptions` field; set it on `@DBOS.workflow(max_recovery_attempts=...)`.
+- The default workflow name is the function's `__qualname__`, which does not include its module. Registering workflows with the same name from different modules raises a `DBOSException`; pass `name=` to disambiguate.
 
 Reference: [Upgrading to 3.0](https://docs.dbos.dev/python/upgrading)

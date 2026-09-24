@@ -29,7 +29,7 @@ DBOS.setConfig({
 });
 ```
 
-By default, the application version is automatically computed from a hash of workflow source code (or fixed to `PATCHING_ENABLED` if patching is enabled). Set it explicitly for more control. Changing the version is a deployment decision: when upgrading from DBOS 4.x to 5.0, change it, since 4.x processes cannot run workflows created by 5.0.
+By default, the application version is automatically computed from a hash of workflow source code (or fixed to `PATCHING_ENABLED` if patching is enabled). Set it explicitly for more control. If you set `applicationVersion` yourself, change it when upgrading from DBOS 4.x to 5.0, since DBOS 4.x cannot process workflows created by DBOS 5.0.
 
 ### Directing Enqueued Workflows to Latest Version
 

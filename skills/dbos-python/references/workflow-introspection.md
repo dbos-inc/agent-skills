@@ -76,7 +76,7 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **completed_before**: Retrieve workflows that completed before this RFC 3339 timestamp
 - **dequeued_after**: Retrieve workflows that were dequeued after this RFC 3339 timestamp
 - **dequeued_before**: Retrieve workflows that were dequeued before this RFC 3339 timestamp
-- **name**: Registered workflow name (or list): the `name=` passed to `@DBOS.workflow`, else the function's `__qualname__` without module (e.g. `process_task`, `MyClass.my_workflow`). Since 3.0, registering two workflows with the same name from different modules raises `DBOSException`
+- **name**: Registered workflow name (or list): the `name=` passed to `@DBOS.workflow`, else the function's `__qualname__` without module (e.g. `process_task`, `MyClass.my_workflow`). Registering two workflows with the same name from different modules raises `DBOSException`
 - **app_version**: Application version(s)
 - **forked_from**: Source workflow ID(s) for forks
 - **parent_workflow_id**: Parent workflow ID(s)

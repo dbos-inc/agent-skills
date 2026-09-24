@@ -54,7 +54,7 @@ Migrating from static scheduling:
 Scheduled workflow requirements:
 - Must accept two arguments: `scheduledTime` (`Date`) and `context` (any serializable value)
 - Must be free functions or static class methods, not methods on `ConfiguredInstance` objects
-- Schedule methods must be called **after** `DBOS.launch()` (they throw otherwise)
+- Schedule methods must be called **after** `DBOS.launch()`
 - `createSchedule` fails if a schedule with that name already exists; use `applySchedules` for startup
 - A schedule is owned by the application (its configured `name`) that creates it: only that application's processes fire it, and its workflows run on that application's latest version
 - Schedule names are globally unique across all applications sharing a system database

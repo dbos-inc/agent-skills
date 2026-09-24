@@ -44,7 +44,7 @@ Constructor parameters:
 - `serializer`: Must match the DBOS application's serializer (default: pickle)
 - `application_name`: The application the client acts for. Enqueued workflows, registered queues, and created schedules are owned by it, and listing calls default to its rows. **Always set this if multiple applications share the system database.** See [advanced-shared-database](advanced-shared-database.md).
 - `system_database_pool_size` (default 5), `system_database_polling_concurrency` (default half the pool)
-- `use_listen_notify` (default `False`): use Postgres LISTEN to wake `get_event` / `read_stream` instead of polling
+- `use_listen_notify` (default `False`): use Postgres LISTEN to wake `get_event` / `read_stream` instead of polling. Only enable it if the app's system database is Postgres and was created with `use_listen_notify` enabled (the Postgres default)
 - `lazy` (default `False`): don't connect until first use; check explicitly with `client.check_connection()`. Cannot be combined with `use_listen_notify`
 - `retry_connection_errors` (default `True`): block and retry on lost connections; `False` raises instead
 - `observability_query_timeout_sec` (default 30): statement timeout for listing queries on Postgres

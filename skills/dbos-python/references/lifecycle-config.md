@@ -103,13 +103,13 @@ All fields except `name` are optional:
 | **kafka_queue_polling_interval_sec** | Polling interval of the internal Kafka consumer queues (min `0.001`) | `1.0` |
 | **serializer** | Custom serializer for system database | Default (pickle) |
 
-The admin server (`run_admin_server`, `admin_port`) and `application_database_url` / `database_url` were removed in 3.0.
+The `application_database_url` and `database_url` fields were removed in 3.0.
 
 ### Application Name
 
 - Must be 3-256 characters: lowercase letters, numbers, dashes, and underscores only.
 - The name is the **ownership key** in the system database: workflows, queues, schedules, and application versions belong to the application that created them, and an application only runs its own workflows. Applications sharing a system database must have distinct names.
-- Renaming an application orphans its data; stop it and transfer ownership with `dbos rename-application --from old --to new` (or `DBOSClient.rename_application`).
+- Renaming an application requires transferring ownership of its data; stop it and transfer ownership with `dbos rename-application --from old --to new` (or `DBOSClient.rename_application`).
 
 ## Lifecycle Methods
 
@@ -181,7 +181,7 @@ dbos migrate --print-migrations all -s "$DBOS_SYSTEM_DATABASE_URL" > migrations.
 dbos migrate --print-user-role -r my_app_role -s "$DBOS_SYSTEM_DATABASE_URL" > grants.sql
 ```
 
-`--print-migrations` and `--print-user-role` can't be combined, and `--print-user-role` requires `-r`. Rerun `dbos migrate` before deploying each new DBOS version.
+With `run_migrations=False`, a schema behind the running DBOS version fails launch.
 
 ## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
 

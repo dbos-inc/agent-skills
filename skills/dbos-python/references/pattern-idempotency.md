@@ -51,7 +51,7 @@ Workflow IDs must be globally unique. By default (`workflow_id_reuse_policy="ret
 
 ### Rejecting Reused Workflow IDs
 
-To detect duplicates instead of silently attaching to the existing workflow, use `workflow_id_reuse_policy="reject"` (3.1+). It raises `DBOSWorkflowIDInUseError` without starting a new workflow or modifying the existing one.
+To detect duplicates instead of silently attaching to the existing workflow, use `workflow_id_reuse_policy="reject"`. It raises `DBOSWorkflowIDInUseError` without starting a new workflow or modifying the existing one.
 
 **Incorrect (can't tell a new order from a duplicate submission):**
 

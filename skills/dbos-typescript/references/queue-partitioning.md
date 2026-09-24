@@ -16,7 +16,7 @@ A queue is partitioned if you register it with any per-partition limit. Each par
 await DBOS.registerQueue("tasks", { globalConcurrency: 1 });
 ```
 
-**Incorrect (removed in 5.0 - throws):**
+**Incorrect (removed in 5.0):**
 
 ```typescript
 await DBOS.registerQueue("tasks", { partitionQueue: true, concurrency: 1 });

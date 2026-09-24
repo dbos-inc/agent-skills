@@ -66,9 +66,9 @@ options: EnqueueOptions = {
 ```
 
 - `workflow_id_reuse_policy="reject"` raises `DBOSWorkflowIDInUseError` if the ID exists.
-- `duplication_policy="return-existing"` requires `deduplication_id`; otherwise a collision raises `DBOSQueueDeduplicatedError`.
+- `duplication_policy="return-existing"` requires `deduplication_id`; the colliding caller's arguments are discarded and the handle resolves with the original workflow's result. Otherwise a collision raises `DBOSQueueDeduplicatedError`.
 - Also available: `serialization_type` (see [advanced-serialization](advanced-serialization.md)) and `otel_context` (propagate an OpenTelemetry trace context).
-- `max_recovery_attempts` is not an enqueue option (removed in 3.0); set it on `@DBOS.workflow(max_recovery_attempts=...)`.
+- `max_recovery_attempts` is not an enqueue option; set it on `@DBOS.workflow(max_recovery_attempts=...)`.
 
 ### Enqueueing Class Methods
 

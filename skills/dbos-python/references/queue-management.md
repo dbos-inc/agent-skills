@@ -55,7 +55,7 @@ Clearing all `partition_*` limits (setting them to `None`) makes the queue unpar
 
 In `async` code, use the `_async` variants (`set_global_concurrency_async`, `set_partition_concurrency_async`, etc.) so the database write does not block the event loop. Reading a property like `queue.global_concurrency` performs a synchronous database round-trip; in async code use `await queue.get_global_concurrency_async()` (and the other `get_*_async` getters) instead.
 
-`priority_enabled` and `partition_queue` (and their setters) were removed in 3.0: priority is always on, and partitioning is controlled by the `partition_*` limits. `concurrency` / `set_concurrency` are deprecated aliases of `global_concurrency` / `set_global_concurrency`.
+`priority_enabled` and `partition_queue` (and their setters) were removed in 3.0: priority is always on, and partitioning is controlled by the `partition_*` limits.
 
 **Warning:** If your application calls `DBOS.register_queue` on startup, the next process to launch can overwrite settings you applied via `set_*`. Either update the `register_queue` call to match, or pass `on_conflict="never_update"` to preserve runtime changes.
 

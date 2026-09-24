@@ -7,11 +7,14 @@ tags: workflow, attributes, SetWorkflowAttributes, update_workflow_attributes, l
 
 ## Tag Workflows with Searchable Attributes
 
-Attach a dictionary of JSON-serializable key-value attributes to workflows with `SetWorkflowAttributes` (2.25+), then search for them with the `attributes=` filter.
+Attach a dictionary of JSON-serializable key-value attributes to workflows with `SetWorkflowAttributes`, then search for them with the `attributes=` filter.
 
 **Incorrect (encoding metadata in workflow IDs and scanning):**
 
 ```python
+import uuid
+from dbos import DBOS, SetWorkflowID
+
 with SetWorkflowID(f"acme-us-east-1-{uuid.uuid4()}"):
     process_order(order)
 

@@ -12,7 +12,7 @@ Use `DBOS.create_schedule` to schedule workflows on a cron interval. Schedules a
 **Incorrect (`@DBOS.scheduled` decorator, removed in 3.0):**
 
 ```python
-# Removed in 3.0: DBOS.scheduled no longer exists (AttributeError).
+# Removed in 3.0: the @DBOS.scheduled decorator no longer exists.
 # The (scheduled_time, actual_time) signature is also gone.
 @DBOS.scheduled("* * * * *")
 @DBOS.workflow()
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 Scheduled workflow requirements:
 - Must accept two arguments: `scheduled_time` (`datetime`) and `context` (the schedule's context, any serializable value). Sync or `async def` workflows both work
 - Not supported for workflows that are methods on configured instances; use plain functions, `@staticmethod`, or `@classmethod`
-- Schedules live in the system database: `create_schedule`, `apply_schedules`, and the other schedule methods must be called **after** `DBOS.launch()` (they raise otherwise)
+- Schedules live in the system database: `create_schedule`, `apply_schedules`, and the other schedule methods must be called **after** `DBOS.launch()`
 - `create_schedule` fails if the schedule name already exists (names are unique across all applications sharing the system database); use `apply_schedules` for idempotent setup
 - `apply_schedules` upserts by name and **replaces the whole definition**: any optional field you omit (e.g. `queue_name`) is cleared. Status and last-fired time are preserved
 - Schedules are owned by the application that creates them; scheduled workflows are enqueued to the owning application's latest version

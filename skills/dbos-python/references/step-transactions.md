@@ -76,10 +76,10 @@ async def greeting_workflow(name: str, note: str) -> None:
 ads = await AsyncSQLAlchemyDatasource.create(url)  # SyntaxError at module scope
 
 DBOS.launch()
-ds = SQLAlchemyDatasource.create(url)  # Raises DBOSException (3.1+)
+ds = SQLAlchemyDatasource.create(url)  # Raises DBOSException
 ```
 
-Create all datasources **before** `DBOS.launch()` (required since 3.1; DBOS tracks them so `rewind_workflow` can delete their transaction checkpoints). Only use `await AsyncSQLAlchemyDatasource.create(...)` if you are already inside a coroutine that runs before launch.
+Create all datasources **before** `DBOS.launch()` (DBOS tracks them so `rewind_workflow` can delete their transaction checkpoints). Only use `await AsyncSQLAlchemyDatasource.create(...)` if you are already inside a coroutine that runs before launch.
 
 For `AsyncSQLAlchemyDatasource` with SQLite, use an async driver URL such as `sqlite+aiosqlite:///app.sqlite` (install with `pip install "dbos[aiosqlite]"`); a plain `sqlite:///` URL raises an error.
 
@@ -107,7 +107,7 @@ For async code, use `await ads.run_tx_step_async({...}, async_fn, *args)`.
 - `@ds.transaction(name=..., isolation_level=...)`: `isolation_level` is one of `"SERIALIZABLE"` (default), `"REPEATABLE READ"`, or `"READ COMMITTED"` (SQLite supports only `"SERIALIZABLE"`). `name` is the step name recorded in the workflow log (defaults to the function's `__qualname__`).
 - `SQLAlchemyDatasource` only supports `def` functions; `AsyncSQLAlchemyDatasource` only supports `async def`. Decorating the wrong kind raises `DBOSException` at decoration time.
 - Call `ds.sql_session()` / `ads.sql_session()` only inside a datasource transaction; it raises otherwise.
-- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=...)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only). The default `serializer` is pickle, not the `serializer` in `DBOSConfig`. Postgres connections always use the psycopg (v3) driver.
+- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=...)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only). The default `serializer` is pickle, not the `serializer` in `DBOSConfig`. DBOS connects to Postgres with the psycopg driver.
 - `@DBOS.transaction`, `DBOS.sql_session`, and `application_database_url` were removed in 3.0; datasources replace them (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
 - Outside a workflow, datasource transactions run as ordinary SQLAlchemy transactions with no tracking overhead.
 

@@ -7,7 +7,7 @@ tags: advanced, application-name, shared-database, ownership, rename, enqueueWor
 
 ## Share a System Database Between Applications
 
-Multiple DBOS applications, potentially in different languages, can share one system database (DBOS TS 4.26+). Each application is identified by its configured `name` and owns everything it creates: workflows, steps, queues, schedules, and application versions. Applications are isolated by default but can interoperate by naming each other.
+Multiple DBOS applications, potentially in different languages, can share one system database. Each application is identified by its configured `name` and owns everything it creates: workflows, steps, queues, schedules, and application versions. Applications are isolated by default but can interoperate by naming each other.
 
 Ownership determines which application runs what:
 - A workflow is dequeued, run, and recovered only by the application that owns it
@@ -22,8 +22,8 @@ Queue, schedule, and version names are globally unique across the shared databas
 **Incorrect (enqueueing a foreign workflow without naming its owner):**
 
 ```typescript
-// Owned by THIS application, which has no "process_order" registered,
-// so the workflow is never dequeued.
+// Owned by THIS application, not order-service,
+// so order-service never runs it.
 await DBOS.enqueueWorkflowWithOptions({ workflowName: "process_order", queueName: "orders" }, "order-123");
 ```
 
@@ -76,6 +76,6 @@ const counts = await client.renameApplication("old-name", "new-name", {
 // counts: { queues, schedules, versions, workflows, steps }
 ```
 
-Or with the CLI: `npx dbos rename-application -s $DBOS_SYSTEM_DATABASE_URL --from old-name --to new-name` (or `dbosctl sysdb rename-application`). The operation is idempotent; re-running resumes where it left off. Before adding a second application to an existing system database, adopt pre-existing unowned rows into the first one: `npx dbos rename-application -s $DBOS_SYSTEM_DATABASE_URL --to my-app --adopt-unclaimed-rows`.
+Or with the CLI: `npx dbos rename-application -s $DBOS_SYSTEM_DATABASE_URL --from old-name --to new-name` (or `dbosctl sysdb rename-application --from old-name --to new-name --db-url $DBOS_SYSTEM_DATABASE_URL`). The operation is idempotent; re-running resumes where it left off. Before adding a second application to an existing system database, adopt pre-existing unowned rows into the first one: `npx dbos rename-application -s $DBOS_SYSTEM_DATABASE_URL --to my-app --adopt-unclaimed-rows` (or `dbosctl sysdb rename-application --to my-app --adopt-unclaimed-rows`).
 
 Reference: [Sharing a System Database](https://docs.dbos.dev/explanations/sharing-a-system-database)

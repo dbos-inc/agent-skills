@@ -54,7 +54,7 @@ def handle_event(event):
 
 Worker concurrency is recommended for most use cases. Global concurrency should be used carefully as pending workflows count toward the limit (including workflows from previous application versions).
 
-The global limit parameter is `global_concurrency` (renamed from `concurrency` in 2.31; the old name is a deprecated alias). `worker_concurrency` must be <= `global_concurrency`. For per-user/per-tenant limits, see [queue-partitioning](queue-partitioning.md).
+The global limit parameter is `global_concurrency`. `worker_concurrency` must be <= `global_concurrency`. For per-user/per-tenant limits, see [queue-partitioning](queue-partitioning.md).
 
 ### Reconfiguring at Runtime
 

@@ -69,7 +69,7 @@ await queue.getPartitionRateLimit();
 await queue.getMinPollingIntervalMs();
 ```
 
-Each `set` method validates the new value against the queue's other limits using the same rules as `registerQueue`. `setConcurrency`/`getConcurrency` are deprecated aliases of `setGlobalConcurrency`/`getGlobalConcurrency`.
+Each `set` method validates the new value against the queue's other limits using the same rules as `registerQueue`.
 
 Setting any partition limit partitions the queue; see `queue-partitioning.md` before doing this at runtime.
 

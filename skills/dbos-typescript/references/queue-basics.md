@@ -91,7 +91,7 @@ await DBOS.startWorkflow(processTask, {
 })("urgent-task");
 
 // Low priority task
-await DBOS.startWorkflow(processTask, {
+const handle = await DBOS.startWorkflow(processTask, {
   queueName: "task_queue",
   enqueueOptions: { priority: 100 },
 })("background-task");
@@ -100,7 +100,7 @@ await DBOS.startWorkflow(processTask, {
 - Range: `0` to `2,147,483,647`; lower number = higher priority
 - Workflows without an assigned priority have priority `0`, the highest
 - Workflows with the same priority are dequeued in FIFO order
-- The `priorityEnabled` queue option was removed in 5.0 (passing it throws)
+- The `priorityEnabled` queue option was removed in 5.0
 
 Change the priority of a workflow that is still `ENQUEUED` or `DELAYED`:
 

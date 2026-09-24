@@ -35,7 +35,7 @@ await DBOS.startWorkflow(processTask, { queueName: "example_queue" })(task);
 
 Register every queue you previously declared in memory (workflows on an unregistered queue stay `ENQUEUED`). `listenQueues` accepts only names. Queue names starting with `_dbos_` are reserved.
 
-Also removed: `partitionQueue: true` (use `partitionConcurrency`, `partitionWorkerConcurrency`, `partitionRateLimit`) and `priorityEnabled` (priority is always on). Both throw if passed.
+Also removed: `partitionQueue: true` (use `partitionConcurrency`, `partitionWorkerConcurrency`, `partitionRateLimit`) and `priorityEnabled` (priority is always on).
 
 ```typescript
 // Before: { partitionQueue: true, concurrency: 1 }
@@ -132,6 +132,5 @@ await DBOS.startWorkflow(Orders, {
 - `@dbos-inc/sqs-receive`: receive with the AWS SDK and start a workflow per message, using the message ID as the workflow ID
 - `@dbos-inc/pgnotifier-receiver`: enqueue from a Postgres trigger with `dbos.enqueue_workflow`
 - `@dbos-inc/aws-s3-workflows`: call the AWS SDK from your own steps
-- The admin server (`runAdminServer`, `adminPort` are ignored)
 
 Reference: [Upgrading to 5.0](https://docs.dbos.dev/typescript/upgrading)

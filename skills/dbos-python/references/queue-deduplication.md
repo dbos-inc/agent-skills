@@ -51,7 +51,7 @@ Use cases:
 
 ### Singleton Workflows
 
-To attach to the existing workflow instead of raising, set `duplication_policy="return-existing"` on `SetEnqueueOptions` (2.30+). The colliding caller's arguments are discarded and the returned handle resolves with the original workflow's result:
+To attach to the existing workflow instead of raising, set `duplication_policy="return-existing"` on `SetEnqueueOptions`. The colliding caller's arguments are discarded and the returned handle resolves with the original workflow's result:
 
 ```python
 from dbos import DBOS, SetEnqueueOptions

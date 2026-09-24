@@ -106,7 +106,7 @@ async def bad_parallel_workflow():
 
 If you need concurrent sequences, use child workflows instead of interleaving steps.
 
-For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, which runs transactions natively in `async def`. Create it at module scope with `asyncio.run` (module-scope `await` is a SyntaxError), before `DBOS.launch()`. With SQLite, use a `sqlite+aiosqlite:///` URL:
+For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, which runs transactions natively in `async def`. Create it at module scope with `asyncio.run`, before `DBOS.launch()`. With SQLite, use a `sqlite+aiosqlite:///` URL:
 
 ```python
 import asyncio

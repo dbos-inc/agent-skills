@@ -69,8 +69,15 @@ To register an instance method without decorators, register it on the prototype 
 
 ```typescript
 class MyWorker extends ConfiguredInstance {
-  constructor(name: string, private cfg: WorkerConfig) { super(name); }
-  async processTask(task: string): Promise<void> { /* ... */ }
+  cfg: WorkerConfig;
+  constructor(name: string, config: WorkerConfig) {
+    super(name);
+    this.cfg = config;
+  }
+
+  async processTask(task: string): Promise<void> {
+    // ... Operations that use this.cfg
+  }
 }
 
 MyWorker.prototype.processTask = DBOS.registerWorkflow(MyWorker.prototype.processTask, {

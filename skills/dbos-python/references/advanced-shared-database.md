@@ -7,7 +7,7 @@ tags: advanced, application-name, shared-database, ownership, rename, enqueue_wo
 
 ## Share a System Database Between Applications
 
-Multiple DBOS applications, potentially in different languages, can share a single system database (Python 2.30+). Each application is identified by its configured `name` and owns everything it creates: workflows, steps, queues, schedules, and application versions. Applications are isolated by default but can interoperate by naming each other.
+Multiple DBOS applications, potentially in different languages, can share a single system database. Each application is identified by its configured `name` and owns everything it creates: workflows, steps, queues, schedules, and application versions. Applications are isolated by default but can interoperate by naming each other.
 
 Ownership determines which application runs what:
 
@@ -23,10 +23,10 @@ Queue, schedule, and version names remain globally unique across the shared data
 **Incorrect (enqueueing a foreign workflow without naming its owner):**
 
 ```python
-from dbos import DBOS, EnqueueOptions
+from dbos import DBOS
 
-# The calling application owns this workflow, but it has no
-# "process_order" registered - the workflow is never run.
+# The enqueued workflow is owned, and only dequeued, by the calling
+# application, which does not implement process_order.
 handle = DBOS.enqueue_workflow_with_options(
     {"workflow_name": "process_order", "queue_name": "orders"}, "order-123"
 )
@@ -35,6 +35,8 @@ handle = DBOS.enqueue_workflow_with_options(
 **Correct (naming the owning application):**
 
 ```python
+from dbos import DBOS, EnqueueOptions
+
 options: EnqueueOptions = {
     "workflow_name": "process_order",
     "queue_name": "orders",
@@ -75,7 +77,7 @@ Rows created before upgrading to a version with application ownership (or by cli
 
 ```python
 client.rename_application(None, "my-app", adopt_unclaimed_rows=True)
-# CLI: dbos rename-application --to my-app --adopt-unclaimed-rows
+# CLI: dbos rename-application --to my-app --adopt-unclaimed-rows -s $DBOS_SYSTEM_DATABASE_URL
 ```
 
 Reference: [Sharing a System Database](https://docs.dbos.dev/explanations/sharing-a-system-database)

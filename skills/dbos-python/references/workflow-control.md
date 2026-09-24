@@ -83,7 +83,7 @@ new_handle = DBOS.fork_workflow(
 
 ### Rewind
 
-`DBOS.rewind_workflow` (3.1+) re-executes a workflow from a step **in place, keeping its workflow ID**. Unlike fork, other code that refers to the ID (senders, event/stream readers, idempotency keys) keeps working, and child workflows keep their IDs.
+`DBOS.rewind_workflow` re-executes a workflow from a step **in place, keeping its workflow ID**. Unlike fork, other code that refers to the ID (senders, event/stream readers, idempotency keys) keeps working, and child workflows keep their IDs.
 
 **Incorrect (forking when callers depend on the original ID):**
 

@@ -34,7 +34,7 @@ def fetch_data():
 ```
 
 Retry parameters:
-- `retries_allowed`: Enable automatic retries (default: `False`). Other retry parameters, including `should_retry`, are ignored unless this is `True`
+- `retries_allowed`: Enable automatic retries (default: `False`). `should_retry` is ignored unless this is `True`
 - `max_attempts`: Maximum number of attempts, **including the first** (default: `3`)
 - `interval_seconds`: Initial delay between retries (default: `1.0`)
 - `backoff_rate`: Multiplier for exponential backoff (default: `2.0`)

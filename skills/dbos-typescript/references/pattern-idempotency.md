@@ -51,13 +51,13 @@ async function myWorkflowFn() {
 
 Workflow IDs must be **globally unique** for your application (and across all applications sharing the system database). If not set, a random UUID is generated (child workflows started from a workflow get a deterministic ID derived from the parent's ID).
 
-### Rejecting Reused Workflow IDs (5.1+)
+### Rejecting Reused Workflow IDs
 
 `workflowIDReusePolicy` controls what happens when a workflow with the given ID already exists, whatever its status:
 - `'return-existing'` (default): return a handle to the existing workflow without starting a new one
 - `'reject'`: throw `DBOSWorkflowIDInUseError` without starting a new workflow or modifying the existing one. The error has `workflowID`, `status`, and `workflowName` properties
 
-Use `'reject'` when a duplicate submission should be reported rather than silently joined. Match the error with `isWorkflowIDInUseError` from the SDK's `Error` namespace, not `instanceof` (an error replayed from a workflow's recorded history may not be an instance of the class):
+Match the error with `isWorkflowIDInUseError` from the SDK's `Error` namespace, not `instanceof` (an error replayed from a workflow's recorded history may not be an instance of the class):
 
 ```typescript
 import { DBOS, Error as DBOSErrors } from "@dbos-inc/dbos-sdk";

@@ -44,7 +44,7 @@ async function handleClick(userId: string) {
 
 Deduplication is per-queue. The deduplication ID is active while the workflow has status `DELAYED`, `ENQUEUED`, or `PENDING`. Once the workflow completes, it releases the deduplication ID and a new workflow with the same ID can be enqueued.
 
-On a partitioned queue (DBOS 5.1+), deduplication IDs are unique across the whole queue, including all its partitions. To deduplicate within each partition separately, include the partition key in the deduplication ID.
+On a partitioned queue, deduplication IDs are unique across the whole queue, including all its partitions. To deduplicate within each partition separately, include the partition key in the deduplication ID.
 
 ### Singleton Workflows (return-existing)
 
@@ -63,7 +63,7 @@ const handle = await DBOS.startWorkflow(processTask, {
 const result = await handle.getResult();
 ```
 
-`duplicationPolicy` is also available on `client.enqueue`, but not on `DBOS.enqueueWorkflowWithOptions` or `client.enqueueInTransaction` (which throws on `'return-existing'`, since a conflict would abort your transaction). The default `'reject'` throws `DBOSQueueDuplicatedError`.
+`duplicationPolicy` is also available on `client.enqueue`, but not on `DBOS.enqueueWorkflowWithOptions` or `client.enqueueInTransaction` (which throws on `'return-existing'`). The default `'reject'` throws `DBOSQueueDuplicatedError`.
 
 Use cases for deduplication:
 - Ensuring one active task per user

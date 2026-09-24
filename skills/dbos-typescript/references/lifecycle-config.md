@@ -61,14 +61,14 @@ async function main() {
 
 All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializationError` if no configuration or no `name` was provided. DBOS does not read `dbos-config.yaml` at launch (only the DBOS CLI and DBOS Cloud use it); always configure with `DBOS.setConfig`.
 
-`name` identifies which application owns each workflow, queue, schedule, and application version in the system database. Applications sharing a system database must have distinct names, and a process only runs its own application's workflows. Use a Conductor-compatible name: 3-256 characters, lowercase letters, numbers, `-`, and `_`.
+`name` identifies which application owns each workflow, queue, schedule, and application version in the system database. Applications sharing a system database must have distinct names, and a process only runs its own application's workflows.
 
 | Field | Description | Default |
 |-------|-------------|---------|
 | **name** | Application name and ownership key | (required) |
 | **applicationVersion** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash (`PATCHING_ENABLED` if patching is enabled) |
 | **executorID** | Unique process ID for distributed environments | Auto-set by Conductor/Cloud |
-| **enablePatching** | Enable `DBOS.patch()`/`DBOS.deprecatePatch()` | `false` |
+| **enablePatching** | Enable `DBOS.patch()`/`DBOS.deprecatePatch()` | — |
 | **systemDatabaseUrl** | Postgres connection string for system DB | `postgresql://postgres:dbos@localhost:5432/[name]_dbos_sys` |
 | **systemDatabasePoolSize** | System DB connection pool size | `10` |
 | **systemDatabasePollingConcurrency** | Max concurrent database-backed polling reads from wait operations (`getResult`, `waitFirst`, `recv`, `getEvent`, ...), so high-fan-out polling can't starve enqueue/dequeue, status writes, recovery, and cancellation. Non-positive disables the limit | Half the pool size (min 1) |
@@ -78,7 +78,7 @@ All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializatio
 | **observabilityQueryTimeoutMs** | Statement timeout for `listWorkflows`, `listQueuedWorkflows`, `listWorkflowSteps`, etc.; exceeding it throws `DBOSQueryTimeoutError`. `<= 0` disables | `30000` |
 | **useListenNotify** | Use Postgres `LISTEN/NOTIFY` to wake `recv`/`getEvent`/`readStream` waiters. Set `false` if unsupported (e.g., CockroachDB) to poll instead | `true` |
 | **notificationCoalesceMs** | With `useListenNotify`, interval over which event/stream notifications are batched | `10` |
-| **tracingEnabled** | Generate DBOS traces for an external OpenTelemetry `TracerProvider` | `false` |
+| **tracingEnabled** | Generate DBOS traces for an external OpenTelemetry `TracerProvider` | — |
 | **otelAttributeFormat** | Span attribute naming: `'legacy'` or `'semconv'` (`dbos.*` names) | `'legacy'` |
 | **enableOTLP** | Enable the built-in DBOS OpenTelemetry `TracerProvider` and export | `false` (`true` in DBOS Cloud) |
 | **otlpTracesEndpoints** | OTLP trace receiver URLs (built-in provider only) | `undefined` |

@@ -50,7 +50,7 @@ app.post("/events", async (req, res) => {
 
 Worker concurrency is recommended for most use cases. Take care with global concurrency as any `PENDING` workflow on the queue counts toward the limit, including workflows from previous application versions.
 
-If both are set, `workerConcurrency` must be less than or equal to `globalConcurrency`. The `concurrency` option is a deprecated alias for `globalConcurrency`.
+If both are set, `workerConcurrency` must be less than or equal to `globalConcurrency`.
 
 To change limits at runtime without redeploying, see `queue-management.md`.
 

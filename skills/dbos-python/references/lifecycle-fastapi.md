@@ -115,7 +115,7 @@ async def start():
     handle = await DBOS.start_workflow_async(my_async_workflow)
     return {"id": handle.get_workflow_id()}
 
-# Or keep the handler synchronous (FastAPI runs it in a threadpool)
+# Or keep the handler synchronous
 @app.post("/start-sync")
 def start_sync():
     handle = DBOS.start_workflow(my_sync_workflow)

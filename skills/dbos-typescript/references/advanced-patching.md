@@ -9,7 +9,7 @@ tags: advanced, patching, upgrade, breaking-change
 
 Use `DBOS.patch()` to safely deploy breaking changes to workflow code. Breaking changes alter which steps run or their order, which can cause recovery failures.
 
-Patching MUST be enabled in configuration; otherwise `DBOS.patch()` and `DBOS.deprecatePatch()` throw:
+Patching MUST be enabled in configuration (`DBOS.patch()` and `DBOS.deprecatePatch()` require `enablePatching`):
 
 ```typescript
 DBOS.setConfig({

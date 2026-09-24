@@ -12,7 +12,7 @@ metadata:
 
 # DBOS TypeScript Best Practices
 
-Guide for building reliable, fault-tolerant TypeScript applications with DBOS durable workflows. Targets DBOS TypeScript 5.x (`@dbos-inc/dbos-sdk` 5.0+). If a project is on 4.x or uses removed APIs (`new WorkflowQueue`, `@DBOS.scheduled`/`DBOS.registerScheduled`, `partitionQueue`, `priorityEnabled`, `@DBOS.requiredRole`, `dbos-config.yaml`-based config), see `references/advanced-upgrading.md`.
+Guide for building reliable, fault-tolerant TypeScript applications with DBOS durable workflows. Targets DBOS TypeScript 5.x (`@dbos-inc/dbos-sdk`). If a project is on 4.x or uses removed APIs (`new WorkflowQueue`, `@DBOS.scheduled`/`DBOS.registerScheduled`, `partitionQueue`, `priorityEnabled`, `@DBOS.requiredRole`, `dbos-config.yaml`-based config), see `references/advanced-upgrading.md`.
 
 ## When to Apply
 

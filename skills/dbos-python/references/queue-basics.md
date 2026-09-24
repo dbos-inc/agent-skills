@@ -9,7 +9,7 @@ tags: queue, concurrency, enqueue, workflow, register_queue, priority
 
 Queues run many workflows concurrently with managed flow control. Use them when you need to control how many workflows run at once.
 
-Register queues with `DBOS.register_queue` **after** `DBOS.launch()` (it raises if DBOS is not launched; in async code use `await DBOS.register_queue_async(...)`). Queue configuration is persisted to the system database, so all DBOS processes and clients connected to the same system database see it.
+Register queues with `DBOS.register_queue` **after** `DBOS.launch()` (in async code use `await DBOS.register_queue_async(...)`). Queue configuration is persisted to the system database, so all DBOS processes and clients connected to the same system database see it.
 
 **Incorrect (uncontrolled concurrency):**
 
@@ -28,7 +28,7 @@ for task in tasks:
 ```python
 from dbos import Queue
 
-# Removed in 3.0: raises DBOSException
+# Removed in 3.0
 queue = Queue("task_queue")
 ```
 

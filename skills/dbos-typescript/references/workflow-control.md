@@ -28,7 +28,7 @@ const handle = await DBOS.resumeWorkflow<string>(workflowID);
 const result = await handle.getResult();
 ```
 
-Cancellation sets the workflow status to `CANCELLED`, removes it from its queue, and preempts execution at the beginning of the next step. A step already running is not interrupted, but it can stop early by passing `DBOS.stepStatus.cancelSignal` (5.1+) to APIs like `fetch` (see `step-timeouts.md`). Child workflows are not cancelled by default; pass `{ cancelChildren: true }` to also recursively cancel all child workflows:
+Cancellation sets the workflow status to `CANCELLED`, removes it from its queue, and preempts execution at the beginning of the next step. A step already running is not interrupted, but it can stop early by passing `DBOS.stepStatus.cancelSignal` to APIs like `fetch` (see `step-timeouts.md`). Child workflows are not cancelled by default; pass `{ cancelChildren: true }` to also recursively cancel all child workflows:
 
 ```typescript
 // cancelWorkflow(workflowID, options?: { cancelChildren?: boolean }) — defaults to false
@@ -64,7 +64,7 @@ const forkResult = await forkHandle.getResult();
 
 Forking creates a new workflow with a new ID, copying the original workflow's inputs and step outputs up to the selected step. Useful for recovering from downstream service outages or patching workflows that failed due to a bug. `replacementChildren` maps original child workflow IDs to replacement IDs, for forking a parent whose children were also forked.
 
-### Rewinding a Workflow (5.1+)
+### Rewinding a Workflow
 
 `DBOS.rewindWorkflow` re-executes a workflow from a step **in place**, keeping its workflow ID (fork creates a copy with a new ID). Use it when other code refers to the workflow by ID (e.g., an idempotency key derived from an order ID): senders, event/stream readers, and child workflow IDs keep working.
 

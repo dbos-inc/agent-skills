@@ -77,7 +77,7 @@ const result = await handle.getResult(); // type: string
 - `priority`: Queue priority (lower = higher priority)
 - `delaySeconds`: Delay before becoming eligible for execution
 - `queuePartitionKey`: Partition key for partitioned queues
-- `appVersion`: Pin the workflow to a specific application version. If unset (5.0+), the workflow is only dequeued by an executor running the application's latest registered version, and takes that executor's version when dequeued
+- `appVersion`: Pin the workflow to a specific application version. If unset, the workflow is only dequeued by an executor running the application's latest registered version, and takes that executor's version when dequeued
 - `duplicationPolicy`: How to handle a `deduplicationID` collision. `'reject'` (default) throws `DBOSQueueDuplicatedError`; `'return-existing'` attaches to the existing workflow and returns its handle (singleton pattern — requires `deduplicationID`)
 - `applicationName`: Application that owns and runs the workflow (defaults to the client's `applicationName`)
 - `serializationType`: Serialization strategy for workflow arguments (`"portable"` for cross-language interop, otherwise the configured serializer is used)
@@ -117,15 +117,15 @@ await client.enqueue(
 `client.enqueueInTransaction` performs the enqueue inside a transaction you own, so the workflow is enqueued if and only if your database writes commit. Pass a `node-postgres` `Client` or `PoolClient` with an open transaction, **connected to the DBOS system database**:
 
 ```typescript
-import { Pool } from "pg";
+import { Client } from "pg";
 
 declare class Orders {
   static processOrder(orderId: string): Promise<void>;
 }
 
 const orderId = "order-123";
-const pool = new Pool({ connectionString: process.env.DBOS_SYSTEM_DATABASE_URL });
-const pg = await pool.connect();
+const pg = new Client({ connectionString: process.env.DBOS_SYSTEM_DATABASE_URL });
+await pg.connect();
 try {
   await pg.query("BEGIN");
   await pg.query("INSERT INTO orders (id, status) VALUES ($1, 'new')", [orderId]);
@@ -140,7 +140,7 @@ try {
   await pg.query("ROLLBACK"); // Neither the row nor the workflow is created
   throw e;
 } finally {
-  pg.release();
+  await pg.end();
 }
 ```
 
