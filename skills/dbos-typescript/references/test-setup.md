@@ -27,6 +27,8 @@ describe("tests", () => {
 **Correct (unit testing with mocks):**
 
 ```typescript
+import { DBOS } from "@dbos-inc/dbos-sdk";
+
 // Mock DBOS - no Postgres required
 jest.mock("@dbos-inc/dbos-sdk", () => ({
   DBOS: {

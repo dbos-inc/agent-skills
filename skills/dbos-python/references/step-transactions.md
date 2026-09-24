@@ -15,7 +15,11 @@ Datasources wrap a SQLAlchemy engine with DBOS transaction tracking so each data
 @DBOS.workflow()
 def add_greeting(name: str, note: str):
     # Direct DB access isn't tracked; on replay it runs again
-    engine.execute("INSERT INTO greetings (name, note) VALUES (?, ?)", name, note)
+    with engine.begin() as conn:
+        conn.execute(
+            text("INSERT INTO greetings (name, note) VALUES (:name, :note)"),
+            {"name": name, "note": note},
+        )
 ```
 
 **Correct (synchronous datasource):**

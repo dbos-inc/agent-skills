@@ -24,7 +24,7 @@ def call_llm(prompt):
 
 ```python
 # Max 50 tasks started per 30 seconds
-DBOS.register_queue("llm_tasks", limiter={"limit": 50, "period": 30})
+DBOS.register_queue("llm_tasks", limiter={"limit": 50, "period": 30})  # after DBOS.launch()
 
 @DBOS.step()
 def call_llm(prompt):
@@ -47,6 +47,7 @@ Rate limit parameters:
 Rate limits can be combined with concurrency limits:
 
 ```python
+# After DBOS.launch()
 DBOS.register_queue("api_tasks",
     worker_concurrency=5,
     limiter={"limit": 100, "period": 60})

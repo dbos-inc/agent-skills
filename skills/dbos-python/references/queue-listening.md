@@ -23,6 +23,7 @@ if __name__ == "__main__":
 **Correct (workers listen to specific queues):**
 
 ```python
+import os
 from dbos import DBOS, DBOSConfig
 
 @DBOS.workflow()

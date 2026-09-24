@@ -33,9 +33,10 @@ async function processPaymentFn(orderId: string, amount: number) {
 const processPayment = DBOS.registerWorkflow(processPaymentFn);
 
 // Same workflow ID = only one execution
+const orderId = "order-123";
 const workflowID = `payment-${orderId}`;
-await DBOS.startWorkflow(processPayment, { workflowID })("order-123", 50);
-await DBOS.startWorkflow(processPayment, { workflowID })("order-123", 50);
+await DBOS.startWorkflow(processPayment, { workflowID })(orderId, 50);
+await DBOS.startWorkflow(processPayment, { workflowID })(orderId, 50);
 // Second call does not start a new workflow; it returns a handle to the existing one
 ```
 

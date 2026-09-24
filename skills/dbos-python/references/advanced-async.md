@@ -58,7 +58,7 @@ Many synchronous DBOS methods (such as `DBOS.sleep`, `DBOS.recv`, `DBOS.send`, `
 async def async_workflow(target_id: str):
     handle = await DBOS.enqueue_workflow_async("tasks", other_async_workflow)
     await DBOS.send_async(target_id, "msg")           # not send
-    if await DBOS.patch_async("new-logic"):           # not patch
+    if await DBOS.patch_async("new-logic"):           # not patch (requires enable_patching)
         ...
     return await handle.get_result()
 ```
@@ -110,6 +110,7 @@ For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, 
 
 ```python
 import asyncio
+import os
 from dbos import AsyncSQLAlchemyDatasource
 
 ads = asyncio.run(AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"]))

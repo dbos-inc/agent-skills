@@ -33,6 +33,7 @@ import express from "express";
 import { DBOS } from "@dbos-inc/dbos-sdk";
 
 const app = express();
+app.use(express.json());
 
 async function processTaskFn(data: string) {
   // ...

@@ -56,6 +56,6 @@ all_events = DBOS.get_all_events(workflow_id)
 # Returns: {"status": "finished", "other_key": "value"}
 ```
 
-Events can be called from `set_event` from workflows or steps.
+`set_event` can be called from workflows or steps.
 
 Reference: [Workflow Events](https://docs.dbos.dev/python/tutorials/workflow-communication#workflow-events)

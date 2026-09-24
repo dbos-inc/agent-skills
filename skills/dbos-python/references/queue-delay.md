@@ -28,7 +28,7 @@ def schedule_reminder(user_id: str):
 ```python
 from dbos import DBOS, SetEnqueueOptions
 
-DBOS.register_queue("reminders")
+DBOS.register_queue("reminders")  # after DBOS.launch()
 
 @DBOS.workflow()
 def send_reminder(user_id: str):

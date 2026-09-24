@@ -98,10 +98,15 @@ const schedules = await client.listSchedules({ status: "ACTIVE" });
 const schedule = await client.getSchedule("my-task");
 await client.pauseSchedule("my-task");
 await client.resumeSchedule("my-task");
-await client.deleteSchedule("my-task");
-await client.applySchedules([...]);  // Atomic batch create/update
-const handles = await client.backfillSchedule("my-task", start, end);
+const start = new Date(Date.now() - 60 * 60 * 1000);
+const handles = await client.backfillSchedule("my-task", start, new Date());
 const handle = await client.triggerSchedule("my-task");
+await client.deleteSchedule("my-task");
+
+// Atomic batch create/update
+await client.applySchedules([
+  { scheduleName: "my-task", workflowName: "myPeriodicTask", schedule: "*/5 * * * *" },
+]);
 ```
 
 ## Debouncing

@@ -32,13 +32,13 @@ await DBOS.registerQueue("limited_tasks", { globalConcurrency: 10 });
 **In-order processing (sequential):**
 
 ```typescript
-// Only one task at a time - guarantees order
-await DBOS.registerQueue("sequential_queue", { globalConcurrency: 1 });
-
 async function processEventFn(event: string) {
   // ...
 }
 const processEvent = DBOS.registerWorkflow(processEventFn);
+
+// After DBOS.launch(): only one task at a time - guarantees order
+await DBOS.registerQueue("sequential_queue", { globalConcurrency: 1 });
 
 app.post("/events", async (req, res) => {
   await DBOS.startWorkflow(processEvent, {

@@ -24,7 +24,7 @@ def memory_intensive_task(data):
 
 ```python
 # Each process runs at most 5 tasks from this queue
-DBOS.register_queue("heavy_tasks", worker_concurrency=5)
+DBOS.register_queue("heavy_tasks", worker_concurrency=5)  # after DBOS.launch()
 
 @DBOS.workflow()
 def memory_intensive_task(data):
@@ -35,14 +35,14 @@ def memory_intensive_task(data):
 
 ```python
 # At most 10 tasks run across ALL processes
-DBOS.register_queue("limited_tasks", global_concurrency=10)
+DBOS.register_queue("limited_tasks", global_concurrency=10)  # after DBOS.launch()
 ```
 
 **In-order processing (sequential):**
 
 ```python
 # Only one task at a time - guarantees order
-DBOS.register_queue("sequential_queue", global_concurrency=1)
+DBOS.register_queue("sequential_queue", global_concurrency=1)  # after DBOS.launch()
 
 @DBOS.step()
 def process_event(event):

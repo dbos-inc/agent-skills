@@ -40,6 +40,8 @@ def insert_greeting(name: str, note: str) -> None:
 **Correct:**
 
 ```python
+import os
+from sqlalchemy import text
 from dbos import DBOS, DBOSConfig, SQLAlchemyDatasource
 
 config: DBOSConfig = {

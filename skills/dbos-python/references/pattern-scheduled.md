@@ -75,6 +75,7 @@ DBOS.create_schedule(
 By default, scheduled workflows run on an internal queue. Set `queue_name` to enforce concurrency or rate limits:
 
 ```python
+# After DBOS.launch()
 DBOS.register_queue("scheduled_queue", global_concurrency=1)
 
 DBOS.create_schedule(

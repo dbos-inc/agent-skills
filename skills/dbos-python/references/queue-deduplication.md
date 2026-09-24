@@ -26,7 +26,7 @@ def process_for_user(user_id: str):
 from dbos import DBOS, SetEnqueueOptions
 from dbos import error as dboserror
 
-DBOS.register_queue("user_tasks")
+DBOS.register_queue("user_tasks")  # after DBOS.launch()
 
 @app.post("/process/{user_id}")
 def process_for_user(user_id: str):

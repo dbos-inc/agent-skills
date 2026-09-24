@@ -149,7 +149,6 @@ async function onCustomerRegistration(customerId: string) {
 ```typescript
 await DBOS.pauseSchedule("my-task");        // Stop firing
 await DBOS.resumeSchedule("my-task");       // Resume firing
-await DBOS.deleteSchedule("my-task");       // Remove entirely
 
 const schedules = await DBOS.listSchedules({ status: "ACTIVE" });
 const schedule = await DBOS.getSchedule("my-task");
@@ -159,6 +158,8 @@ await DBOS.updateSchedule("my-task", { schedule: "0 * * * *", queueName: null })
 
 // Every run is tagged with its schedule's name
 const runs = await DBOS.listWorkflows({ scheduleName: "my-task" });
+
+await DBOS.deleteSchedule("my-task");       // Remove entirely
 ```
 
 `applySchedules` replaces a schedule's entire definition (omitted optional fields are cleared); `updateSchedule` changes only the fields you pass (`null` clears `cronTimezone`/`queueName`) and cannot change the workflow.

@@ -21,12 +21,13 @@ async function handleClick(userId: string) {
 **Correct (with deduplication):**
 
 ```typescript
-await DBOS.registerQueue("task_queue");
-
 async function processTaskFn(task: string) {
   // ...
 }
 const processTask = DBOS.registerWorkflow(processTaskFn);
+
+// After DBOS.launch()
+await DBOS.registerQueue("task_queue");
 
 async function handleClick(userId: string) {
   try {
