@@ -37,14 +37,14 @@ deduplication ID held by a peer's workflow on the same queue blocks yours.
 // This application owns the workflow but has no processOrder registered,
 // and does not poll order-queue — the workflow is never dequeued
 dbos.enqueueWorkflow(
-    new DBOSClient.EnqueueOptions("processOrder", "OrderService", "order-queue"),
+    new EnqueueOptions("processOrder", "OrderService", QueueName.of("order-queue")),
     new Object[] {"order-123"});
 ```
 
 **Correct (naming the owning application):**
 
 ```java
-var options = new DBOSClient.EnqueueOptions("processOrder", "OrderService", "order-queue")
+var options = new EnqueueOptions("processOrder", "OrderService", QueueName.of("order-queue"))
     .withApplicationName("order-service"); // owns, dequeues, and runs it
 
 WorkflowHandle<String, Exception> handle =
@@ -52,13 +52,13 @@ WorkflowHandle<String, Exception> handle =
 String result = handle.getResult(); // workflow IDs are global, so waiting works
 ```
 
-`DBOS.enqueueWorkflow(EnqueueOptions, Object[])` and `DBOS.enqueuePortableWorkflow(options, positionalArgs,
-namedArgs)` take the same `EnqueueOptions` as `DBOSClient` and write the same row, without a reference to the
+`DBOS.enqueueWorkflow(EnqueueOptions, Object[])` and `DBOS.enqueueWorkflow(options, positionalArgs, namedArgs)`
+take the same `EnqueueOptions` as `DBOSClient` and write the same row, without a reference to the
 workflow's function. Unlike `startWorkflow`, the workflow and queue are not checked against local registries. Called
 inside a workflow, the enqueue is recorded as a child, so a replay returns the original handle; called from a step,
 it throws `IllegalStateException`. Leave `withAppVersion` unset: an unversioned workflow is dequeued only by an
-executor running the owning application's latest version. For a target in another language use
-`enqueuePortableWorkflow` ([advanced-interops.md](advanced-interops.md)).
+executor running the owning application's latest version. For a target in another language set
+`withSerialization(SerializationStrategy.PORTABLE)` on the options ([advanced-interops.md](advanced-interops.md)).
 
 ### Clients must name their application
 

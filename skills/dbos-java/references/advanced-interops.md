@@ -37,14 +37,14 @@ public class OrderServiceImpl implements OrderService {
 ```
 
 Enqueue a workflow whose implementation lives in another language, using portable JSON arguments (from inside a
-DBOS application, `dbos.enqueuePortableWorkflow` takes the same arguments):
+DBOS application, `dbos.enqueueWorkflow` takes the same arguments):
 
 ```java
-var options = new DBOSClient.EnqueueOptions("process_order", "OrderService", "order-queue")
-    .withSerialization(SerializationStrategy.PORTABLE);
+var options = new EnqueueOptions("process_order", "OrderService", QueueName.of("order-queue"))
+    .withSerialization(SerializationStrategy.PORTABLE); // required for named arguments
 
 // positional args, then named args (for languages that support them, e.g. Python kwargs)
-var handle = client.enqueuePortableWorkflow(
+var handle = client.enqueueWorkflow(
     options, new Object[] {"order-123", 5}, Map.of());
 ```
 
