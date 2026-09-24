@@ -1,18 +1,18 @@
 ---
 name: dbos-python
-description: DBOS Python SDK for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, using DBOSClient from external applications, or building applications that need to be resilient to failures.
+description: DBOS Python SDK (3.x) for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, datasource transactions, or schedules, using DBOSClient from external applications, upgrading DBOS Python 2.x code to 3.x, or building applications that need to be resilient to failures.
 license: MIT
 metadata:
   author: dbos
-  version: "1.0.0"
+  version: "2.0.0"
   organization: DBOS
-  date: January 2026
+  date: September 2026
   abstract: Comprehensive guide for building fault-tolerant Python applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
 ---
 
 # DBOS Python Best Practices
 
-Guide for building reliable, fault-tolerant Python applications with DBOS durable workflows.
+Guide for building reliable, fault-tolerant Python applications with DBOS durable workflows. Targets DBOS Python 3.x.
 
 ## When to Apply
 
@@ -24,6 +24,7 @@ Reference these guidelines when:
 - Configuring and launching DBOS applications
 - Using DBOSClient from external applications
 - Testing DBOS applications
+- Upgrading DBOS Python 2.x code to 3.x
 
 ## Rule Categories by Priority
 
@@ -86,6 +87,12 @@ def my_workflow():
 - Do NOT use threads to start workflows - use `DBOS.start_workflow` or queues
 - Workflows MUST be deterministic - non-deterministic operations go in steps
 - Do NOT create/update global variables from workflows or steps
+- In `async def` code, use the `_async` variant of every DBOS method (`await DBOS.start_workflow_async(...)`, `send_async`, `recv_async`, `sleep_async`, `register_queue_async`, ...): synchronous DBOS methods raise `RuntimeError` when called while an event loop is running
+- Register queues and create schedules AFTER `DBOS.launch()`; create datasources BEFORE it
+
+### Removed in DBOS 3.0 (never generate these)
+
+`@DBOS.transaction` / `DBOS.sql_session` / `application_database_url` (use datasources), `Queue(...)` (use `DBOS.register_queue`), `partition_queue` / `priority_enabled`, `@DBOS.scheduled` (use `DBOS.apply_schedules`), `DBOS(fastapi=...)` / `DBOS(flask=...)`, and the admin server. Use `global_concurrency=` instead of the deprecated `concurrency=`. To migrate existing 2.x code, see `references/advanced-upgrading-v3.md`.
 
 ## How to Use
 
@@ -95,6 +102,7 @@ Read individual rule files for detailed explanations and examples:
 references/lifecycle-config.md
 references/workflow-determinism.md
 references/queue-concurrency.md
+references/advanced-upgrading-v3.md
 ```
 
 ## References

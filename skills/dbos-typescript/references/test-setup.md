@@ -100,5 +100,8 @@ Key points:
 - Reset the database between tests for isolation
 - Set a generous `beforeEach` timeout (10s) for database setup
 - Use `DBOS.shutdown({ deregister: true })` if re-registering functions
+- Queues and schedules live in the system database: register queues (and apply schedules) after **each** `DBOS.launch()`, especially after resetting the database. `deregister` clears in-process registrations only, not persisted queues or schedules
+- `DBOS.shutdown()` does not wait for running workflows; pass `{ workflowCompletionTimeoutMS }` to wait for them to finish first
+- Mocked steps run inline; outside a workflow, real steps run as plain function calls (no checkpoints or retries), so test durable behavior through workflows
 
 Reference: [Testing & Mocking](https://docs.dbos.dev/typescript/tutorials/testing)

@@ -4,7 +4,7 @@
 
 ## Overview
 
-DBOS Python SDK for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, using DBOSClient from external applications, or building applications that need to be resilient to failures.
+DBOS Python SDK (3.x) for building reliable, fault-tolerant applications with durable workflows. Use this skill when writing Python code with DBOS, creating workflows and steps, using queues, datasource transactions, or schedules, using DBOSClient from external applications, upgrading DBOS Python 2.x code to 3.x, or building applications that need to be resilient to failures.
 
 ## Structure
 
@@ -44,6 +44,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/advanced-async.md`
 - `references/advanced-patching.md`
 - `references/advanced-serialization.md`
+- `references/advanced-upgrading-v3.md`
 - `references/advanced-versioning.md`
 
 **Client** (`client-`):
@@ -74,7 +75,6 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/queue-listening.md`
 - `references/queue-management.md`
 - `references/queue-partitioning.md`
-- `references/queue-priority.md`
 - `references/queue-rate-limiting.md`
 
 **Step** (`step-`):

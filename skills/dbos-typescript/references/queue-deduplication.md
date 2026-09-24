@@ -41,11 +41,13 @@ async function handleClick(userId: string) {
 }
 ```
 
-Deduplication is per-queue. The deduplication ID is active while the workflow has status `ENQUEUED` or `PENDING`. Once the workflow completes, a new workflow with the same deduplication ID can be enqueued.
+Deduplication is per-queue. The deduplication ID is active while the workflow has status `DELAYED`, `ENQUEUED`, or `PENDING`. Once the workflow completes, it releases the deduplication ID and a new workflow with the same ID can be enqueued.
+
+On a partitioned queue (DBOS 5.1+), deduplication IDs are unique across the whole queue, including all its partitions. To deduplicate within each partition separately, include the partition key in the deduplication ID.
 
 ### Singleton Workflows (return-existing)
 
-If you want only one instance of a workflow to be active at a time and don't want to handle a thrown error, set `duplicationPolicy: 'return-existing'` on `DBOS.startWorkflow`. When a workflow with the same `deduplicationID` is already enqueued or executing, this returns a handle to that existing workflow instead of throwing `DBOSQueueDuplicatedError`. The arguments passed by the colliding caller are discarded, and the returned handle resolves with the original workflow's result.
+If you want only one instance of a workflow to be active at a time and don't want to handle a thrown error, set `duplicationPolicy: 'return-existing'` on `DBOS.startWorkflow`. When a workflow with the same `deduplicationID` is already delayed, enqueued, or executing, this returns a handle to that existing workflow instead of throwing `DBOSQueueDuplicatedError`. The arguments passed by the colliding caller are discarded, and the returned handle resolves with the original workflow's result.
 
 This requires both a `queueName` and `enqueueOptions.deduplicationID`.
 

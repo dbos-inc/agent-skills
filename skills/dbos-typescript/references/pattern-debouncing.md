@@ -50,7 +50,7 @@ Key behaviors:
 - `debouncePeriodMs` delays execution by this amount from the last call
 - `debounceTimeoutMs` sets a max wait time since the first trigger
 - When the workflow finally executes, it uses the **last** set of inputs
-- After execution begins, the next `debounce` call starts a new cycle
+- Once the debounce period expires and the workflow is released for execution, the next `debounce` call starts a new cycle for a new workflow execution
 - Workflows from `ConfiguredInstance` classes cannot be debounced
 
 Reference: [Debouncing Workflows](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#debouncing-workflows)

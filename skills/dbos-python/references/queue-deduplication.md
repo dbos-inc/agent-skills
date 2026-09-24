@@ -39,9 +39,19 @@ def process_for_user(user_id: str):
 ```
 
 Deduplication behavior:
-- If a workflow with the same deduplication ID is `ENQUEUED` or `PENDING`, new enqueue raises `DBOSQueueDeduplicatedError`
+- If a workflow with the same deduplication ID is `DELAYED`, `ENQUEUED`, or `PENDING`, new enqueue raises `DBOSQueueDeduplicatedError`
 - Once the workflow completes, a new workflow with the same ID can be enqueued
 - Deduplication is per-queue (same ID can exist in different queues)
+
+- Deduplication is not supported on partitioned queues
+
+To attach to the existing workflow instead of raising (a "singleton" workflow), set `duplication_policy="return-existing"`. The colliding caller's arguments are discarded and the handle resolves with the original workflow's result:
+
+```python
+with SetEnqueueOptions(deduplication_id="nightly-report", duplication_policy="return-existing"):
+    handle = DBOS.enqueue_workflow("user_tasks", build_report)
+result = handle.get_result()
+```
 
 Use cases:
 - One active task per user

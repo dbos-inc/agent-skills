@@ -71,39 +71,51 @@ All fields except `name` are optional:
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| **name** | Application name | (required) |
-| **system_database_url** | System DB connection string (Postgres or SQLite) | `sqlite:///[name].sqlite` |
+| **name** | Application name (see rules below) | (required) |
+| **system_database_url** | System DB connection string (Postgres or SQLite). Postgres always uses the psycopg (v3) driver | `sqlite:///[name].sqlite` |
 | **enable_patching** | Enable patching strategy for workflow upgrades | `False` |
 | **application_version** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash |
 | **executor_id** | Unique process ID for distributed environments | Auto-set by Conductor |
 | **sys_db_pool_size** | System DB connection pool size | `20` |
+| **sys_db_polling_concurrency** | Max concurrent DB-backed polling reads (`get_result`, `recv`, `get_event`, `read_stream`) so they can't starve the pool; non-positive disables | Half of pool size |
 | **db_engine_kwargs** | Extra kwargs for SQLAlchemy `create_engine` | `None` |
 | **dbos_system_schema** | Postgres schema for DBOS system tables | `"dbos"` |
 | **system_database_engine** | Custom SQLAlchemy engine (skips engine creation) | `None` |
-| **use_listen_notify** | Use Postgres LISTEN/NOTIFY vs polling | `True` (Postgres) |
-| **notification_listener_polling_interval_sec** | Polling interval when LISTEN/NOTIFY is off | `1.0` |
-| **conductor_key** | API key for DBOS Conductor (from console.dbos.dev) | `None` |
+| **use_listen_notify** | Use Postgres LISTEN/NOTIFY vs polling (ignored on SQLite). Do not change after the system DB is created | `True` |
+| **run_migrations** | Create/migrate the system DB on launch. Set `False` for roles that can't run DDL (migrate out of band with `dbos migrate`); launch then only verifies the schema | `True` |
+| **notification_listener_polling_interval_sec** | Polling interval when polling (min `0.001`); also default `read_stream` polling interval | `1.0` |
+| **notification_coalesce_sec** | Batching interval for LISTEN/NOTIFY wakeups of event/stream readers (min `0.001`) | `0.01` |
+| **observability_query_timeout_sec** | Statement timeout for `list_workflows`/`list_workflow_steps`-style queries on Postgres (raises `DBOSQueryTimeoutError`); <= 0 disables | `30` |
+| **conductor_key** | API key for DBOS Conductor | `None` |
 | **conductor_url** | Conductor service URL (only for self-hosted) | `None` |
 | **conductor_executor_metadata** | JSON dict of metadata sent to Conductor (region, instance type, etc.) | `None` |
-| **enable_otlp** | Enable OpenTelemetry tracing and export | `False` |
-| **otlp_traces_endpoints** | OTLP trace receiver URLs | `None` |
-| **otlp_logs_endpoints** | OTLP log receiver URLs | `None` |
+| **conductor_metadata_only_mode** | Send only workflow metadata (never inputs/outputs/events/etc.) to Conductor | `False` |
+| **enable_otlp** | Enable OpenTelemetry spans for workflows and steps | `False` |
+| **otlp_traces_endpoints** | OTLP trace receiver URLs (built-in exporter) | `None` |
+| **otlp_logs_endpoints** | OTLP log receiver URLs (built-in exporter) | `None` |
 | **otlp_attributes** | Key-value pairs applied to all OTLP exports | `None` |
 | **otel_attribute_format** | `"legacy"` (camelCase) or `"semconv"` (`dbos.*` namespace) | `"legacy"` |
 | **log_level** | DBOS logger severity | `"INFO"` |
 | **otlp_log_level** | OTLP-specific log level (>= `log_level`) | `log_level` |
 | **console_log_level** | Console-specific log level (>= `log_level`) | `log_level` |
-| **run_admin_server** | Run HTTP admin server | `True` |
-| **admin_port** | Admin server port | `3001` |
-| **max_executor_threads** | Max threads for sync workflow/step execution | `None` |
+| **max_executor_threads** | Max threads for sync workflow/step execution | Unbounded |
 | **scheduler_polling_interval_sec** | Scheduler polling interval for new schedules | `30.0` |
+| **kafka_queue_polling_interval_sec** | Polling interval of the internal Kafka consumer queues (min `0.001`) | `1.0` |
 | **serializer** | Custom serializer for system database | Default (pickle) |
+
+The admin server (`run_admin_server`, `admin_port`) and `application_database_url` / `database_url` were removed in 3.0.
+
+### Application Name
+
+- Must be 3-256 characters: lowercase letters, numbers, dashes, and underscores only.
+- The name is the **ownership key** in the system database: workflows, queues, schedules, and application versions belong to the application that created them, and an application only runs its own workflows. Applications sharing a system database must have distinct names.
+- Renaming an application orphans its data; stop it and transfer ownership with `dbos rename-application --from old --to new` (or `DBOSClient.rename_application`).
 
 ## Lifecycle Methods
 
 ### Listening to Specific Queues
 
-Use `DBOS.listen_queues` **before** `DBOS.launch()` to restrict a process to dequeuing from specific queues only (useful for heterogeneous worker pools). Pass queue names as strings or `Queue` objects:
+Use `DBOS.listen_queues` after constructing `DBOS(config=...)` and **before** `DBOS.launch()` to restrict a process to dequeuing from specific queues only (useful for heterogeneous worker pools). It takes queue **names** only (not `Queue` objects) and may be called at most once:
 
 ```python
 if __name__ == "__main__":
@@ -118,7 +130,7 @@ A process can still **enqueue** to any queue; `listen_queues` only controls dequ
 
 ### Tearing Down DBOS
 
-`DBOS.destroy` shuts down the singleton (close connections, cancel polling, etc.) so it can be re-initialized — primarily used in tests.
+`DBOS.destroy` shuts down the singleton (stops queue polling and the scheduler, closes connections) so it can be re-initialized with a new `DBOS(config=...)` - primarily used in tests.
 
 ```python
 DBOS.destroy(
@@ -127,9 +139,9 @@ DBOS.destroy(
 )
 ```
 
-Set `destroy_registry=True` only if you also want to un-register all decorated functions. Leave it `False` for normal teardown.
+`destroy` does not interrupt workflows that are still running after the timeout, but they can no longer checkpoint progress. Set `destroy_registry=True` only if you also want to un-register all decorated functions.
 
-`DBOS.reset_system_database()` wipes the system DB's internal state — **destructive, test-only**.
+`DBOS.reset_system_database(truncate=True)` empties the DBOS system tables (much faster than the default, which drops the whole system database). It must be called **before** `DBOS.launch()` and is **destructive, test-only**.
 
 ## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
 

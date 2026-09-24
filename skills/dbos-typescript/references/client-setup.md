@@ -23,7 +23,8 @@ await DBOS.launch();
 import { DBOSClient } from "@dbos-inc/dbos-sdk";
 
 const client = await DBOSClient.create({
-  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
+  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL!,
+  applicationName: "my-app", // Set if multiple applications share the system database
 });
 
 try {
@@ -57,7 +58,7 @@ try {
   await client.setWorkflowDelay(workflowID, { delaySeconds: 10 });
 
   // Manage database-backed queues
-  await client.registerQueue("email", { concurrency: 10 });
+  await client.registerQueue("email", { globalConcurrency: 10 });
   const q = await client.retrieveQueue("email");
   await client.deleteQueue("email");
 
@@ -75,7 +76,11 @@ Constructor options:
 - `systemDatabasePollingConcurrency`: Maximum number of concurrent database-backed polling reads from wait operations. Defaults to half the pool size (minimum 1).
 - `serializer`: Optional custom serializer (must match the DBOS application's serializer)
 - `systemDatabaseSchemaName`: Optional Postgres schema name (default: `"dbos"`)
+- `applicationName`: The application on whose behalf the client acts. Enqueued workflows, registered queues, and created schedules are owned by it, and listing operations default to its rows. Always set it if multiple applications share a system database
+- `observabilityQueryTimeoutMs`: Statement timeout for listing queries (default 30000); exceeding it throws `DBOSQueryTimeoutError`
 - `logger`: A custom logger implementing the `DLogger` interface, to which the client directs all its logging, replacing the built-in console logger.
+
+**DBOS 5.0 compatibility:** Upgrade clients together with your DBOS processes. A 5.0 client requires the 5.0 system database schema, so launch a DBOS 5.0 process (or run `npx dbos schema`) before using it, and a 4.x client cannot read inputs or results of workflows created by 5.0.
 
 ## Schedule Management
 

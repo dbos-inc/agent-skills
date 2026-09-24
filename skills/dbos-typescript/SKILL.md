@@ -4,15 +4,15 @@ description: DBOS TypeScript SDK for building reliable, fault-tolerant applicati
 license: MIT
 metadata:
   author: dbos
-  version: "1.0.0"
+  version: "2.0.0"
   organization: DBOS
-  date: January 2026
+  date: September 2026
   abstract: Comprehensive guide for building fault-tolerant TypeScript applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
 ---
 
 # DBOS TypeScript Best Practices
 
-Guide for building reliable, fault-tolerant TypeScript applications with DBOS durable workflows.
+Guide for building reliable, fault-tolerant TypeScript applications with DBOS durable workflows. Targets DBOS TypeScript 5.x (`@dbos-inc/dbos-sdk` 5.0+). If a project is on 4.x or uses removed APIs (`new WorkflowQueue`, `@DBOS.scheduled`/`DBOS.registerScheduled`, `partitionQueue`, `priorityEnabled`, `@DBOS.requiredRole`, `dbos-config.yaml`-based config), see `references/advanced-upgrading.md`.
 
 ## When to Apply
 
@@ -95,6 +95,8 @@ const myWorkflow = DBOS.registerWorkflow(myWorkflowFn);
 - Do NOT use threads or uncontrolled concurrency to start workflows - use `DBOS.startWorkflow` or queues
 - Workflows MUST be deterministic - non-deterministic operations go in steps
 - Do NOT modify global variables from workflows or steps
+- Register queues (`DBOS.registerQueue`) and create schedules (`DBOS.applySchedules`/`DBOS.createSchedule`) AFTER `DBOS.launch()` - they are stored in the system database
+- Steps are only durable when called from a workflow; outside a workflow they run as plain function calls
 
 ## How to Use
 
@@ -104,6 +106,7 @@ Read individual rule files for detailed explanations and examples:
 references/lifecycle-config.md
 references/workflow-determinism.md
 references/queue-concurrency.md
+references/advanced-upgrading.md
 ```
 
 ## References

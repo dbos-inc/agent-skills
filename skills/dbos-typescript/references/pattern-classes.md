@@ -62,6 +62,21 @@ Key requirements:
 - All instances must be created **before** `DBOS.launch()`
 - The `initialize()` method is called during launch for validation
 - Use `DBOS.runStep` inside instance workflows for step operations
-- Event registration decorators like `@DBOS.scheduled` cannot be applied to instance methods
+- `@DBOS.step()` on an instance method also requires the class to extend `ConfiguredInstance` (`DBOS.runStep` has no such requirement)
+- Event receiver decorators such as the Kafka `@consumer` decorator cannot be applied to instance methods, and scheduled workflows and debounced workflows cannot be instance methods
+
+To register an instance method without decorators, register it on the prototype and pass `ctorOrProto` so DBOS can find the instance on dequeue or recovery:
+
+```typescript
+class MyWorker extends ConfiguredInstance {
+  constructor(name: string, private cfg: WorkerConfig) { super(name); }
+  async processTask(task: string): Promise<void> { /* ... */ }
+}
+
+MyWorker.prototype.processTask = DBOS.registerWorkflow(MyWorker.prototype.processTask, {
+  name: "processTask",
+  ctorOrProto: MyWorker.prototype,
+});
+```
 
 Reference: [Using TypeScript Objects](https://docs.dbos.dev/typescript/tutorials/instantiated-objects)

@@ -43,10 +43,15 @@ def greeting_workflow(name: str, note: str) -> None:
 **Async datasource (native `async def` transactions):**
 
 ```python
-from dbos import AsyncSQLAlchemyDatasource
+import asyncio
+import os
+from dbos import DBOS, AsyncSQLAlchemyDatasource
+from sqlalchemy import text
 
-# create() is a coroutine for the async datasource — await it
-ads = await AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"])
+# create() is a coroutine, and `await` is not allowed at module scope.
+# Use asyncio.run so the datasource is a module-level global the decorators can use.
+# (The datasource is not tied to the event loop that created it.)
+ads = asyncio.run(AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"]))
 
 @ads.transaction()
 async def insert_greeting(name: str, note: str) -> None:
@@ -60,6 +65,19 @@ async def insert_greeting(name: str, note: str) -> None:
 async def greeting_workflow(name: str, note: str) -> None:
     await insert_greeting(name, note)
 ```
+
+**Incorrect (module-scope `await`, or creating a datasource after launch):**
+
+```python
+ads = await AsyncSQLAlchemyDatasource.create(url)  # SyntaxError at module scope
+
+DBOS.launch()
+ds = SQLAlchemyDatasource.create(url)  # Raises DBOSException (3.1+)
+```
+
+Create all datasources **before** `DBOS.launch()` (required since 3.1; DBOS tracks them so `rewind_workflow` can delete their transaction checkpoints). Only use `await AsyncSQLAlchemyDatasource.create(...)` if you are already inside a coroutine that runs before launch.
+
+For `AsyncSQLAlchemyDatasource` with SQLite, use an async driver URL such as `sqlite+aiosqlite:///app.sqlite` (install with `pip install "dbos[aiosqlite]"`); a plain `sqlite:///` URL raises an error.
 
 ### Running Inline Without a Decorator
 
@@ -82,10 +100,11 @@ For async code, use `await ads.run_tx_step_async({...}, async_fn, *args)`.
 
 ### Options and Notes
 
-- `@ds.transaction(name=..., isolation_level=...)`: `isolation_level` is one of `"SERIALIZABLE"` (default), `"REPEATABLE READ"`, or `"READ COMMITTED"`. `name` is the step name recorded in the workflow log.
+- `@ds.transaction(name=..., isolation_level=...)`: `isolation_level` is one of `"SERIALIZABLE"` (default), `"REPEATABLE READ"`, or `"READ COMMITTED"` (SQLite supports only `"SERIALIZABLE"`). `name` is the step name recorded in the workflow log (defaults to the function's `__qualname__`).
 - `SQLAlchemyDatasource` only supports `def` functions; `AsyncSQLAlchemyDatasource` only supports `async def`. Decorating the wrong kind raises `DBOSException` at decoration time.
 - Call `ds.sql_session()` / `ads.sql_session()` only inside a datasource transaction; it raises otherwise.
-- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=...)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only).
+- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=...)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only). The default `serializer` is pickle, not the `serializer` in `DBOSConfig`. Postgres connections always use the psycopg (v3) driver.
+- `@DBOS.transaction`, `DBOS.sql_session`, and `application_database_url` were removed in 3.0; datasources replace them (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
 - Outside a workflow, datasource transactions run as ordinary SQLAlchemy transactions with no tracking overhead.
 
 Reference: [Transactions & Datasources](https://docs.dbos.dev/python/tutorials/transaction-tutorial)

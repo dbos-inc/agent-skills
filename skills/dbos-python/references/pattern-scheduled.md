@@ -9,10 +9,11 @@ tags: scheduled, cron, recurring, timer, schedule, create_schedule, apply_schedu
 
 Use `DBOS.create_schedule` to schedule workflows on a cron interval. Schedules are stored in the database and can be created, paused, resumed, and deleted at runtime.
 
-**Incorrect (using the deprecated `@DBOS.scheduled` decorator):**
+**Incorrect (`@DBOS.scheduled` decorator, removed in 3.0):**
 
 ```python
-# Deprecated - cannot be paused, resumed, or managed at runtime
+# Removed in 3.0: DBOS.scheduled no longer exists (AttributeError).
+# The (scheduled_time, actual_time) signature is also gone.
 @DBOS.scheduled("* * * * *")
 @DBOS.workflow()
 def run_every_minute(scheduled_time, actual_time):
@@ -44,10 +45,14 @@ if __name__ == "__main__":
 ```
 
 Scheduled workflow requirements:
-- Must accept two arguments: `scheduled_time` (`datetime`) and `context` (any serializable value)
-- Not supported for workflows that are methods on configured instances; use plain functions or `@staticmethod`
-- `create_schedule` fails if the schedule already exists; use `apply_schedules` for idempotent setup
-- Scheduled workflows are automatically routed to the latest application version
+- Must accept two arguments: `scheduled_time` (`datetime`) and `context` (the schedule's context, any serializable value). Sync or `async def` workflows both work
+- Not supported for workflows that are methods on configured instances; use plain functions, `@staticmethod`, or `@classmethod`
+- Schedules live in the system database: `create_schedule`, `apply_schedules`, and the other schedule methods must be called **after** `DBOS.launch()` (they raise otherwise)
+- `create_schedule` fails if the schedule name already exists (names are unique across all applications sharing the system database); use `apply_schedules` for idempotent setup
+- `apply_schedules` upserts by name and **replaces the whole definition**: any optional field you omit (e.g. `queue_name`) is cleared. Status and last-fired time are preserved
+- Schedules are owned by the application that creates them; scheduled workflows are enqueued to the owning application's latest version
+- A schedule you stop applying keeps running until you `DBOS.delete_schedule` it
+- Each fired workflow is tagged with the schedule name: `DBOS.list_workflows(schedule_name="my-task")` returns all runs
 
 ### `create_schedule` Parameters
 
@@ -70,7 +75,7 @@ DBOS.create_schedule(
 By default, scheduled workflows run on an internal queue. Set `queue_name` to enforce concurrency or rate limits:
 
 ```python
-DBOS.register_queue("scheduled_queue", concurrency=1)
+DBOS.register_queue("scheduled_queue", global_concurrency=1)
 
 DBOS.create_schedule(
     schedule_name="my-task",
@@ -126,7 +131,7 @@ schedule = DBOS.get_schedule("my-task")
 
 ### Manual Backfill and Trigger
 
-Backfill missed executions between two timestamps (already-executed times are skipped):
+Backfill missed executions between two timestamps (already-executed times are skipped). Backfill uses the schedule's **current** cron expression. Both backfill and trigger enqueue on the schedule's `queue_name` (or the internal queue if none):
 
 ```python
 from datetime import datetime, timezone
@@ -160,7 +165,7 @@ Common patterns: `* * * * *` (every minute), `0 * * * *` (hourly), `0 0 * * *` (
 
 ### Managing Schedules from Another Application
 
-Use `DBOSClient` to create/manage schedules from outside the DBOS application. The client takes a `workflow_name` string instead of a function reference:
+Use `DBOSClient` to create/manage schedules from outside the DBOS application. The client takes a `workflow_name` string instead of a function reference. Set `application_name` on the client (or pass it to `create_schedule`) so the right application owns and runs the schedule:
 
 ```python
 client.create_schedule(

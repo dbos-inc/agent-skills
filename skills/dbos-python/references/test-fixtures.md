@@ -38,7 +38,7 @@ def reset_dbos():
         "system_database_url": os.environ.get("TESTING_DATABASE_URL"),
     }
     DBOS(config=config)
-    DBOS.reset_system_database()
+    DBOS.reset_system_database(truncate=True)
     DBOS.launch()
     yield
     DBOS.destroy()
@@ -56,7 +56,7 @@ def test_workflow_two(reset_dbos):
 The fixture:
 1. Destroys any existing DBOS instance
 2. Creates fresh configuration
-3. Resets the system database
+3. Resets the system database (`truncate=True` empties the DBOS tables instead of dropping the database, which is much faster; must be called before `launch`)
 4. Launches DBOS
 5. Yields for test execution
 6. Cleans up after test

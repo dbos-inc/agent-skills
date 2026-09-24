@@ -9,16 +9,16 @@ tags: pattern, scheduled, cron, recurring, createSchedule, applySchedules, cronT
 
 Use `DBOS.createSchedule` to schedule workflows on a cron interval. Schedules are stored in the database and can be created, paused, resumed, and deleted at runtime.
 
-**Incorrect (using the deprecated static scheduling APIs):**
+**Incorrect (static scheduling APIs, removed in 5.0):**
 
 ```typescript
-// Both APIs below are deprecated - cannot be paused, resumed, or managed at runtime
+// Removed in DBOS 5.0 - use DBOS.applySchedules / DBOS.createSchedule instead
 
 DBOS.registerScheduled(myWorkflow, { crontab: "*/30 * * * * *" });
 
 class ScheduledExample {
   @DBOS.workflow()
-  @DBOS.scheduled({ crontab: "*/30 * * * * *" })  // Also deprecated
+  @DBOS.scheduled({ crontab: "*/30 * * * * *" })  // Also removed
   static async scheduledWorkflow(schedTime: Date, startTime: Date) {
     // ...
   }
@@ -46,11 +46,18 @@ async function main() {
 }
 ```
 
+Migrating from static scheduling:
+- The second argument is now the schedule's `context`, not the workflow start time
+- Replace `SchedulerMode.ExactlyOncePerInterval` with `automaticBackfill: true`
+- Schedules persist in the database: a schedule you stop applying keeps running until you call `DBOS.deleteSchedule`
+
 Scheduled workflow requirements:
 - Must accept two arguments: `scheduledTime` (`Date`) and `context` (any serializable value)
-- Not supported for workflows on instantiated objects
-- `createSchedule` fails if the schedule already exists; use `applySchedules` for startup
-- Scheduled workflows are automatically routed to the latest application version
+- Must be free functions or static class methods, not methods on `ConfiguredInstance` objects
+- Schedule methods must be called **after** `DBOS.launch()` (they throw otherwise)
+- `createSchedule` fails if a schedule with that name already exists; use `applySchedules` for startup
+- A schedule is owned by the application (its configured `name`) that creates it: only that application's processes fire it, and its workflows run on that application's latest version
+- Schedule names are globally unique across all applications sharing a system database
 
 ### `createSchedule` Parameters
 
@@ -90,7 +97,7 @@ await DBOS.applySchedules([
 By default, scheduled workflows run on an internal queue. Set `queueName` to enforce concurrency or rate limits:
 
 ```typescript
-await DBOS.registerQueue("scheduled_queue", { concurrency: 1 });
+await DBOS.registerQueue("scheduled_queue", { globalConcurrency: 1 });
 
 await DBOS.createSchedule({
   scheduleName: "my-task",
@@ -146,7 +153,15 @@ await DBOS.deleteSchedule("my-task");       // Remove entirely
 
 const schedules = await DBOS.listSchedules({ status: "ACTIVE" });
 const schedule = await DBOS.getSchedule("my-task");
+
+// Change only some fields, preserving status and last-fired time
+await DBOS.updateSchedule("my-task", { schedule: "0 * * * *", queueName: null });
+
+// Every run is tagged with its schedule's name
+const runs = await DBOS.listWorkflows({ scheduleName: "my-task" });
 ```
+
+`applySchedules` replaces a schedule's entire definition (omitted optional fields are cleared); `updateSchedule` changes only the fields you pass (`null` clears `cronTimezone`/`queueName`) and cannot change the workflow.
 
 `listSchedules` and `getSchedule` return `WorkflowSchedule` objects:
 
@@ -163,6 +178,7 @@ interface WorkflowSchedule {
   automaticBackfill: boolean;
   cronTimezone: string | null; // null = system local time
   queueName: string | null;    // null = internal queue
+  applicationName?: string;    // owning application
 }
 ```
 

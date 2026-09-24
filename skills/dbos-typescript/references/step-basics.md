@@ -52,6 +52,9 @@ Step requirements:
 - Inputs and outputs must be serializable to JSON
 - Cannot call, start, or enqueue workflows from within steps
 - Calling a step from another step makes the called step part of the calling step's execution
+- DBOS must be launched before a step is called
+- Steps are only checkpointed when called from a workflow. As of DBOS 5.0, a step (`runStep`, `registerStep`, or `@DBOS.step()`) called outside a workflow runs as an ordinary function call, with no checkpoint, retries, or timeout
+- Only workflows can be started or enqueued; `DBOS.startWorkflow` on a step throws. To run a step durably on its own, wrap it in a workflow
 
 When to use steps:
 - API calls to external services

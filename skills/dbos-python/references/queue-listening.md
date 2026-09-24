@@ -49,10 +49,11 @@ if __name__ == "__main__":
 ```
 
 Key points:
-- Call `DBOS.listen_queues()` **before** `DBOS.launch()`
-- Pass queue names as strings (queues do not need to exist yet)
+- Call `DBOS.listen_queues()` after `DBOS(config=...)` and **before** `DBOS.launch()`, at most once
+- Pass queue names as strings only (`Queue` objects are not accepted since 3.0; queues do not need to exist yet)
 - Workers can still **enqueue** to any queue, just won't **dequeue** from others
-- By default, workers listen to all queues registered in the system database
+- By default, workers listen to all queues owned by their application in the system database
+- If you use a Kafka consumer with a custom `queue_name`, include that queue in the list
 
 Use cases:
 - CPU vs GPU workers

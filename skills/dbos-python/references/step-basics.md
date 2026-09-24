@@ -64,4 +64,16 @@ async def long_poll():
 
 `preemptible=True` is only supported for async (`async def`) steps.
 
+### Async Step Timeouts
+
+Bound a step that may hang with `timeout_seconds` (async steps only; must be positive and finite). If it runs longer, it is cancelled and `DBOSStepTimeoutError` is raised to the workflow. With retries enabled, each attempt gets its own timeout; if every attempt times out the workflow sees `DBOSMaxStepRetriesExceeded`.
+
+```python
+@DBOS.step(timeout_seconds=30)
+async def call_service():
+    return await fetch_from_slow_service()
+```
+
+Calling a step outside a workflow runs it as an ordinary function (no checkpoint, retries, or timeout).
+
 Reference: [DBOS Steps](https://docs.dbos.dev/python/tutorials/step-tutorial)

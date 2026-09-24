@@ -18,7 +18,7 @@ This file defines the rule categories for DBOS Python best practices. Rules are 
 
 ## 4. Queue (queue)
 **Impact:** HIGH
-**Description:** Queue creation, concurrency limits, rate limiting, partitioning, and priority.
+**Description:** Queue registration, priority, concurrency limits, rate limiting, partitioning, and runtime management.
 
 ## 5. Communication (comm)
 **Impact:** MEDIUM
@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS Python best practices. Rules are 
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Async workflows, workflow versioning, patching, and code upgrades.
+**Description:** Async workflows, serialization, workflow versioning, patching, code upgrades, and upgrading from DBOS 2.x to 3.x.

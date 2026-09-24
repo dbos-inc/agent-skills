@@ -47,6 +47,25 @@ async def async_workflow():
     return result
 ```
 
+### Sync DBOS Methods Raise Inside an Event Loop
+
+Many synchronous DBOS methods (`start_workflow`, `send`, `recv`, `set_event`, `get_event`, `sleep`, `write_stream`, `read_stream`, `register_queue`, `retrieve_workflow`, `list_workflows`, `patch`, `get_result`, ...) raise `RuntimeError` when called while an event loop is running. In `async def` code (async workflows, async FastAPI handlers, lifespan functions), always use the `_async` variants:
+
+```python
+@DBOS.workflow()
+async def async_workflow():
+    await DBOS.register_queue_async("tasks")          # not register_queue
+    handle = await DBOS.enqueue_workflow_async("tasks", other_async_workflow)
+    await DBOS.send_async(target_id, "msg")           # not send
+    if await DBOS.patch_async("new-logic"):           # not patch
+        ...
+    return await handle.get_result()
+```
+
+A workflow enqueued with `DBOS.enqueue_workflow_async` is started in the event loop in which `DBOS.launch()` was called (if that loop is still running), otherwise in a background event loop. Calling a coroutine workflow directly or with `start_workflow_async` runs it in the caller's loop.
+
+Async steps also support `timeout_seconds` (cancel and raise `DBOSStepTimeoutError`) and `preemptible=True`; see [step-basics](step-basics.md).
+
 ### Running Async Steps In Parallel
 
 You can run async steps in parallel if they are started in **deterministic order**:
@@ -86,12 +105,13 @@ async def bad_parallel_workflow():
 
 If you need concurrent sequences, use child workflows instead of interleaving steps.
 
-For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, which runs transactions natively in `async def`:
+For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, which runs transactions natively in `async def`. Create it at module scope with `asyncio.run` (module-scope `await` is a SyntaxError), before `DBOS.launch()`. With SQLite, use a `sqlite+aiosqlite:///` URL:
 
 ```python
+import asyncio
 from dbos import AsyncSQLAlchemyDatasource
 
-ads = await AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"])
+ads = asyncio.run(AsyncSQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"]))
 
 @ads.transaction()
 async def insert_data(data):

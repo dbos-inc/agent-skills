@@ -22,11 +22,13 @@ await DBOS.startWorkflow(processTask, { queueName: "myQueue" })("data");
 import { DBOSClient } from "@dbos-inc/dbos-sdk";
 
 const client = await DBOSClient.create({
-  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
+  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL!,
+  // The application that owns and runs the workflows (set if apps share a system database)
+  applicationName: "my-app",
 });
 
 // Optionally register the queue from the client (persists to system database)
-await client.registerQueue("task_queue", { concurrency: 10 });
+await client.registerQueue("task_queue", { globalConcurrency: 10 });
 
 // Basic enqueue
 const handle = await client.enqueue(
@@ -41,7 +43,7 @@ const handle = await client.enqueue(
 const result = await handle.getResult();
 ```
 
-The queue does not need to exist when `enqueue` is called. If no queue with the given name has been registered, the workflow is still durably recorded as `ENQUEUED` and starts running once the queue is registered and a worker becomes available.
+The queue does not need to exist when `enqueue` is called. If no queue with the given name has been registered, the workflow is still durably recorded as `ENQUEUED`, but it does not run until the queue is registered (by the application or with `client.registerQueue`) and a worker becomes available.
 
 **Type-safe enqueue:**
 
@@ -75,8 +77,9 @@ const result = await handle.getResult(); // type: string
 - `priority`: Queue priority (lower = higher priority)
 - `delaySeconds`: Delay before becoming eligible for execution
 - `queuePartitionKey`: Partition key for partitioned queues
-- `appVersion`: Pin the workflow to a specific application version
+- `appVersion`: Pin the workflow to a specific application version. If unset (5.0+), the workflow is only dequeued by an executor running the application's latest registered version, and takes that executor's version when dequeued
 - `duplicationPolicy`: How to handle a `deduplicationID` collision. `'reject'` (default) throws `DBOSQueueDuplicatedError`; `'return-existing'` attaches to the existing workflow and returns its handle (singleton pattern — requires `deduplicationID`)
+- `applicationName`: Application that owns and runs the workflow (defaults to the client's `applicationName`)
 - `serializationType`: Serialization strategy for workflow arguments (`"portable"` for cross-language interop, otherwise the configured serializer is used)
 
 **Singleton workflow example (`return-existing`):**

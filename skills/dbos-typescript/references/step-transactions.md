@@ -61,7 +61,9 @@ You can also pre-register a transaction function with `dataSource.registerTransa
 const insertOrder = dataSource.registerTransaction(insertOrderFn);
 ```
 
-Available datasource packages: `@dbos-inc/knex-datasource`, `@dbos-inc/kysely-datasource`, `@dbos-inc/drizzle-datasource`, `@dbos-inc/typeorm-datasource`, `@dbos-inc/prisma-datasource`, `@dbos-inc/nodepg-datasource`, `@dbos-inc/postgres-datasource`.
+Available datasource packages: `@dbos-inc/knex-datasource`, `@dbos-inc/kysely-datasource`, `@dbos-inc/drizzle-datasource`, `@dbos-inc/typeorm-datasource`, `@dbos-inc/prisma-datasource`, `@dbos-inc/node-pg-datasource`, `@dbos-inc/postgres-datasource`.
+
+Transaction config (e.g., Knex `{ isolationLevel, readOnly }`) is passed as the second argument to `runTransaction`/`registerTransaction`. `isolationLevel` defaults to the database's default (`read committed` in Postgres).
 
 Datasources require installing the DBOS schema (`transaction_completion` table) via `initializeDBOSSchema`.
 

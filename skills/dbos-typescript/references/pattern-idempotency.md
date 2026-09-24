@@ -36,7 +36,7 @@ const processPayment = DBOS.registerWorkflow(processPaymentFn);
 const workflowID = `payment-${orderId}`;
 await DBOS.startWorkflow(processPayment, { workflowID })("order-123", 50);
 await DBOS.startWorkflow(processPayment, { workflowID })("order-123", 50);
-// Second call returns the result of the first execution
+// Second call does not start a new workflow; it returns a handle to the existing one
 ```
 
 Access the current workflow ID inside a workflow:
@@ -48,6 +48,8 @@ async function myWorkflowFn() {
 }
 ```
 
-Workflow IDs must be **globally unique** for your application. If not set, a random UUID is generated.
+Workflow IDs must be **globally unique** for your application (and across all applications sharing the system database). If not set, a random UUID is generated (child workflows started from a workflow get a deterministic ID derived from the parent's ID).
+
+By default, starting a workflow with an ID already in use (whatever its status) returns a handle to the existing workflow. To throw `DBOSWorkflowIDInUseError` instead, pass `workflowIDReusePolicy: 'reject'` to `DBOS.startWorkflow` (DBOS 5.1+); match the error with `isWorkflowIDInUseError` from the SDK's `Error` namespace rather than `instanceof`.
 
 Reference: [Workflow IDs and Idempotency](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#workflow-ids-and-idempotency)

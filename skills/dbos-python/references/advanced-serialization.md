@@ -57,7 +57,7 @@ def my_workflow(data: dict):
 **On individual operations** — override per-operation when mixing strategies:
 
 ```python
-# Explicitly set portable on send (send is never affected by workflow default)
+# Explicitly set portable on send: the recipient's format is unknown to the sender
 DBOS.send(
     destination_id="workflow-123",
     message={"status": "complete"},
@@ -91,7 +91,7 @@ handle = client.enqueue(
 ```python
 from dbos import WorkflowSerializationFormat
 
-WorkflowSerializationFormat.DEFAULT   # Uses config serializer (pickle by default)
+WorkflowSerializationFormat.DEFAULT   # Config serializer (pickle by default); inside a workflow, that workflow's format
 WorkflowSerializationFormat.PORTABLE  # Portable JSON for cross-language use
 WorkflowSerializationFormat.NATIVE    # Explicitly uses Python pickle (py_pickle)
 ```
@@ -115,7 +115,8 @@ Non-portable exceptions raised in a portable workflow are automatically converte
 
 ### Key Rules
 
-- `send` is **never** affected by the workflow's serialization strategy — always set `serialization_type` explicitly on `send` for cross-language messages
+- `WorkflowSerializationFormat.DEFAULT` inside a workflow uses that workflow's format (3.0+), so a `send` from a portable workflow is portable and from a pickle workflow is pickle. The sender can't know what the recipient expects, so always set `serialization_type` explicitly on `send` for cross-language messages
+- When enqueueing to another application sharing the system database, also set `application_name` in the enqueue options
 - Step outputs always use the native serializer regardless of workflow strategy (steps are internal)
 - `DBOSClient.serializer` must match the app's serializer for **default**-format data, but portable data is always readable
 
