@@ -121,7 +121,11 @@ engine = sa.create_engine(
 )
 
 options: EnqueueOptions = {"queue_name": "orders", "workflow_name": "process_order"}
+order_id = "order-123"
+payment_workflow_id = "payment-order-123"  # IDs of workflows waiting on recv
+wf_a, wf_b = "listener-a", "listener-b"
 
+# The orders table in this example lives in the system database, since conn is connected to it
 with engine.begin() as conn:
     conn.execute(text("INSERT INTO orders (id) VALUES (:id)"), {"id": order_id})
     handle = client.enqueue_in_transaction(conn, options, order_id)

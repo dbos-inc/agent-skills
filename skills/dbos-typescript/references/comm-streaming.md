@@ -91,6 +91,6 @@ Reading behaviors:
 - `readStream` returns an async generator that yields values in order until the stream is closed or the workflow terminates
 - When called from workflow code, each value read by `readStream`/`readStreamOffset` is checkpointed as a step, so a replayed workflow re-yields the same values
 - Both throw `DBOSNonExistentWorkflowError` if no workflow with that ID exists
-- From outside the application, use `client.readStream` and `client.readStreamOffset` with the same options (client reads are never checkpointed)
+- From outside the application, use `client.readStream` (never checkpointed) and `client.readStreamOffset` with the same options
 
 Reference: [Workflow Streaming](https://docs.dbos.dev/typescript/tutorials/workflow-communication#workflow-streaming)

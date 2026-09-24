@@ -62,7 +62,7 @@ const client = await DBOSClient.create({
 - `registerQueue(name, { applicationName })` (client): the owning application (defaults to the client's; registering a queue owned by another application throws)
 - `createSchedule({ ..., applicationName })` / `applySchedules([{ ..., applicationName }])` (client): the application that owns the schedule and runs its workflows
 - `new Debouncer({ workflow, applicationName })` / `new DebouncerClient(client, { ..., applicationName })`: debounce on behalf of another application
-- `setLatestApplicationVersion(version, { applicationName })`: promote a version of the named application
+- `setLatestApplicationVersion(version, { applicationName })`: the application to act as (promoting a version registered by a different application throws)
 - Listing filters: `listWorkflows({ applicationName })`, `listQueues(applicationName)`, `listSchedules({ applicationName })` accept a name or array; rows owned by no application are always included
 
 ### Renaming an Application

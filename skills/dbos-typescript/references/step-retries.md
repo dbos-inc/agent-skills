@@ -62,7 +62,7 @@ Retry parameters:
 - `shouldRetry`: Optional predicate for selective retries (see below)
 - `timeoutMS`: Per-attempt timeout; if `retriesAllowed` is `true`, a timed-out attempt is retried like any other failure (see `step-timeouts.md`)
 
-With defaults, retry delays are: 1s, 2s, 4s, 8s, 16s...
+With defaults (`maxAttempts: 3`), retries happen after 1s and 2s; with a higher `maxAttempts`, the delay keeps doubling (4s, 8s, ...).
 
 If the step fails on all `maxAttempts` attempts, a `DBOSMaxStepRetriesError` is thrown to the calling workflow.
 

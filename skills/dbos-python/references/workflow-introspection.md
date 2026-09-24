@@ -94,7 +94,7 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **schedule_name**: Workflows enqueued by this schedule (or list)
 - **application_name**: Owning application(s); defaults to this application (unowned workflows always included)
 
-On Postgres, listing queries are subject to `observability_query_timeout_sec` (default 30s) and raise `DBOSQueryTimeoutError` when exceeded.
+On Postgres, listing queries are subject to `observability_query_timeout_sec` (default 30s; `list_workflows` and `list_queued_workflows` are exempt when `workflow_ids` is set) and raise `DBOSQueryTimeoutError` when exceeded.
 
 ### Status Values
 

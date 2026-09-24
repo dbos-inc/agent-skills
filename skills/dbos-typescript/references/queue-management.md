@@ -78,7 +78,7 @@ Setting any partition limit partitions the queue; see `queue-partitioning.md` be
 ### Deleting a Queue
 
 ```typescript
-await DBOS.deleteQueue("email");
+await DBOS.deleteQueue("email");  // No-op if no queue with that name exists
 ```
 
 **Warning:** Workflows already enqueued on a deleted queue can no longer be dequeued, executed, or recovered (unless a queue with the same name is registered again, which dequeues them - don't rely on this). Cancel or drain pending workflows on the queue before deleting it.

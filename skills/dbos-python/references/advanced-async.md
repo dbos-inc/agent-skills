@@ -55,6 +55,10 @@ Many synchronous DBOS methods (such as `DBOS.sleep`, `DBOS.recv`, `DBOS.send`, `
 # "tasks" is registered at startup, after DBOS.launch()
 
 @DBOS.workflow()
+async def other_async_workflow():
+    ...
+
+@DBOS.workflow()
 async def async_workflow(target_id: str):
     handle = await DBOS.enqueue_workflow_async("tasks", other_async_workflow)
     await DBOS.send_async(target_id, "msg")           # not send

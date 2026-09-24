@@ -116,6 +116,5 @@ await DBOS.launch();
 - `-s, --schema <name>` targets a non-default schema (match `systemDatabaseSchemaName`)
 - `--print-migrations <all|NUMBER>` prints all migrations (fresh database) or those from a migration number (upgrade)
 - With `runMigrations: false`, launch only verifies the schema: a missing or outdated system database fails with `DBOSInitializationError`; a newer schema is accepted
-- Re-run `npx dbos schema` before deploying a DBOS upgrade (e.g., 4.x to 5.0, which changes the schema)
 
 Reference: [DBOS Configuration](https://docs.dbos.dev/typescript/reference/configuration)

@@ -174,7 +174,7 @@ config: DBOSConfig = {
 
 With `run_migrations=False`, launch only verifies the schema: missing DBOS tables (or a missing SQLite file) or a schema behind this DBOS version fail launch with `DBOSInitializationError`; a missing Postgres database fails with a connection error. A schema ahead of the required version is accepted, so older processes can run beside newer peers.
 
-If a DBA must apply the SQL, print it instead of executing (Postgres only; output contains `CREATE/DROP INDEX CONCURRENTLY`, so run it outside a transaction block):
+If a DBA must apply the SQL, print it instead of executing (`--print-migrations` is Postgres only; its output contains `CREATE/DROP INDEX CONCURRENTLY`, so run it outside a transaction block):
 
 ```shell
 dbos migrate --print-migrations all -s "$DBOS_SYSTEM_DATABASE_URL" > migrations.sql  # or a number to upgrade from
