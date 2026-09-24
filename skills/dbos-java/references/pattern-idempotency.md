@@ -37,8 +37,10 @@ app.post("/checkout/{idempotencyKey}", ctx -> {
 
 Details:
 
-- Workflow IDs are globally unique per application; reusing an ID returns a handle to the existing execution
-  instead of starting new work
+- Workflow IDs are unique across the whole system database, including every application sharing it. Reusing an ID
+  returns a handle to the existing execution instead of starting new work, or throws
+  `DBOSConflictingWorkflowException` if the ID belongs to a different workflow. When applications share a system
+  database, include something application-specific in natural keys (for example `"billing-order-" + orderId`)
 - Read the current ID inside a workflow or step with `DBOS.workflowId()`
 - Use a natural key from the caller (request ID, order ID, `"sync-" + userId + "-" + date`) so retries produce the
   same ID
