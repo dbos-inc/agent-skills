@@ -37,14 +37,14 @@ deduplication ID held by a peer's workflow on the same queue blocks yours.
 // This application owns the workflow but has no processOrder registered,
 // and does not poll order-queue — the workflow is never dequeued
 dbos.enqueueWorkflow(
-    new EnqueueOptions("processOrder", "OrderService", QueueName.of("order-queue")),
+    new EnqueueOptions("processOrder", "com.example.OrderServiceImpl", QueueName.of("order-queue")),
     new Object[] {"order-123"});
 ```
 
 **Correct (naming the owning application):**
 
 ```java
-var options = new EnqueueOptions("processOrder", "OrderService", QueueName.of("order-queue"))
+var options = new EnqueueOptions("processOrder", "com.example.OrderServiceImpl", QueueName.of("order-queue"))
     .withApplicationName("order-service"); // owns, dequeues, and runs it
 
 WorkflowHandle<String, Exception> handle =
@@ -52,7 +52,7 @@ WorkflowHandle<String, Exception> handle =
 String result = handle.getResult(); // workflow IDs are global, so waiting works
 ```
 
-`DBOS.enqueueWorkflow(EnqueueOptions, Object[])` and `DBOS.enqueueWorkflow(options, positionalArgs, namedArgs)`
+`dbos.enqueueWorkflow(EnqueueOptions, Object[])` and `dbos.enqueueWorkflow(options, positionalArgs, namedArgs)`
 take the same `EnqueueOptions` as `DBOSClient` and write the same row, without a reference to the
 workflow's function. Unlike `startWorkflow`, the workflow and queue are not checked against local registries. Called
 inside a workflow, the enqueue is recorded as a child, so a replay returns the original handle; called from a step,

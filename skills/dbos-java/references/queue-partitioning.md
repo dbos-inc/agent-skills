@@ -57,8 +57,8 @@ dbos.registerQueue("api-queue",
         .andPartitionRateLimit(10, Duration.ofSeconds(60)));
 ```
 
-A limit enforced at a narrower scope may never exceed one enforced at a wider scope. Registering or updating a
-queue fails if:
+A limit enforced at a narrower scope may never exceed one enforced at a wider scope. Limits are compared only when
+both are set. Registering or updating a queue fails if:
 
 - any concurrency limit, rate-limit max or rate-limit period is zero or negative
 - `partitionConcurrency` exceeds `concurrency`
@@ -73,7 +73,8 @@ queue fails if:
 - A partition key is required when enqueueing to a partitioned queue, and rejected on a non-partitioned queue
 - Partition keys and deduplication IDs cannot be used together
 - Partitioning an existing queue strands whatever is already enqueued on it: those rows have no partition key, and
-  a partitioned queue dequeues only from the keys present
+  a partitioned queue dequeues only from the keys present. Drain it first; to rescue stranded workflows, move them
+  to a queue that is not partitioned with `dbos.resumeWorkflow(workflowId, queueName)`
 
 ### The deprecated partitionQueue flag
 

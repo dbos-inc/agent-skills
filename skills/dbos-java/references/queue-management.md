@@ -57,7 +57,8 @@ Field semantics: each `QueueOptions` field is tri-state. Absent means "leave unc
 helpers build these values; `Field.absent()` and `Field.of(value)` are available for direct construction.
 
 Deleting a queue leaves its enqueued workflows unrunnable — they resume only if a queue with the same name is
-registered later, which is rarely intended. Cancel or drain pending workflows before deleting.
+registered later, which is rarely intended. Cancel or drain pending workflows before deleting. To rescue workflows
+already stuck on a deleted queue, move them to a registered queue with `dbos.resumeWorkflow(workflowId, queueName)`.
 
 The same management methods are available on `DBOSClient` for admin tooling that runs outside the application.
 

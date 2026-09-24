@@ -52,8 +52,9 @@ a worker becomes available.
 `EnqueueOptions` is the top-level `dev.dbos.transact.EnqueueOptions`, shared by `DBOSClient.enqueueWorkflow` and
 `dbos.enqueueWorkflow`. The constructors fix what to run and where, with the queue as a `QueueName`:
 `(workflowName, queue)`, `(workflowName, className, queue)`, and `(workflowName, className, instanceName, queue)`.
-There is no `withClassName` or `withInstanceName`. Without a class name, DBOS searches all registered classes for the
-workflow name. The nested `DBOSClient.EnqueueOptions`, and the client overloads that take it, are deprecated for
+There is no `withClassName` or `withInstanceName`. A Java workflow is identified by its class, so always pass the
+fully qualified name of the implementing class (or its `@WorkflowClassName` value) when targeting a Java workflow;
+omit it only for a workflow not registered on a class, such as a Python workflow function. The nested `DBOSClient.EnqueueOptions`, and the client overloads that take it, are deprecated for
 removal since 1.1 — do not use them. Options:
 
 - `withWorkflowId(String)` — idempotency key

@@ -40,7 +40,7 @@ Enqueue a workflow whose implementation lives in another language, using portabl
 DBOS application, `dbos.enqueueWorkflow` takes the same arguments):
 
 ```java
-var options = new EnqueueOptions("process_order", "OrderService", QueueName.of("order-queue"))
+var options = new EnqueueOptions("process_order", QueueName.of("order-queue")) // a Python function: no class
     .withSerialization(SerializationStrategy.PORTABLE); // required for named arguments
 
 // positional args, then named args (for languages that support them, e.g. Python kwargs)

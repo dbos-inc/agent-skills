@@ -9,13 +9,14 @@ tags: advanced, versioning, deployment, blue-green, recovery
 
 Every workflow is tagged with the application version that started it, and DBOS only recovers workflows whose
 version matches the running executor. Set an explicit version so deployments are deliberate rather than driven by a
-source-code hash that changes with any edit.
+computed hash.
 
 **Incorrect (letting the version drift implicitly):**
 
 ```java
-// No version configured: DBOS hashes workflow source code, so an unrelated
-// edit silently produces a new version and old workflows stop recovering
+// No version configured: DBOS hashes the DBOS version, the application name, and the
+// bytecode of each registered workflow method. Changing a workflow method or upgrading DBOS
+// silently produces a new version, while changing a step it calls does not
 var config = DBOSConfig.defaultsFromEnv("my-app");
 ```
 
