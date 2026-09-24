@@ -108,6 +108,8 @@ The second argument of a scheduled workflow is now the schedule's `context`, not
 **Incorrect (removed in 3.0):**
 
 ```python
+from datetime import datetime
+
 @DBOS.scheduled("*/5 * * * *")
 @DBOS.workflow()
 def my_periodic_task(scheduled_time: datetime, actual_time: datetime):
@@ -117,6 +119,9 @@ def my_periodic_task(scheduled_time: datetime, actual_time: datetime):
 **Correct:**
 
 ```python
+from datetime import datetime
+from typing import Any
+
 @DBOS.workflow()
 def my_periodic_task(scheduled_time: datetime, context: Any):
     ...

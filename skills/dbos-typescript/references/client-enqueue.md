@@ -135,7 +135,7 @@ try {
     orderId,
   );
   await pg.query("COMMIT"); // The workflow does not exist until this commits
-  // Only call handle.getResult() after the commit
+  await handle.getResult(); // Only call getResult() after the commit
 } catch (e) {
   await pg.query("ROLLBACK"); // Neither the row nor the workflow is created
   throw e;

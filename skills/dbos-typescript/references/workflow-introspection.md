@@ -100,7 +100,7 @@ Workflows started by a schedule are tagged with the schedule name; find them wit
 - **workflow_id_prefix**: Match workflows whose IDs start with this
 - **authenticatedUser**: User(s) who ran the workflow
 - **queueName**: Queue name(s)
-- **queuesOnly**: If `true`, only currently-enqueued workflows (`ENQUEUED`, `DELAYED`, or `PENDING` on a queue; same as `listQueuedWorkflows`)
+- **queuesOnly**: If `true`, only currently-enqueued workflows (`ENQUEUED`, `DELAYED`, or `PENDING` on a queue; `listQueuedWorkflows` is equivalent to this plus `loadOutput: false`)
 - **forkedFrom**: Source workflow ID(s) for forks
 - **wasForkedFrom**: `true` for workflows that have been forked from, `false` for those that haven't
 - **parentWorkflowID**: Parent workflow ID(s)
@@ -186,7 +186,7 @@ if (steps) {
 
 Each `StepInfo` exposes: `functionID`, `name`, `output`, `error`, `childWorkflowID`, `startedAtEpochMs`, `completedAtEpochMs`. Returns `undefined` if the workflow is not found.
 
-`listWorkflows`, `listQueuedWorkflows`, and `listWorkflowSteps` are subject to the `observabilityQueryTimeoutMs` statement timeout (30 seconds by default; list queries with `workflowIDs` set are exempt) and throw `DBOSQueryTimeoutError` if a query exceeds it. Narrow the filters or paginate on large system databases.
+`listWorkflows`, `listQueuedWorkflows`, and `listWorkflowSteps` are subject to the `observabilityQueryTimeoutMs` statement timeout (30 seconds by default; list queries with `workflowIDs` set are exempt) and throw `DBOSQueryTimeoutError` if a query exceeds it.
 
 To optimize performance, set `loadInput: false` and `loadOutput: false` on `listWorkflows` when you don't need workflow inputs or outputs.
 

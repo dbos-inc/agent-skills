@@ -24,8 +24,9 @@ class MyService:
 **Correct (proper class setup):**
 
 ```python
+import os
 import requests
-from dbos import DBOS, DBOSConfiguredInstance
+from dbos import DBOS, DBOSConfig, DBOSConfiguredInstance
 
 @DBOS.dbos_class()
 class URLFetcher(DBOSConfiguredInstance):
@@ -47,6 +48,11 @@ example_fetcher = URLFetcher("https://example.com")
 api_fetcher = URLFetcher("https://api.example.com")
 
 if __name__ == "__main__":
+    config: DBOSConfig = {
+        "name": "my-app",
+        "application_version": "0.1.0",
+        "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
+    }
     DBOS(config=config)
     DBOS.launch()
     print(example_fetcher.fetch_workflow())

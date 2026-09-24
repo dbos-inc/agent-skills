@@ -52,15 +52,15 @@ options: EnqueueOptions = {
     "workflow_id": "custom-id-123",
     "workflow_id_reuse_policy": "reject",   # or "return-existing" (default)
     "workflow_timeout": 300,
-    "deduplication_id": "user-123",
+    "deduplication_id": "user-123",         # not supported on partitioned queues
     "duplication_policy": "return-existing", # singleton: attach to the existing workflow
     "priority": 1,
     "delay_seconds": 60,                    # Delay before becoming eligible
-    "queue_partition_key": "user-123",      # only for partitioned queues
+    # "queue_partition_key": "user-123",    # required on partitioned queues (use instead of deduplication_id)
     "app_version": "1.0.0",                 # unset = dequeued by the latest version
     "authenticated_user": "alice",
     "authenticated_roles": ["admin"],
-    "attributes": {"customer": "acme"},     # searchable via list_workflows(attributes=...)
+    "attributes": {"customer": "acme"},     # searchable via list_workflows(attributes=...) (Postgres only)
     "application_name": "order-service",    # owning app, if the system DB is shared
 }
 ```
@@ -86,7 +86,7 @@ handle = client.enqueue(options)
 
 ### Enqueue or Send Inside Your Own Transaction
 
-Three client methods write inside a caller-owned SQLAlchemy transaction, so they commit or roll back atomically with your own writes (the transactional outbox pattern):
+Three client methods write inside a caller-owned SQLAlchemy transaction, so they commit or roll back atomically with your own writes:
 
 ```python
 client.enqueue_in_transaction(conn_or_session, options: EnqueueOptions, *args, **kwargs) -> WorkflowHandle

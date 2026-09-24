@@ -73,20 +73,22 @@ The same parameters exist on `DBOS.read_stream_async` (async generator) and on `
 **Incorrect (reader hangs forever if the producer stalls):**
 
 ```python
-for value in DBOS.read_stream(workflow_id, "response"):
-    yield value
+def stream_response(workflow_id: str):
+    for value in DBOS.read_stream(workflow_id, "response"):
+        yield value
 ```
 
 **Correct (bound the gap between values):**
 
 ```python
-from dbos import error as dboserror
+from dbos import DBOS, error as dboserror
 
-try:
-    for value in DBOS.read_stream(workflow_id, "response", timeout_seconds=30):
-        yield value
-except dboserror.DBOSStreamTimeoutError:
-    ...  # producer stopped sending values
+def stream_response(workflow_id: str):
+    try:
+        for value in DBOS.read_stream(workflow_id, "response", timeout_seconds=30):
+            yield value
+    except dboserror.DBOSStreamTimeoutError:
+        ...  # producer stopped sending values
 ```
 
 `timeout_seconds` restarts every time a value arrives, so it bounds the gap between values, not the total read. Reading a stream of a nonexistent workflow raises `DBOSNonExistentWorkflowError`.

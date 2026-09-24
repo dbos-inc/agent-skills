@@ -105,6 +105,6 @@ Key points:
 - Use `DBOS.shutdown({ deregister: true })` if re-registering functions
 - Queues are stored in the system database: if your tests use queues, register them after **each** `DBOS.launch()`. `deregister` clears in-process registrations only, not queues or schedules persisted in the system database
 - `DBOS.shutdown()` does not wait for running workflows; pass `{ workflowCompletionTimeoutMS }` to wait for them to finish first
-- Mocked steps run inline; outside a workflow, real steps run as plain function calls (no checkpoints or retries), so test durable behavior through workflows
+- Outside a workflow, a step runs as an ordinary function call, without checkpoints, retries, or a timeout
 
 Reference: [Testing & Mocking](https://docs.dbos.dev/typescript/tutorials/testing)

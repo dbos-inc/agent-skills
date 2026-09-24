@@ -82,7 +82,7 @@ async def workflow():
 #     await DBOS.deprecate_patch_async("use-baz")
 ```
 
-If a patch is missing, or deprecated/removed too early, recovery raises `DBOSUnexpectedStepError` pointing at the mismatched step.
+If a patch is missing, or deprecated/removed too early, the workflow raises `DBOSUnexpectedStepError` pointing at the mismatched step.
 
 **Upgrading to DBOS 3.0 with patching:** 3.0 changes the storage format of workflow inputs/outputs, and 2.x processes cannot process workflows created by 3.0. If you use patching, shut down all DBOS 2.x processes before launching 3.0 processes (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
 

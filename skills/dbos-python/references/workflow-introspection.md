@@ -92,7 +92,7 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **was_forked_from**: `True` for workflows that have been forked from, `False` for those that haven't
 - **attributes**: Workflows whose custom attributes contain all given key-value pairs (Postgres only; see [workflow-attributes](workflow-attributes.md))
 - **schedule_name**: Workflows enqueued by this schedule (or list)
-- **application_name**: Owning application(s); defaults to this application (unowned workflows always included)
+- **application_name**: Owning application(s); defaults to this application (unowned workflows always included; with `workflow_ids` set, any application's workflows are returned)
 
 On Postgres, listing queries are subject to `observability_query_timeout_sec` (default 30s; `list_workflows` and `list_queued_workflows` are exempt when `workflow_ids` is set) and raise `DBOSQueryTimeoutError` when exceeded.
 

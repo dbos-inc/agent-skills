@@ -62,6 +62,8 @@ Match the error with `isWorkflowIDInUseError` from the SDK's `Error` namespace, 
 ```typescript
 import { DBOS, Error as DBOSErrors } from "@dbos-inc/dbos-sdk";
 
+// processOrder is a registered workflow; client is a DBOSClient
+
 async function submitOrder(orderID: string, order: Order) {
   try {
     const handle = await DBOS.startWorkflow(processOrder, {

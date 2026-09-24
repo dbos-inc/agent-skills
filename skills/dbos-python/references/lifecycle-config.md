@@ -181,11 +181,9 @@ dbos migrate --print-migrations all -s "$DBOS_SYSTEM_DATABASE_URL" > migrations.
 dbos migrate --print-user-role -r my_app_role -s "$DBOS_SYSTEM_DATABASE_URL" > grants.sql
 ```
 
-With `run_migrations=False`, a schema behind the running DBOS version fails launch.
-
 ## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
 
-When connecting through a connection pooler in **transaction mode**, set `use_listen_notify` to `False`:
+When connecting through a connection pooler in **transaction mode**, set `use_listen_notify` to `False`. Set it before the system database is first created; it determines which notification triggers are created, so do not change it afterward:
 
 ```python
 config: DBOSConfig = {

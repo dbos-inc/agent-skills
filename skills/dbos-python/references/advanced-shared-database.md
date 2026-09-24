@@ -71,7 +71,7 @@ counts = client.rename_application("old-name", "new-name")
 # counts: {"queues": ..., "schedules": ..., "versions": ..., "workflows": ..., "steps": ...}
 ```
 
-Or with the CLI: `dbos rename-application --from old-name --to new-name -s $DBOS_SYSTEM_DATABASE_URL` (or `dbosctl sysdb rename-application`). The operation is idempotent: if interrupted, re-running resumes where it left off.
+Or with the CLI: `dbos rename-application --from old-name --to new-name -s $DBOS_SYSTEM_DATABASE_URL` (or `dbosctl sysdb rename-application`). Both prompt for confirmation; pass `-y` (or `--force` for `dbosctl`) when running non-interactively. The operation is idempotent: if interrupted, re-running resumes where it left off.
 
 Rows created before upgrading to a version with application ownership (or by clients without a name) are unowned. Before adding a second application to an existing system database, adopt them into the first application:
 

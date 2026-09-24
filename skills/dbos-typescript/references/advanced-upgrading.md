@@ -118,14 +118,16 @@ class Orders {
 }
 
 await DBOS.withAuthedContext(user, roles, () => Orders.refundOrder(orderId));
-// Or when starting a workflow:
+```
+
+In 5.x, `DBOS.startWorkflow` and `DBOSClient.enqueue` also accept `authenticatedUser` and `authenticatedRoles`:
+
+```typescript
 await DBOS.startWorkflow(Orders, {
   authenticatedUser: user,
   authenticatedRoles: roles,
 }).refundOrder(orderId);
 ```
-
-`DBOSClient.enqueue` also accepts `authenticatedUser` and `authenticatedRoles`.
 
 ### Other Removals
 

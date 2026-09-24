@@ -19,7 +19,7 @@ DBOS.setConfig({
 });
 ```
 
-If patching is enabled and `applicationVersion` is not set, DBOS uses the fixed application version `PATCHING_ENABLED` instead of a source-code hash, so workflows started before a deploy can be recovered by processes running newer code.
+If patching is enabled and `applicationVersion` is not set, DBOS uses the fixed application version `PATCHING_ENABLED` instead of a source-code hash, so workflows started while patching is enabled can be recovered by processes running newer code.
 
 **Incorrect (breaking change without patching):**
 
@@ -83,6 +83,6 @@ Lifecycle: `patch()` → deploy → wait for old workflows → `deprecatePatch()
 
 Use `DBOS.listWorkflows` to check for active old workflows before deprecating or removing patches.
 
-**Upgrading from DBOS 4.x to 5.0:** DBOS 4.x cannot process workflows created by 5.0, and patching apps share one application version across deploys. Shut down all DBOS 4.x processes before launching DBOS 5.0 processes (see `advanced-upgrading.md`).
+**Upgrading from DBOS 4.x to 5.0:** DBOS 4.x cannot process workflows created by 5.0. If you use patching, shut down all DBOS 4.x processes before launching DBOS 5.0 processes (see `advanced-upgrading.md`).
 
 Reference: [Patching](https://docs.dbos.dev/typescript/tutorials/upgrading-workflows#patching)

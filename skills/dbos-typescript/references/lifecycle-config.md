@@ -59,7 +59,7 @@ async function main() {
 
 ## DBOSConfig Reference
 
-All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializationError` if no configuration or no `name` was provided. DBOS does not read `dbos-config.yaml` at launch (only the DBOS CLI and DBOS Cloud use it); always configure with `DBOS.setConfig`.
+All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializationError` if no configuration or no `name` was provided. DBOS does not read `dbos-config.yaml` at launch (the DBOS CLI and DBOS Cloud still use it); always configure with `DBOS.setConfig`.
 
 `name` identifies which application owns each workflow, queue, schedule, and application version in the system database. Applications sharing a system database must have distinct names, and a process only runs its own application's workflows.
 
