@@ -147,7 +147,7 @@ DBOS(fastapi=app, config=config)
 
 ### Related Current Behavior
 
-Not 3.0 changes, but often hit when migrating:
+Also note when migrating:
 
 - `max_recovery_attempts` is not a `DBOSClient` `EnqueueOptions` field; set it on `@DBOS.workflow(max_recovery_attempts=...)`.
 - The default workflow name is the function's `__qualname__`, which does not include its module. Registering workflows with the same name from different modules raises a `DBOSException`; pass `name=` to disambiguate.

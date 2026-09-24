@@ -21,8 +21,8 @@ import { Queue } from "some-external-queue";
 ```typescript
 async function checkoutWorkflowFn() {
   // Wait for payment notification (default 60s timeout).
-  // Pass options as an object (the deprecated positional timeoutSeconds form
-  // still works but is no longer the recommended call shape).
+  // Pass options as an object (a positional timeoutSeconds number is also
+  // accepted, but prefer the options object).
   const notification = await DBOS.recv<string>("payment_status", {
     timeoutSeconds: 120,
   });
