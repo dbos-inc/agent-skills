@@ -67,8 +67,9 @@ unclaimed, so any application may dequeue those workflows, and every application
 schedules. Name the client when the database is shared:
 
 ```java
-var client = new DBOSClient(url, user, password, null, null, false, "order-service");
-client.applicationName(); // "order-service"
+try (var client = new DBOSClient(url, user, password, null, null, false, "order-service")) {
+  client.applicationName(); // "order-service"
+}
 ```
 
 ### Per-application options

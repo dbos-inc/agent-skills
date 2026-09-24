@@ -58,7 +58,7 @@ Useful `ListWorkflowsInput` filters (all optional, each returns a new instance):
   `ENQUEUED`/`PENDING`/`DELAYED` ones — Java has no separate `listQueuedWorkflows`), `withExecutorIds(...)`,
   `withApplicationVersion(...)`, `withAuthenticatedUser(...)`
 - `withApplicationName(...)` — owning applications on a shared system database; unset lists this application's
-  workflows plus unclaimed ones, an empty list lists every application's
+  workflows plus unclaimed ones, an empty list lists every application's workflows
   ([advanced-shared-database.md](advanced-shared-database.md))
 - `withParentWorkflowId(...)`, `withHasParent(true)`, `withForkedFrom(...)`, `withWasForkedFrom(true)`
 - `withScheduleName(...)` — workflows started by the named schedules; `WorkflowStatus.scheduleName()` reports the
