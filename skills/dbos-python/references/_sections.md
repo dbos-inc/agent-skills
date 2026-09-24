@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS Python best practices. Rules are 
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Async workflows, serialization, workflow versioning, patching, code upgrades, and upgrading from DBOS 2.x to 3.x.
+**Description:** Async workflows, serialization, workflow versioning, patching, code upgrades, upgrading from DBOS 2.x to 3.x, and sharing a system database between applications.

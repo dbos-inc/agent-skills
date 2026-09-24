@@ -42,7 +42,7 @@ Constructor parameters:
 - `system_database_engine`: Custom SQLAlchemy engine (if provided, no engine is created)
 - `dbos_system_schema`: Postgres schema for DBOS system tables (default: `"dbos"`)
 - `serializer`: Must match the DBOS application's serializer (default: pickle)
-- `application_name`: The application the client acts for. Enqueued workflows, registered queues, and created schedules are owned by it, and listing calls default to its rows. **Always set this if multiple applications share the system database.**
+- `application_name`: The application the client acts for. Enqueued workflows, registered queues, and created schedules are owned by it, and listing calls default to its rows. **Always set this if multiple applications share the system database.** See [advanced-shared-database](advanced-shared-database.md).
 - `system_database_pool_size` (default 5), `system_database_polling_concurrency` (default half the pool)
 - `use_listen_notify` (default `False`): use Postgres LISTEN to wake `get_event` / `read_stream` instead of polling
 - `lazy` (default `False`): don't connect until first use; check explicitly with `client.check_connection()`. Cannot be combined with `use_listen_notify`

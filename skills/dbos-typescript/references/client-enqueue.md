@@ -112,6 +112,38 @@ await client.enqueue(
 );
 ```
 
+### Enqueueing Atomically With Your Own Writes
+
+`client.enqueueInTransaction` performs the enqueue inside a transaction you own, so the workflow is enqueued if and only if your database writes commit. Pass a `node-postgres` `Client` or `PoolClient` with an open transaction, **connected to the DBOS system database**:
+
+```typescript
+import { Pool } from "pg";
+
+const pool = new Pool({ connectionString: process.env.DBOS_SYSTEM_DATABASE_URL });
+const pg = await pool.connect();
+try {
+  await pg.query("BEGIN");
+  await pg.query("INSERT INTO orders (id, status) VALUES ($1, 'new')", [orderId]);
+  const handle = await client.enqueueInTransaction<typeof Orders.processOrder>(
+    pg,
+    { workflowName: "processOrder", workflowClassName: "Orders", queueName: "orders" },
+    orderId,
+  );
+  await pg.query("COMMIT"); // The workflow does not exist until this commits
+  // Only call handle.getResult() after the commit
+} catch (e) {
+  await pg.query("ROLLBACK"); // Neither the row nor the workflow is created
+  throw e;
+} finally {
+  pg.release();
+}
+```
+
+- You own the transaction: DBOS never begins, commits, rolls back, or retries it
+- `duplicationPolicy: 'return-existing'` is not supported (throws)
+- `client.enqueuePortableInTransaction(pg, options, positionalArgs, namedArgs?)` is the portable-serialization variant (for targets with named arguments, e.g. Python kwargs); `client.enqueuePortable(options, positionalArgs, namedArgs?)` is the non-transactional one
+- `client.sendInTransaction(pg, destinationID, message, topic?, idempotencyKey?)` sends a message atomically in the same way (see `comm-messages.md`)
+
 Always call `client.destroy()` when done.
 
 Reference: [DBOS Client Enqueue](https://docs.dbos.dev/typescript/reference/client#enqueue)

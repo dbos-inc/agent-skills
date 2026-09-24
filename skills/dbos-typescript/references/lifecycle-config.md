@@ -91,4 +91,31 @@ All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializatio
 | **schedulerPollingIntervalMs** | Scheduler polling interval for new schedules (ms) | `30000` |
 | **serializer** | Custom serializer for system database | Default (SuperJSON) |
 
+## Least-Privilege Deployment
+
+By default, `DBOS.launch()` creates the system database and migrates its tables, which requires DDL privileges. If the app's database role can't (or shouldn't) run DDL, migrate out of band with a privileged user and set `runMigrations: false`:
+
+```shell
+# As a privileged user: create/migrate the system tables and grant the app role access
+npx dbos schema ${DBOS_SYSTEM_DATABASE_URL} -r my_app_role
+
+# Or emit SQL for a DBA to apply (never connects; must run outside a transaction block)
+npx dbos schema --print-migrations all ${DBOS_SYSTEM_DATABASE_URL} > migrations.sql
+npx dbos schema --print-user-role -r my_app_role ${DBOS_SYSTEM_DATABASE_URL} > grants.sql
+```
+
+```typescript
+DBOS.setConfig({
+  name: "my-app",
+  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL, // connects as my_app_role
+  runMigrations: false,
+});
+await DBOS.launch();
+```
+
+- `-s, --schema <name>` targets a non-default schema (match `systemDatabaseSchemaName`)
+- `--print-migrations <all|NUMBER>` prints all migrations (fresh database) or those from a migration number (upgrade)
+- With `runMigrations: false`, launch only verifies the schema: a missing or outdated system database fails with `DBOSInitializationError`; a newer schema is accepted
+- Re-run `npx dbos schema` before deploying a DBOS upgrade (e.g., 4.x to 5.0, which changes the schema)
+
 Reference: [DBOS Configuration](https://docs.dbos.dev/typescript/reference/configuration)

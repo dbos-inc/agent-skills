@@ -76,7 +76,7 @@ Constructor options:
 - `systemDatabasePollingConcurrency`: Maximum number of concurrent database-backed polling reads from wait operations. Defaults to half the pool size (minimum 1).
 - `serializer`: Optional custom serializer (must match the DBOS application's serializer)
 - `systemDatabaseSchemaName`: Optional Postgres schema name (default: `"dbos"`)
-- `applicationName`: The application on whose behalf the client acts. Enqueued workflows, registered queues, and created schedules are owned by it, and listing operations default to its rows. Always set it if multiple applications share a system database
+- `applicationName`: The application on whose behalf the client acts. Enqueued workflows, registered queues, and created schedules are owned by it, and listing operations default to its rows. Always set it if multiple applications share a system database (see `advanced-shared-database.md`)
 - `observabilityQueryTimeoutMs`: Statement timeout for listing queries (default 30000); exceeding it throws `DBOSQueryTimeoutError`
 - `logger`: A custom logger implementing the `DLogger` interface, to which the client directs all its logging, replacing the built-in console logger.
 

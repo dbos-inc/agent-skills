@@ -103,7 +103,10 @@ references/lifecycle-config.md
 references/workflow-determinism.md
 references/queue-concurrency.md
 references/advanced-upgrading-v3.md
+references/advanced-shared-database.md
 ```
+
+If multiple applications share one system database, see `references/advanced-shared-database.md`.
 
 ## References
 

@@ -82,4 +82,6 @@ Key behaviors:
 await DBOS.send(workflowID, message, "topic", eventId);
 ```
 
+To send a message atomically with your own database writes (committed or rolled back together), use `client.sendInTransaction(pg, workflowID, message, topic, idempotencyKey)` with a `node-postgres` client in an open transaction on the system database (see `client-enqueue.md`). The message is not visible to the workflow until you commit.
+
 Reference: [Workflow Messaging](https://docs.dbos.dev/typescript/tutorials/workflow-communication#workflow-messaging-and-notifications)

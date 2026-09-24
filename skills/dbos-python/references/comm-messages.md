@@ -120,4 +120,6 @@ DBOS.send_bulk([
 - Two messages in the same call may not share an idempotency key.
 - Use `send_bulk_async` (not `send_bulk`) inside coroutine workflows.
 
+To send a message atomically with your own database writes (commit together or not at all), use `DBOSClient.send_in_transaction` / `send_bulk_in_transaction` inside a transaction on the system database; see [client-enqueue](client-enqueue.md).
+
 Reference: [Workflow Messaging](https://docs.dbos.dev/python/tutorials/workflow-communication#workflow-messaging-and-notifications)

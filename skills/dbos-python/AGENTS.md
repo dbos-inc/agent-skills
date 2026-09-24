@@ -44,6 +44,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/advanced-async.md`
 - `references/advanced-patching.md`
 - `references/advanced-serialization.md`
+- `references/advanced-shared-database.md`
 - `references/advanced-upgrading-v3.md`
 - `references/advanced-versioning.md`
 
@@ -86,6 +87,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/test-fixtures.md`
 
 **Workflow** (`workflow-`):
+- `references/workflow-attributes.md`
 - `references/workflow-background.md`
 - `references/workflow-constraints.md`
 - `references/workflow-control.md`
@@ -95,4 +97,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*35 reference files across 9 categories*
+*37 reference files across 9 categories*

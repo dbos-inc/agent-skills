@@ -69,6 +69,24 @@ const runs = await DBOS.listWorkflows({ scheduleName: "nightly-report" });
 const page = await DBOS.listWorkflows({ limit: 50, offset: 100, sortDesc: true });
 ```
 
+### Tagging Workflows With Attributes
+
+Attach a JSON-serializable key-value record to a workflow at creation to find it later (e.g., customer, tenant, region). Attributes must be an object (not a scalar or array), are stored as GIN-indexed JSONB, and are **not** inherited by child workflows:
+
+```typescript
+const handle = await DBOS.startWorkflow(processOrder, {
+  workflowAttributes: { customer: "acme", region: "us-east-1" },
+})(order);
+
+// From a DBOSClient, the option is named `attributes`
+await client.enqueue({ workflowName: "processOrder", queueName: "orders", attributes: { customer: "acme" } }, order);
+
+// Matches workflows whose attributes contain ALL the given pairs
+const acmeWorkflows = await DBOS.listWorkflows({ attributes: { customer: "acme" } });
+```
+
+Workflows started by a schedule are tagged with the schedule name; find them with `listWorkflows({ scheduleName })`.
+
 ### Filter Fields (`GetWorkflowsInput`)
 
 - **workflowIDs**: Specific IDs to fetch

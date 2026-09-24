@@ -107,7 +107,10 @@ references/lifecycle-config.md
 references/workflow-determinism.md
 references/queue-concurrency.md
 references/advanced-upgrading.md
+references/advanced-shared-database.md
 ```
+
+If multiple applications share one system database, always set `applicationName` on `DBOSClient` and see `references/advanced-shared-database.md`.
 
 ## References
 

@@ -84,43 +84,62 @@ options: EnqueueOptions = {
 handle = client.enqueue(options)
 ```
 
-### Enqueue Inside Your Own Transaction
+### Enqueue or Send Inside Your Own Transaction
 
-Use `client.enqueue_in_transaction()` to make the enqueue commit or roll back atomically with your own database writes:
+Three client methods write inside a caller-owned SQLAlchemy transaction, so they commit or roll back atomically with your own writes (the transactional outbox pattern):
 
 ```python
-client.enqueue_in_transaction(
-    conn_or_session: Union[sqlalchemy.Connection, sqlalchemy.orm.Session],
-    options: EnqueueOptions,
-    *args, **kwargs
-) -> WorkflowHandle[R]
+client.enqueue_in_transaction(conn_or_session, options: EnqueueOptions, *args, **kwargs) -> WorkflowHandle
+client.send_in_transaction(conn_or_session, destination_id, message, topic=None, idempotency_key=None,
+                           *, serialization_type=..., send_to_forks=False) -> None
+client.send_bulk_in_transaction(conn_or_session, messages: List[SendMessage],
+                                *, serialization_type=..., send_to_forks=False) -> None
 ```
+
+**Incorrect (separate transactions: a crash between them loses or orphans work):**
+
+```python
+with engine.begin() as conn:
+    conn.execute(text("INSERT INTO orders (id) VALUES (:id)"), {"id": order_id})
+client.enqueue(options, order_id)  # not atomic with the insert
+```
+
+**Correct (one transaction):**
 
 ```python
 import os
 import sqlalchemy as sa
+from sqlalchemy import text
+from dbos import DBOSClient, EnqueueOptions, SendMessage
 
-# Target the DBOS system database. For Postgres, use the psycopg (v3) driver
+client = DBOSClient(system_database_url=os.environ["DBOS_SYSTEM_DATABASE_URL"])
+
+# Must target the DBOS **system** database. For Postgres, use the psycopg (v3) driver
 # DBOS installs; a plain postgresql:// URL makes SQLAlchemy look for psycopg2.
 engine = sa.create_engine(
     sa.make_url(os.environ["DBOS_SYSTEM_DATABASE_URL"]).set(drivername="postgresql+psycopg")
 )
 
-with engine.begin() as conn:
-    # Your own writes...
-    conn.execute(text("INSERT INTO orders (id) VALUES (:id)"), {"id": order_id})
-    # Enqueue in the same transaction
-    handle = client.enqueue_in_transaction(conn, options, task_data)
-    # The workflow is enqueued only when this transaction commits
+options: EnqueueOptions = {"queue_name": "orders", "workflow_name": "process_order"}
 
-result = handle.get_result()  # Safe to call only after commit
+with engine.begin() as conn:
+    conn.execute(text("INSERT INTO orders (id) VALUES (:id)"), {"id": order_id})
+    handle = client.enqueue_in_transaction(conn, options, order_id)
+    client.send_in_transaction(conn, payment_workflow_id, "paid", "payment_status",
+                               idempotency_key=f"paid-{order_id}")
+    client.send_bulk_in_transaction(conn, [
+        SendMessage(wf_a, "order-created", "events"),
+        SendMessage(wf_b, "order-created", "events"),
+    ])
+# Nothing is enqueued or sent until the transaction commits
+
+result = handle.get_result()  # Only after commit
 ```
 
-- Like `enqueue` (except `duplication_policy="return-existing"` is not supported), but performs the enqueue write inside a caller-owned SQLAlchemy transaction, so the enqueue commits or rolls back atomically with your own DB writes.
-- Pass a SQLAlchemy `Connection` or ORM `Session`. It must target the DBOS **system** database (the enqueue can't atomically span a separate app database).
-- You own the transaction: the method does not begin/commit/roll back and does not retry on DB errors. You must commit yourself.
-- The returned handle is created immediately, but the workflow is not enqueued until you commit—do not call `get_result()` until after commit.
-- `client.send_in_transaction(conn, destination_id, message, topic, idempotency_key)` and `client.send_bulk_in_transaction(conn, messages)` send messages atomically with your writes the same way.
-- No async variant; from async code, bridge via `AsyncConnection.run_sync(lambda sync_conn: client.enqueue_in_transaction(sync_conn, options, *args))`.
+- Pass a SQLAlchemy `Connection` or ORM `Session` on the **system** database; the write can't atomically span a separate app database.
+- You own the transaction: these methods don't begin, commit, roll back, or retry on DB errors.
+- `enqueue_in_transaction` takes the same options as `enqueue`, except `duplication_policy="return-existing"` (raises `DBOSException`). Its handle exists immediately, but don't call `get_result()` before commit.
+- Messages are not visible to the destination workflow until commit.
+- No async variants; from async code, bridge with `await conn.run_sync(lambda sync_conn: client.send_in_transaction(sync_conn, dest, msg))` on an `AsyncConnection` inside `async with conn.begin()`.
 
 Reference: [DBOSClient.enqueue](https://docs.dbos.dev/python/reference/client#enqueue)

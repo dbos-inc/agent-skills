@@ -66,13 +66,7 @@ async def long_poll():
 
 ### Async Step Timeouts
 
-Bound a step that may hang with `timeout_seconds` (async steps only; must be positive and finite). If it runs longer, it is cancelled and `DBOSStepTimeoutError` is raised to the workflow. With retries enabled, each attempt gets its own timeout; if every attempt times out the workflow sees `DBOSMaxStepRetriesExceeded`.
-
-```python
-@DBOS.step(timeout_seconds=30)
-async def call_service():
-    return await fetch_from_slow_service()
-```
+Bound an async step that may hang with `@DBOS.step(timeout_seconds=...)`; see [step-retries](step-retries.md) for timeout and retry semantics.
 
 Calling a step outside a workflow runs it as an ordinary function (no checkpoint, retries, or timeout).
 

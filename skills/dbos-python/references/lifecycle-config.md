@@ -143,6 +143,46 @@ DBOS.destroy(
 
 `DBOS.reset_system_database(truncate=True)` empties the DBOS system tables (much faster than the default, which drops the whole system database). It must be called **before** `DBOS.launch()` and is **destructive, test-only**.
 
+## Least-Privilege Deployments (Migrating Out of Band)
+
+By default, `DBOS.launch()` creates and migrates the system database, which needs DDL privileges. In production, run migrations with a privileged role and run the app with a minimal role and `run_migrations=False`.
+
+**Incorrect (app role can't run DDL, but DBOS tries to migrate on launch):**
+
+```python
+config: DBOSConfig = {
+    "name": "my-app",
+    "system_database_url": os.environ["DBOS_SYSTEM_DATABASE_URL"],  # restricted role
+}
+```
+
+**Correct (migrate out of band, verify on launch):**
+
+```shell
+# As a privileged user: create/upgrade DBOS tables and grant the app role access
+dbos migrate -s "$ADMIN_SYSTEM_DATABASE_URL" -r my_app_role   # add --schema if not "dbos"
+```
+
+```python
+config: DBOSConfig = {
+    "name": "my-app",
+    "application_version": "0.1.0",
+    "system_database_url": os.environ["DBOS_SYSTEM_DATABASE_URL"],  # my_app_role
+    "run_migrations": False,
+}
+```
+
+With `run_migrations=False`, launch only verifies the schema: missing DBOS tables (or a missing SQLite file) or a schema behind this DBOS version fail launch with `DBOSInitializationError`; a missing Postgres database fails with a connection error. A schema ahead of the required version is accepted, so older processes can run beside newer peers.
+
+If a DBA must apply the SQL, print it instead of executing (Postgres only; output contains `CREATE/DROP INDEX CONCURRENTLY`, so run it outside a transaction block):
+
+```shell
+dbos migrate --print-migrations all -s "$DBOS_SYSTEM_DATABASE_URL" > migrations.sql  # or a number to upgrade from
+dbos migrate --print-user-role -r my_app_role -s "$DBOS_SYSTEM_DATABASE_URL" > grants.sql
+```
+
+`--print-migrations` and `--print-user-role` can't be combined, and `--print-user-role` requires `-r`. Rerun `dbos migrate` before deploying each new DBOS version.
+
 ## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
 
 When connecting through a connection pooler in **transaction mode**, set `use_listen_notify` to `False`:

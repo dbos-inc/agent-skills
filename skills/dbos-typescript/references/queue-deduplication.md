@@ -62,6 +62,8 @@ const handle = await DBOS.startWorkflow(processTask, {
 const result = await handle.getResult();
 ```
 
+`duplicationPolicy` is also available on `client.enqueue`, but not on `DBOS.enqueueWorkflowWithOptions` or `client.enqueueInTransaction` (which throws on `'return-existing'`, since a conflict would abort your transaction). The default `'reject'` throws `DBOSQueueDuplicatedError`.
+
 Use cases for deduplication:
 - Ensuring one active task per user
 - Preventing duplicate form submissions

@@ -60,6 +60,7 @@ Retry parameters:
 - `intervalSeconds`: Initial delay between retries in seconds (default: `1`)
 - `backoffRate`: Multiplier for exponential backoff (default: `2`)
 - `shouldRetry`: Optional predicate for selective retries (see below)
+- `timeoutMS`: Per-attempt timeout; a timed-out attempt is retried like any failure (see `step-timeouts.md`)
 
 With defaults, retry delays are: 1s, 2s, 4s, 8s, 16s...
 
