@@ -68,7 +68,7 @@ DBOS.read_stream(
 ) -> Generator[Any, Any, None]
 ```
 
-The same parameters exist on `DBOS.read_stream_async` (async generator) and on `DBOSClient.read_stream` / `read_stream_async`. `polling_interval_sec` defaults to the configured `notification_listener_polling_interval_sec` (1.0).
+The same parameters exist on `DBOS.read_stream_async` (async generator) and on `DBOSClient.read_stream` / `read_stream_async`. `polling_interval_sec` defaults to the configured `notification_listener_polling_interval_sec` (1.0) for `DBOS` reads, and to `1.0` for `DBOSClient` reads.
 
 **Incorrect (reader hangs forever if the producer stalls):**
 

@@ -43,7 +43,7 @@ const handle = await client.enqueue(
 const result = await handle.getResult();
 ```
 
-The queue does not need to exist when `enqueue` is called. If no queue with the given name has been registered, the workflow is still durably recorded as `ENQUEUED`, but it does not run until the queue is registered (by the application or with `client.registerQueue`) and a worker becomes available.
+The queue must be registered (with `DBOS.registerQueue` or `client.registerQueue`) for the workflow to run. A workflow enqueued on an unregistered queue is durably recorded as `ENQUEUED` and stays there until the queue is registered and a worker becomes available.
 
 **Type-safe enqueue:**
 

@@ -60,7 +60,7 @@ with SetEnqueueOptions(app_version=latest_version["version_name"]):
 
 Scheduled workflows are automatically enqueued to their owning application's latest version. Workflows enqueued without an `app_version` (e.g. from `DBOSClient`) are only dequeued by executors running the latest version.
 
-Versions are tracked per application: `list_application_versions`, `get_latest_application_version`, and `set_latest_application_version` only see this application's versions (plus unowned ones), and each `VersionInfo` has an `application_name`.
+Versions are tracked per application: `list_application_versions` and `get_latest_application_version` return only this application's versions (plus unowned ones), and each `VersionInfo` has an `application_name`. `set_latest_application_version` acts as this application (override with `application_name=`); promoting a version registered by a different application raises an error.
 
 ### Checking and Retiring Old Versions
 

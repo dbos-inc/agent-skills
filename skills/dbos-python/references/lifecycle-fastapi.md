@@ -7,9 +7,9 @@ tags: fastapi, http, server, integration
 
 ## Integrate DBOS with FastAPI
 
-When using DBOS with FastAPI, configure and launch DBOS inside the main function before starting uvicorn.
+When using DBOS with FastAPI, configure and launch DBOS inside the main function before starting uvicorn, or launch it from a FastAPI lifespan function (see below).
 
-**Incorrect (configuration at module level):**
+**Incorrect (launching at import time):**
 
 ```python
 from fastapi import FastAPI
@@ -17,18 +17,14 @@ from dbos import DBOS, DBOSConfig
 
 app = FastAPI()
 
-# Don't configure at module level!
 config: DBOSConfig = {"name": "my-app", "application_version": "0.1.0"}
 DBOS(config=config)
+DBOS.launch()  # Don't launch at import time - launch in main or a lifespan
 
 @app.get("/")
 @DBOS.workflow()
 def endpoint():
     return {"status": "ok"}
-
-if __name__ == "__main__":
-    DBOS.launch()
-    uvicorn.run(app)
 ```
 
 **Correct (configuration in main):**
