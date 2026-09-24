@@ -96,23 +96,27 @@ DBOS(config=config)
 
 ### Async Handlers Must Use `_async` Methods
 
-Synchronous DBOS methods raise `RuntimeError` when called while an event loop is running, which includes every `async def` FastAPI handler.
+Many synchronous DBOS methods (such as `DBOS.sleep`, `DBOS.recv`, `DBOS.send`, `DBOS.set_event`, `DBOS.get_event`, and `DBOS.register_queue`) raise `RuntimeError` when called while an event loop is running, which includes every `async def` FastAPI handler.
 
 **Incorrect (sync DBOS call in an async handler):**
 
 ```python
-@app.post("/start")
-async def start():
-    handle = DBOS.start_workflow(my_async_workflow)  # RuntimeError
-    return {"id": handle.get_workflow_id()}
+@app.get("/status/{workflow_id}")
+async def status(workflow_id: str):
+    return DBOS.get_event(workflow_id, "status")  # RuntimeError
 ```
 
 **Correct:**
 
 ```python
+@app.get("/status/{workflow_id}")
+async def status(workflow_id: str):
+    return await DBOS.get_event_async(workflow_id, "status")
+
+# Start coroutine workflows with start_workflow_async
 @app.post("/start")
 async def start():
-    handle = await DBOS.start_workflow_async(my_async_workflow)  # an async def workflow
+    handle = await DBOS.start_workflow_async(my_async_workflow)
     return {"id": handle.get_workflow_id()}
 
 # Or keep the handler synchronous (FastAPI runs it in a threadpool)

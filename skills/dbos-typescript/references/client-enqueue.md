@@ -119,6 +119,11 @@ await client.enqueue(
 ```typescript
 import { Pool } from "pg";
 
+declare class Orders {
+  static processOrder(orderId: string): Promise<void>;
+}
+
+const orderId = "order-123";
 const pool = new Pool({ connectionString: process.env.DBOS_SYSTEM_DATABASE_URL });
 const pg = await pool.connect();
 try {

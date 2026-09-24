@@ -82,7 +82,7 @@ DBOSClient mirrors the DBOS API for workflow interaction:
 | `client.check_connection()` | Raise if the system database is unreachable |
 | `client.rename_application(old_name, new_name)` | Transfer ownership of all rows after renaming an app (stop the app first) |
 
-Nearly all methods have `_async` variants (except the `*_in_transaction` methods).
+Most methods have `_async` variants. The `*_in_transaction` methods, `destroy`, and `pause_schedule` / `resume_schedule` / `backfill_schedule` / `trigger_schedule` do not.
 
 ## Schedule Management
 

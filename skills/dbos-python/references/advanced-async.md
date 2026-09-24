@@ -49,12 +49,13 @@ async def async_workflow():
 
 ### Sync DBOS Methods Raise Inside an Event Loop
 
-Many synchronous DBOS methods (`start_workflow`, `send`, `recv`, `set_event`, `get_event`, `sleep`, `write_stream`, `read_stream`, `register_queue`, `retrieve_workflow`, `list_workflows`, `patch`, `get_result`, ...) raise `RuntimeError` when called while an event loop is running. In `async def` code (async workflows, async FastAPI handlers, lifespan functions), always use the `_async` variants:
+Many synchronous DBOS methods (such as `DBOS.sleep`, `DBOS.recv`, `DBOS.send`, `DBOS.set_event`, `DBOS.get_event`, and `DBOS.register_queue`) raise `RuntimeError` when called while an event loop is running. In `async def` code (async workflows, async FastAPI handlers), use the `_async` variants:
 
 ```python
+# "tasks" is registered at startup, after DBOS.launch()
+
 @DBOS.workflow()
-async def async_workflow():
-    await DBOS.register_queue_async("tasks")          # not register_queue
+async def async_workflow(target_id: str):
     handle = await DBOS.enqueue_workflow_async("tasks", other_async_workflow)
     await DBOS.send_async(target_id, "msg")           # not send
     if await DBOS.patch_async("new-logic"):           # not patch

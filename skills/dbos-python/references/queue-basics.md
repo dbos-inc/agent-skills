@@ -83,7 +83,7 @@ Priority is always enabled on every queue; set it per enqueue with `SetEnqueueOp
 ```python
 from dbos import DBOS, SetEnqueueOptions
 
-DBOS.register_queue("tasks")
+DBOS.register_queue("tasks")  # after DBOS.launch()
 
 def enqueue_task(task, is_urgent: bool):
     # Priority 1 = highest, runs before priority 10

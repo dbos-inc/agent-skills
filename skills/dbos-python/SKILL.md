@@ -87,7 +87,7 @@ def my_workflow():
 - Do NOT use threads to start workflows - use `DBOS.start_workflow` or queues
 - Workflows MUST be deterministic - non-deterministic operations go in steps
 - Do NOT create/update global variables from workflows or steps
-- In `async def` code, use the `_async` variant of every DBOS method (`await DBOS.start_workflow_async(...)`, `send_async`, `recv_async`, `sleep_async`, `register_queue_async`, ...): synchronous DBOS methods raise `RuntimeError` when called while an event loop is running
+- In `async def` code, use the `_async` variants of DBOS methods (`await DBOS.start_workflow_async(...)`, `send_async`, `recv_async`, `sleep_async`, `register_queue_async`, ...): many synchronous DBOS methods (such as `DBOS.sleep`, `DBOS.recv`, `DBOS.send`, `DBOS.set_event`, `DBOS.get_event`, and `DBOS.register_queue`) raise `RuntimeError` when called while an event loop is running
 - Register queues and create schedules AFTER `DBOS.launch()`; create datasources BEFORE it
 
 ### Removed in DBOS 3.0 (never generate these)

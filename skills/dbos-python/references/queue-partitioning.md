@@ -34,7 +34,7 @@ from dbos import DBOS, SetEnqueueOptions
 def process_task(task):
     pass
 
-# At most one task at a time per user
+# After DBOS.launch(): at most one task at a time per user
 DBOS.register_queue("user_tasks", partition_concurrency=1)
 
 def handle_user_task(user_id: str, task):
@@ -48,6 +48,7 @@ def handle_user_task(user_id: str, task):
 A partitioned queue enforces its per-partition limits **and** its queue-wide limits (`global_concurrency`, `worker_concurrency`, `limiter`) at the same time:
 
 ```python
+# Register after DBOS.launch()
 # "Fair queue": at most 1 task per user, at most 10 tasks per process
 DBOS.register_queue("fair_queue", partition_concurrency=1, worker_concurrency=10)
 

@@ -56,7 +56,7 @@ To attach to the existing workflow instead of raising, set `duplication_policy="
 ```python
 from dbos import DBOS, SetEnqueueOptions
 
-DBOS.register_queue("reports")
+DBOS.register_queue("reports")  # after DBOS.launch()
 
 # Only one "nightly-report" workflow is active on the queue at a time;
 # concurrent callers all get a handle to the same workflow.
