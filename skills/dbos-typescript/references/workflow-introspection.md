@@ -38,7 +38,7 @@ const failed = await DBOS.listWorkflows({ status: "ERROR", limit: 100 });
 // Find workflows by name, filtering on multiple statuses
 const processing = await DBOS.listWorkflows({
   workflowName: "processOrder",
-  status: ["PENDING", "ENQUEUED"],
+  status: ["PENDING", "ENQUEUED", "DELAYED"],
 });
 
 // Find workflows on a specific queue
@@ -50,7 +50,7 @@ const stillQueued = await DBOS.listQueuedWorkflows({ queueName: "task_queue" });
 // Find old-version workflows for blue-green deploys
 const old = await DBOS.listWorkflows({
   applicationVersion: "1.0.0",
-  status: ["PENDING", "ENQUEUED"],
+  status: ["PENDING", "ENQUEUED", "DELAYED"],
 });
 
 // Find children of a parent workflow
@@ -59,9 +59,33 @@ const children = await DBOS.listWorkflows({ parentWorkflowID: parentId });
 // Find every workflow forked from one ID
 const forks = await DBOS.listWorkflows({ forkedFrom: originalId });
 
+// Find workflows by custom attributes (set via workflowAttributes on startWorkflow)
+const acme = await DBOS.listWorkflows({ attributes: { customer: "acme" } });
+
+// Find all runs of a schedule
+const runs = await DBOS.listWorkflows({ scheduleName: "nightly-report" });
+
 // Sort newest-first, paginate
 const page = await DBOS.listWorkflows({ limit: 50, offset: 100, sortDesc: true });
 ```
+
+### Tagging Workflows With Attributes
+
+Attach a JSON-serializable key-value record to a workflow at creation to find it later (e.g., customer, tenant, region). Attributes must be an object (not a scalar or array), are stored as GIN-indexed JSONB, and are **not** inherited by child workflows:
+
+```typescript
+const handle = await DBOS.startWorkflow(processOrder, {
+  workflowAttributes: { customer: "acme", region: "us-east-1" },
+})(order);
+
+// From a DBOSClient, the option is named `attributes`
+await client.enqueue({ workflowName: "processOrder", queueName: "orders", attributes: { customer: "acme" } }, order);
+
+// Matches workflows whose attributes contain ALL the given pairs
+const acmeWorkflows = await DBOS.listWorkflows({ attributes: { customer: "acme" } });
+```
+
+Workflows started by a schedule are tagged with the schedule name; find them with `listWorkflows({ scheduleName })`.
 
 ### Filter Fields (`GetWorkflowsInput`)
 
@@ -76,11 +100,14 @@ const page = await DBOS.listWorkflows({ limit: 50, offset: 100, sortDesc: true }
 - **workflow_id_prefix**: Match workflows whose IDs start with this
 - **authenticatedUser**: User(s) who ran the workflow
 - **queueName**: Queue name(s)
-- **queuesOnly**: If `true`, only currently-enqueued workflows (same as `listQueuedWorkflows`)
+- **queuesOnly**: If `true`, only currently-enqueued workflows (`ENQUEUED`, `DELAYED`, or `PENDING` on a queue; `listQueuedWorkflows` is equivalent to this plus `loadOutput: false`)
 - **forkedFrom**: Source workflow ID(s) for forks
 - **wasForkedFrom**: `true` for workflows that have been forked from, `false` for those that haven't
 - **parentWorkflowID**: Parent workflow ID(s)
 - **hasParent**: `true` for child workflows only, `false` for top-level only
+- **attributes**: Workflows whose custom attributes contain all these key-value pairs
+- **scheduleName**: Workflows enqueued by this schedule (or any of these schedules)
+- **applicationName**: Workflows owned by these applications (unowned workflows always included). Defaults to this application unless `workflowIDs` is set
 - **limit** / **offset**: Pagination
 - **sortDesc**: Sort by creation time descending (default ascending)
 - **loadInput** / **loadOutput**: Set to `false` to skip deserializing for performance
@@ -110,7 +137,6 @@ interface WorkflowStatus {
   queueName?: string;
 
   authenticatedUser?: string;
-  assumedRole?: string;
   authenticatedRoles?: string[];
 
   input?: unknown[];
@@ -130,10 +156,15 @@ interface WorkflowStatus {
   priority: number;            // 0 = highest (unset)
   queuePartitionKey?: string;
   dequeuedAt?: number;
+  delayUntilEpochMS?: number;  // When a DELAYED workflow becomes ENQUEUED
 
   forkedFrom?: string;
   wasForkedFrom?: boolean;
   parentWorkflowID?: string;
+
+  attributes?: Record<string, unknown>; // Custom attributes set at creation
+  scheduleName?: string;       // Schedule that enqueued this workflow, if any
+  applicationName?: string;    // Owning application
 }
 ```
 
@@ -154,6 +185,8 @@ if (steps) {
 ```
 
 Each `StepInfo` exposes: `functionID`, `name`, `output`, `error`, `childWorkflowID`, `startedAtEpochMs`, `completedAtEpochMs`. Returns `undefined` if the workflow is not found.
+
+`listWorkflows`, `listQueuedWorkflows`, and `listWorkflowSteps` are subject to the `observabilityQueryTimeoutMs` statement timeout (30 seconds by default; list queries with `workflowIDs` set are exempt) and throw `DBOSQueryTimeoutError` if a query exceeds it.
 
 To optimize performance, set `loadInput: false` and `loadOutput: false` on `listWorkflows` when you don't need workflow inputs or outputs.
 

@@ -29,7 +29,7 @@ DBOS.setConfig({
 });
 ```
 
-By default, the application version is automatically computed from a hash of workflow source code. Set it explicitly for more control.
+By default, the application version is automatically computed from a hash of workflow source code (or fixed to `PATCHING_ENABLED` if patching is enabled). Set it explicitly for more control. If you set `applicationVersion` yourself, change it when upgrading from DBOS 4.x to 5.0, since DBOS 4.x cannot process workflows created by DBOS 5.0.
 
 ### Directing Enqueued Workflows to Latest Version
 
@@ -43,14 +43,14 @@ const handle = await DBOS.startWorkflow(myWorkflow, {
 })(arg1, arg2);
 ```
 
-Scheduled workflows are automatically enqueued to the latest version.
+Scheduled workflows are automatically enqueued to their owning application's latest version.
 
 ### Checking and Retiring Old Versions
 
 ```typescript
 const active = await DBOS.listWorkflows({
   applicationVersion: "1.0.0",
-  status: ["ENQUEUED", "PENDING"],
+  status: ["ENQUEUED", "DELAYED", "PENDING"],
 });
 if (active.length === 0) {
   console.log("Safe to retire version 1.0.0");
@@ -69,6 +69,8 @@ const latest = await DBOS.getLatestApplicationVersion();
 // Roll back: promote a previous version to latest
 await DBOS.setLatestApplicationVersion("1.0.0");
 ```
+
+Versions are tracked per application (its configured `name`): these methods only see versions registered by this application (plus versions owned by no application), so one application's deployments don't affect which version its peers consider latest.
 
 ### Forking Workflows to a New Version
 

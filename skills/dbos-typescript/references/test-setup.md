@@ -27,6 +27,9 @@ describe("tests", () => {
 **Correct (unit testing with mocks):**
 
 ```typescript
+import { DBOS } from "@dbos-inc/dbos-sdk";
+import { myWorkflow } from "../src/workflows"; // Code under test
+
 // Mock DBOS - no Postgres required
 jest.mock("@dbos-inc/dbos-sdk", () => ({
   DBOS: {
@@ -100,5 +103,8 @@ Key points:
 - Reset the database between tests for isolation
 - Set a generous `beforeEach` timeout (10s) for database setup
 - Use `DBOS.shutdown({ deregister: true })` if re-registering functions
+- Queues are stored in the system database: if your tests use queues, register them after **each** `DBOS.launch()`. `deregister` clears in-process registrations only, not queues or schedules persisted in the system database
+- `DBOS.shutdown()` does not wait for running workflows; pass `{ workflowCompletionTimeoutMS }` to wait for them to finish first
+- Outside a workflow, a step runs as an ordinary function call, without checkpoints, retries, or a timeout
 
 Reference: [Testing & Mocking](https://docs.dbos.dev/typescript/tutorials/testing)

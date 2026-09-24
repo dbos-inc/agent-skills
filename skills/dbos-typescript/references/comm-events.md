@@ -34,8 +34,8 @@ async function processDataFn() {
 const processData = DBOS.registerWorkflow(processDataFn);
 
 // Read events from outside the workflow.
-// Pass options as an object (the deprecated positional timeoutSeconds form
-// still works but is no longer the recommended call shape).
+// Pass options as an object (a positional timeoutSeconds number is also
+// accepted, but prefer the options object).
 const status = await DBOS.getEvent<string>(workflowID, "status", {
   timeoutSeconds: 5,
 });

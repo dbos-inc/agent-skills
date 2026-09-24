@@ -56,14 +56,15 @@ async function myWorkflowFn() {
 
 Retry parameters:
 - `retriesAllowed`: Enable automatic retries (default: `false`)
-- `maxAttempts`: Maximum retry attempts (default: `3`)
+- `maxAttempts`: Maximum number of attempts, including the first (default: `3`)
 - `intervalSeconds`: Initial delay between retries in seconds (default: `1`)
 - `backoffRate`: Multiplier for exponential backoff (default: `2`)
 - `shouldRetry`: Optional predicate for selective retries (see below)
+- `timeoutMS`: Per-attempt timeout; if `retriesAllowed` is `true`, a timed-out attempt is retried like any other failure (see `step-timeouts.md`)
 
-With defaults, retry delays are: 1s, 2s, 4s, 8s, 16s...
+With defaults (`maxAttempts: 3`), retries happen after 1s and 2s; with a higher `maxAttempts`, the delay keeps doubling (4s, 8s, ...).
 
-If all retries are exhausted, a `DBOSMaxStepRetriesError` is thrown to the calling workflow.
+If the step fails on all `maxAttempts` attempts, a `DBOSMaxStepRetriesError` is thrown to the calling workflow.
 
 ### Filtering Retries With `shouldRetry`
 

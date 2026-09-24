@@ -24,7 +24,7 @@ def memory_intensive_task(data):
 
 ```python
 # Each process runs at most 5 tasks from this queue
-DBOS.register_queue("heavy_tasks", worker_concurrency=5)
+DBOS.register_queue("heavy_tasks", worker_concurrency=5)  # after DBOS.launch()
 
 @DBOS.workflow()
 def memory_intensive_task(data):
@@ -35,14 +35,14 @@ def memory_intensive_task(data):
 
 ```python
 # At most 10 tasks run across ALL processes
-DBOS.register_queue("limited_tasks", concurrency=10)
+DBOS.register_queue("limited_tasks", global_concurrency=10)  # after DBOS.launch()
 ```
 
 **In-order processing (sequential):**
 
 ```python
 # Only one task at a time - guarantees order
-DBOS.register_queue("sequential_queue", concurrency=1)
+DBOS.register_queue("sequential_queue", global_concurrency=1)  # after DBOS.launch()
 
 @DBOS.step()
 def process_event(event):
@@ -54,7 +54,7 @@ def handle_event(event):
 
 Worker concurrency is recommended for most use cases. Global concurrency should be used carefully as pending workflows count toward the limit (including workflows from previous application versions).
 
-When using worker concurrency, each process must have a unique `executor_id` set in configuration (this is automatic with DBOS Conductor or Cloud).
+The global limit parameter is `global_concurrency`. `worker_concurrency` must be <= `global_concurrency`. For per-user/per-tenant limits, see [queue-partitioning](queue-partitioning.md).
 
 ### Reconfiguring at Runtime
 
@@ -62,11 +62,11 @@ Because queue configuration lives in the system database, you can change a queue
 
 ```python
 queue = DBOS.retrieve_queue("heavy_tasks")
-queue.set_concurrency(20)
+queue.set_global_concurrency(20)
 queue.set_worker_concurrency(2)
 ```
 
-In `async` code, use the `_async` variants (`set_concurrency_async`, `set_worker_concurrency_async`) to avoid blocking the event loop.
+In `async` code, use the `_async` variants (`set_global_concurrency_async`, `set_worker_concurrency_async`) to avoid blocking the event loop.
 
 If your application also calls `DBOS.register_queue` on startup, the next process to launch can overwrite your runtime changes. Either update the `register_queue` call to match, or pass `on_conflict="never_update"` to preserve runtime values.
 

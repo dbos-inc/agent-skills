@@ -41,18 +41,6 @@ Common use cases:
 - Third-party API throttling
 - Preventing database overload
 
-### Reconfiguring at Runtime
-
-Because queue configuration lives in the system database, you can change a queue's rate limit at runtime without redeploying:
-
-```typescript
-const queue = await DBOS.retrieveQueue("llm_tasks");
-if (queue !== null) {
-  await queue.setRateLimit({ limitPerPeriod: 25, periodSec: 30 });
-
-  // Or remove the limit entirely
-  await queue.setRateLimit(undefined);
-}
-```
+For per-partition rate limits (e.g., per user or tenant), use `partitionRateLimit` (see `queue-partitioning.md`). To change a rate limit at runtime, see `queue-management.md`.
 
 Reference: [Rate Limiting](https://docs.dbos.dev/typescript/tutorials/queue-tutorial#rate-limiting)

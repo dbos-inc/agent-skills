@@ -18,7 +18,7 @@ This file defines the rule categories for DBOS TypeScript best practices. Rules 
 
 ## 4. Queue (queue)
 **Impact:** HIGH
-**Description:** WorkflowQueue creation, concurrency limits, rate limiting, partitioning, and priority.
+**Description:** Registering database-backed queues, concurrency limits, rate limiting, partitioning, priority, and runtime reconfiguration.
 
 ## 5. Communication (comm)
 **Impact:** MEDIUM
@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS TypeScript best practices. Rules 
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Workflow versioning, patching, and safe code upgrades.
+**Description:** Workflow versioning, patching, serialization, safe code upgrades, upgrading from DBOS 4.x to 5.0, and sharing a system database between applications.

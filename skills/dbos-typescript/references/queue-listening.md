@@ -29,12 +29,12 @@ await DBOS.registerQueue("gpu_queue");
 **Correct (selective queue listening):**
 
 ```typescript
-import { DBOS } from "@dbos-inc/dbos-sdk";
+import { DBOS, DBOSConfig } from "@dbos-inc/dbos-sdk";
 
 async function main() {
   const workerType = process.env.WORKER_TYPE; // "cpu" or "gpu"
 
-  const config: any = {
+  const config: DBOSConfig = {
     name: "my-app",
     applicationVersion: "0.1.0",
     systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
@@ -53,7 +53,7 @@ async function main() {
 }
 ```
 
-`listenQueues` entries can be either a `WorkflowQueue` instance or a queue name (in-memory or database-backed). Names that don't match any queue at launch are deferred until a database-backed queue is registered with that name.
+`listenQueues` is a list of queue names (`string[]`; `WorkflowQueue` objects are not accepted as of 5.0). Names that don't match any queue at launch are deferred until a queue is registered with that name. Without `listenQueues`, a process dequeues from all queues owned by its application.
 
 `listenQueues` only controls dequeuing. A CPU worker can still enqueue tasks onto the GPU queue:
 

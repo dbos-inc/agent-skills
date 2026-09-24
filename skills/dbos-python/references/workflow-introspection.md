@@ -76,7 +76,7 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **completed_before**: Retrieve workflows that completed before this RFC 3339 timestamp
 - **dequeued_after**: Retrieve workflows that were dequeued after this RFC 3339 timestamp
 - **dequeued_before**: Retrieve workflows that were dequeued before this RFC 3339 timestamp
-- **name**: Fully-qualified workflow function name (or list)
+- **name**: Registered workflow name (or list): the `name=` passed to `@DBOS.workflow`, else the function's `__qualname__` without module (e.g. `process_task`, `MyClass.my_workflow`). Registering two workflows with the same name from different modules raises `DBOSException`
 - **app_version**: Application version(s)
 - **forked_from**: Source workflow ID(s) for forks
 - **parent_workflow_id**: Parent workflow ID(s)
@@ -87,9 +87,14 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **limit** / **offset**: Pagination
 - **sort_desc**: Sort by start time descending (default ascending)
 - **load_input** / **load_output**: Set to `False` to skip deserializing for performance
-- **queues_only**: If `True`, only `ENQUEUED`/`PENDING` workflows on a queue (same as `list_queued_workflows`)
+- **queues_only**: If `True`, only `DELAYED`/`ENQUEUED`/`PENDING` workflows on a queue (same as `list_queued_workflows`)
 - **has_parent**: `True` for workflows with a parent, `False` for top-level only
 - **was_forked_from**: `True` for workflows that have been forked from, `False` for those that haven't
+- **attributes**: Workflows whose custom attributes contain all given key-value pairs (Postgres only; see [workflow-attributes](workflow-attributes.md))
+- **schedule_name**: Workflows enqueued by this schedule (or list)
+- **application_name**: Owning application(s); defaults to this application (unowned workflows always included; with `workflow_ids` set, any application's workflows are returned)
+
+On Postgres, listing queries are subject to `observability_query_timeout_sec` (default 30s; `list_workflows` and `list_queued_workflows` are exempt when `workflow_ids` is set) and raise `DBOSQueryTimeoutError` when exceeded.
 
 ### Status Values
 
@@ -133,19 +138,23 @@ class WorkflowStatus:
     was_forked_from: bool
     parent_workflow_id: Optional[str]
     dequeued_at: Optional[int]
+    delay_until_epoch_ms: Optional[int]  # If delayed, not dequeued before this
     completed_at: Optional[int]          # Unix epoch ms at which the workflow
                                          # completed (SUCCESS, ERROR, or CANCELLED),
                                          # if it has completed
+    attributes: Optional[Dict[str, Any]] # Custom attributes (SetWorkflowAttributes)
+    schedule_name: Optional[str]         # Schedule that enqueued it, if any
+    application_name: Optional[str]      # Owning application
 ```
 
 ### Listing Steps
 
 ```python
-steps = DBOS.list_workflow_steps(workflow_id, limit=100, offset=0)
+steps = DBOS.list_workflow_steps(workflow_id, limit=100, offset=0, load_output=False)
 for step in steps:
     print(step["function_id"], step["function_name"])
 ```
 
-Each `StepInfo` exposes: `function_id`, `function_name`, `output`, `error`, `child_workflow_id`, `started_at_epoch_ms`, `completed_at_epoch_ms`.
+Each `StepInfo` exposes: `function_id`, `function_name`, `output`, `error`, `child_workflow_id`, `started_at_epoch_ms`, `completed_at_epoch_ms`. With `load_output=False`, `output` and `error` are always `None` (faster).
 
 Reference: [Workflow Management](https://docs.dbos.dev/python/tutorials/workflow-management)

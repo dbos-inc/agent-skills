@@ -47,7 +47,7 @@ Timeout behavior:
 With queues:
 
 ```python
-DBOS.register_queue("example_queue")
+DBOS.register_queue("example_queue")  # after DBOS.launch()
 
 # Timeout starts when dequeued, not when enqueued
 with SetWorkflowTimeout(30):

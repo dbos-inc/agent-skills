@@ -1,11 +1,11 @@
 ---
-title: Cancel, Resume, and Fork Workflows
+title: Cancel, Resume, Fork, and Rewind Workflows
 impact: MEDIUM
 impactDescription: Control running workflows and recover from failures
-tags: workflow, cancel, resume, fork, control
+tags: workflow, cancel, resume, fork, rewind, control
 ---
 
-## Cancel, Resume, and Fork Workflows
+## Cancel, Resume, Fork, and Rewind Workflows
 
 Use these methods to control workflow execution: stop runaway workflows, retry failed ones, or restart from a specific step.
 
@@ -80,5 +80,33 @@ new_handle = DBOS.fork_workflow(
     application_version="2.0.0"
 )
 ```
+
+### Rewind
+
+`DBOS.rewind_workflow` re-executes a workflow from a step **in place, keeping its workflow ID**. Unlike fork, other code that refers to the ID (senders, event/stream readers, idempotency keys) keeps working, and child workflows keep their IDs.
+
+**Incorrect (forking when callers depend on the original ID):**
+
+```python
+# The order's workflow ID is "order-123"; forking gives it a new ID,
+# so webhooks sending to "order-123" never reach the new execution.
+DBOS.fork_workflow("order-123", start_step=3)
+```
+
+**Correct (rewind in place):**
+
+```python
+# Only terminal workflows (SUCCESS, ERROR, CANCELLED, MAX_RECOVERY_ATTEMPTS_EXCEEDED)
+# can be rewound; cancel a running workflow first.
+handle = DBOS.rewind_workflow("order-123", start_step=3)
+result = handle.get_result()
+
+# Omit start_step to re-run from the beginning; optionally move to a fixed version
+handle = DBOS.rewind_workflow("order-123", application_version="2.0.0")
+```
+
+Rewinding discards steps with ID >= `start_step`, clears the output/error, restores events to their values before `start_step`, deletes messages consumed at or after `start_step` (and unconsumed ones), and deletes datasource transaction checkpoints at or after `start_step`. Streams are not truncated (new values append; streams closed at or after `start_step` are reopened), and child workflows are not modified. `queue_name` / `queue_partition_key` enqueue the rewound workflow on a specific queue (default: an internal queue that runs it immediately). Use `rewind_workflow_async` in async code.
+
+`client.rewind_workflow` / `client.rewind_workflow_async` take the same arguments but do **not** delete datasource transaction checkpoints, so rewound datasource transactions are not re-executed. For workflows that use datasources, rewind with `DBOS.rewind_workflow` from a DBOS process.
 
 Reference: [Workflow Management](https://docs.dbos.dev/python/tutorials/workflow-management)

@@ -21,8 +21,8 @@ import { Queue } from "some-external-queue";
 ```typescript
 async function checkoutWorkflowFn() {
   // Wait for payment notification (default 60s timeout).
-  // Pass options as an object (the deprecated positional timeoutSeconds form
-  // still works but is no longer the recommended call shape).
+  // Pass options as an object (a positional timeoutSeconds number is also
+  // accepted, but prefer the options object).
   const notification = await DBOS.recv<string>("payment_status", {
     timeoutSeconds: 120,
   });
@@ -81,5 +81,7 @@ Key behaviors:
 // Use a stable key from the event source so webhook retries dedupe
 await DBOS.send(workflowID, message, "topic", eventId);
 ```
+
+To send a message atomically with your own database writes (committed or rolled back together), use `client.sendInTransaction(pg, workflowID, message, topic, idempotencyKey)` with a `node-postgres` client in an open transaction on the system database (see `client-enqueue.md`). The message is not visible to the workflow until you commit.
 
 Reference: [Workflow Messaging](https://docs.dbos.dev/typescript/tutorials/workflow-communication#workflow-messaging-and-notifications)

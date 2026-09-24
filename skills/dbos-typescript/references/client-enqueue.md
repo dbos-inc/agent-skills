@@ -22,11 +22,13 @@ await DBOS.startWorkflow(processTask, { queueName: "myQueue" })("data");
 import { DBOSClient } from "@dbos-inc/dbos-sdk";
 
 const client = await DBOSClient.create({
-  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
+  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL!,
+  // The application that owns and runs the workflows (set if apps share a system database)
+  applicationName: "my-app",
 });
 
 // Optionally register the queue from the client (persists to system database)
-await client.registerQueue("task_queue", { concurrency: 10 });
+await client.registerQueue("task_queue", { globalConcurrency: 10 });
 
 // Basic enqueue
 const handle = await client.enqueue(
@@ -41,7 +43,7 @@ const handle = await client.enqueue(
 const result = await handle.getResult();
 ```
 
-The queue does not need to exist when `enqueue` is called. If no queue with the given name has been registered, the workflow is still durably recorded as `ENQUEUED` and starts running once the queue is registered and a worker becomes available.
+The queue must be registered (with `DBOS.registerQueue` or `client.registerQueue`) for the workflow to run. A workflow enqueued on an unregistered queue is durably recorded as `ENQUEUED` and stays there until the queue is registered and a worker becomes available.
 
 **Type-safe enqueue:**
 
@@ -75,8 +77,9 @@ const result = await handle.getResult(); // type: string
 - `priority`: Queue priority (lower = higher priority)
 - `delaySeconds`: Delay before becoming eligible for execution
 - `queuePartitionKey`: Partition key for partitioned queues
-- `appVersion`: Pin the workflow to a specific application version
+- `appVersion`: Pin the workflow to a specific application version. If unset, the workflow is only dequeued by an executor running the application's latest registered version, and takes that executor's version when dequeued
 - `duplicationPolicy`: How to handle a `deduplicationID` collision. `'reject'` (default) throws `DBOSQueueDuplicatedError`; `'return-existing'` attaches to the existing workflow and returns its handle (singleton pattern — requires `deduplicationID`)
+- `applicationName`: Application that owns and runs the workflow (defaults to the client's `applicationName`)
 - `serializationType`: Serialization strategy for workflow arguments (`"portable"` for cross-language interop, otherwise the configured serializer is used)
 
 **Singleton workflow example (`return-existing`):**
@@ -108,6 +111,44 @@ await client.enqueue(
   "order-123"
 );
 ```
+
+### Enqueueing Atomically With Your Own Writes
+
+`client.enqueueInTransaction` performs the enqueue inside a transaction you own, so the workflow is enqueued if and only if your database writes commit. Pass a `node-postgres` `Client` or `PoolClient` with an open transaction, **connected to the DBOS system database**:
+
+```typescript
+import { Client } from "pg";
+
+declare class Orders {
+  static processOrder(orderId: string): Promise<void>;
+}
+
+const orderId = "order-123";
+const pg = new Client({ connectionString: process.env.DBOS_SYSTEM_DATABASE_URL });
+await pg.connect();
+let handle;
+try {
+  await pg.query("BEGIN");
+  await pg.query("INSERT INTO orders (id, status) VALUES ($1, 'new')", [orderId]);
+  handle = await client.enqueueInTransaction<typeof Orders.processOrder>(
+    pg,
+    { workflowName: "processOrder", workflowClassName: "Orders", queueName: "orders" },
+    orderId,
+  );
+  await pg.query("COMMIT"); // The workflow does not exist until this commits
+} catch (e) {
+  await pg.query("ROLLBACK"); // Neither the row nor the workflow is created
+  throw e;
+} finally {
+  await pg.end();
+}
+await handle.getResult(); // Only call getResult() after the commit
+```
+
+- You own the transaction: DBOS never begins, commits, rolls back, or retries it
+- `duplicationPolicy: 'return-existing'` is not supported (throws)
+- `client.enqueuePortableInTransaction(pg, options, positionalArgs, namedArgs?)` is the portable-serialization variant (for targets with named arguments, e.g. Python kwargs); `client.enqueuePortable(options, positionalArgs, namedArgs?)` is the non-transactional one
+- `client.sendInTransaction(pg, destinationID, message, topic?, idempotencyKey?)` sends a message atomically in the same way (see `comm-messages.md`)
 
 Always call `client.destroy()` when done.
 

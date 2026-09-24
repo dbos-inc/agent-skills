@@ -42,7 +42,8 @@ Stream characteristics:
 - Streams are immutable and append-only
 - Writes from workflows happen exactly-once
 - Writes from steps happen at-least-once (may duplicate on retry)
-- Streams auto-close when workflow terminates
+- `write_stream` / `close_stream` can be called from a workflow or its steps (use `write_stream_async` / `close_stream_async` in coroutine workflows)
+- Streams auto-close when the workflow terminates; after `close_stream`, readers stop at the close
 
 Close streams explicitly when done:
 
@@ -54,18 +55,56 @@ def producer():
     DBOS.close_stream("data")  # Signal completion
 ```
 
-### Reading from an Offset
-
-`DBOS.read_stream(workflow_id, key, *, offset: int = 0)` accepts an `offset`: the offset to start reading from. Defaults to 0 (start of stream). A higher offset skips that many values from the beginning of the stream.
+### Read Parameters
 
 ```python
-# Skip the first 10 values
-for value in DBOS.read_stream(workflow_id, "response", offset=10):
-    yield value
+DBOS.read_stream(
+    workflow_id: str,
+    key: str,
+    *,
+    offset: int = 0,                              # skip this many values
+    polling_interval_sec: Optional[float] = None, # when not using LISTEN/NOTIFY; min 0.001
+    timeout_seconds: Optional[float] = None,      # max wait for EACH value; None = forever
+) -> Generator[Any, Any, None]
 ```
 
-`DBOS.read_stream_async` additionally accepts `polling_interval_sec: Optional[float] = None`: the polling interval in seconds when waiting for new values when not using LISTEN/NOTIFY. Defaults to the configured `notification_listener_polling_interval_sec` (1.0 if not configured).
+The same parameters exist on `DBOS.read_stream_async` (async generator) and on `DBOSClient.read_stream` / `read_stream_async`. `polling_interval_sec` defaults to the configured `notification_listener_polling_interval_sec` (1.0) for `DBOS` reads, and to `1.0` for `DBOSClient` reads.
 
-Both params also exist on the `DBOSClient` read_stream methods (the client supports `offset` but not `polling_interval_sec`).
+**Incorrect (reader hangs forever if the producer stalls):**
+
+```python
+def stream_response(workflow_id: str):
+    for value in DBOS.read_stream(workflow_id, "response"):
+        yield value
+```
+
+**Correct (bound the gap between values):**
+
+```python
+from dbos import DBOS, error as dboserror
+
+def stream_response(workflow_id: str):
+    try:
+        for value in DBOS.read_stream(workflow_id, "response", timeout_seconds=30):
+            yield value
+    except dboserror.DBOSStreamTimeoutError:
+        ...  # producer stopped sending values
+```
+
+`timeout_seconds` restarts every time a value arrives, so it bounds the gap between values, not the total read. Reading a stream of a nonexistent workflow raises `DBOSNonExistentWorkflowError`.
+
+### Reading a Single Offset
+
+Use `DBOS.read_stream_offset` (or `_async`, or the client equivalents) to wait for one specific value, e.g. to resume where a previous reader left off:
+
+```python
+value = DBOS.read_stream_offset(workflow_id, "response", 5, timeout_seconds=30)
+```
+
+It raises `DBOSStreamTimeoutError` if the timeout passes or if the stream closes before reaching that offset.
+
+### Reading From a Workflow
+
+When `read_stream` / `read_stream_offset` is called from workflow code, each value read is checkpointed as a step, so a recovered workflow re-yields the values it originally read. `DBOSClient` reads are never checkpointed.
 
 Reference: [Workflow Streaming](https://docs.dbos.dev/python/tutorials/workflow-communication#workflow-streaming)

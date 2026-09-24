@@ -9,6 +9,18 @@ tags: advanced, patching, upgrade, breaking-change
 
 Use `DBOS.patch()` to safely deploy breaking changes to workflow code. Breaking changes alter which steps run or their order, which can cause recovery failures.
 
+Patching MUST be enabled in configuration (`DBOS.patch()` and `DBOS.deprecatePatch()` require `enablePatching`):
+
+```typescript
+DBOS.setConfig({
+  name: "my-app",
+  systemDatabaseUrl: process.env.DBOS_SYSTEM_DATABASE_URL,
+  enablePatching: true,
+});
+```
+
+If patching is enabled and `applicationVersion` is not set, DBOS uses the fixed application version `PATCHING_ENABLED` instead of a source-code hash, so workflows started while patching is enabled can be recovered by processes running newer code.
+
 **Incorrect (breaking change without patching):**
 
 ```typescript
@@ -67,6 +79,10 @@ const workflow = DBOS.registerWorkflow(workflowFn);
 
 Lifecycle: `patch()` → deploy → wait for old workflows → `deprecatePatch()` → deploy → wait → remove patch entirely.
 
+`DBOS.patch()` and `DBOS.deprecatePatch()` must be called from a workflow.
+
 Use `DBOS.listWorkflows` to check for active old workflows before deprecating or removing patches.
+
+**Upgrading from DBOS 4.x to 5.0:** DBOS 4.x cannot process workflows created by 5.0. If you use patching, shut down all DBOS 4.x processes before launching DBOS 5.0 processes (see `advanced-upgrading.md`).
 
 Reference: [Patching](https://docs.dbos.dev/typescript/tutorials/upgrading-workflows#patching)

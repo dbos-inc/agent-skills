@@ -43,6 +43,8 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 **Advanced** (`advanced-`):
 - `references/advanced-patching.md`
 - `references/advanced-serialization.md`
+- `references/advanced-shared-database.md`
+- `references/advanced-upgrading.md`
 - `references/advanced-versioning.md`
 
 **Client** (`client-`):
@@ -73,12 +75,12 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/queue-listening.md`
 - `references/queue-management.md`
 - `references/queue-partitioning.md`
-- `references/queue-priority.md`
 - `references/queue-rate-limiting.md`
 
 **Step** (`step-`):
 - `references/step-basics.md`
 - `references/step-retries.md`
+- `references/step-timeouts.md`
 - `references/step-transactions.md`
 
 **Testing** (`test-`):
@@ -94,4 +96,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*34 reference files across 9 categories*
+*36 reference files across 9 categories*

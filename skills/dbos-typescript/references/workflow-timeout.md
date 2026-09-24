@@ -33,7 +33,7 @@ const handle = await DBOS.startWorkflow(processTask, {
 Key timeout behaviors:
 - Timeouts are **start-to-completion**: the timeout begins when the workflow starts execution, not when it's enqueued
 - Timeouts are **durable**: they persist across restarts, so workflows can have very long timeouts (hours, days, weeks)
-- Cancellation happens at the **beginning of the next step** - the current step completes first
-- Cancelling a workflow also cancels all **child workflows**
+- Cancellation happens at the **beginning of the next step** - the current step completes first, unless it observes `DBOS.stepStatus.cancelSignal` and stops early (see `step-timeouts.md`)
+- When the timeout expires, the workflow **and all its child workflows** are cancelled
 
 Reference: [Workflow Timeouts](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#workflow-timeouts)

@@ -41,6 +41,8 @@ DBOS(config=config)
 
 Deploy new version alongside old version. Direct new traffic to v2.0.0, drain old workflows on v1.0.0.
 
+When upgrading the DBOS library from 2.x to 3.0, also change `application_version`: 2.x processes cannot process workflows created by 3.0 (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
+
 ### Directing Enqueued Workflows to Latest Version
 
 Use `DBOS.get_latest_application_version` to route enqueued work to the latest version:
@@ -48,6 +50,7 @@ Use `DBOS.get_latest_application_version` to route enqueued work to the latest v
 ```python
 from dbos import DBOS, SetEnqueueOptions
 
+# After DBOS.launch()
 DBOS.register_queue("my_queue")
 
 latest_version = DBOS.get_latest_application_version()
@@ -55,14 +58,16 @@ with SetEnqueueOptions(app_version=latest_version["version_name"]):
     DBOS.enqueue_workflow("my_queue", my_workflow, arg1, arg2)
 ```
 
-Scheduled workflows are automatically enqueued to the latest version.
+Scheduled workflows are automatically enqueued to their owning application's latest version. Workflows enqueued without an `app_version` (e.g. from `DBOSClient`) are only dequeued by executors running the latest version.
+
+Versions are tracked per application: `list_application_versions` and `get_latest_application_version` return only this application's versions (plus unowned ones), and each `VersionInfo` has an `application_name`. `set_latest_application_version` acts as this application (override with `application_name=`); promoting a version registered by a different application raises an error.
 
 ### Checking and Retiring Old Versions
 
 ```python
 active = DBOS.list_workflows(
     app_version="1.0.0",
-    status=["ENQUEUED", "PENDING"],
+    status=["ENQUEUED", "DELAYED", "PENDING"],
 )
 if not active:
     print("Safe to retire version 1.0.0")
@@ -96,6 +101,7 @@ class VersionInfo(TypedDict):
     version_name: str         # Unique name (matches the application_version config field)
     version_timestamp: int    # Epoch ms - determines which version is "latest"
     created_at: int           # Epoch ms when first registered
+    application_name: Optional[str]  # Owning application
 ```
 
 ### Forking Workflows to a New Version

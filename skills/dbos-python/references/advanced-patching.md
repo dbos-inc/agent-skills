@@ -62,7 +62,28 @@ def workflow():
 ```
 
 `DBOS.patch(name)` returns:
-- `True` for new workflows (started after patch deployed)
-- `False` for old workflows (started before patch deployed)
+- `True` for new workflows (started after patch deployed, or not yet past this point)
+- `False` for old workflows (a different checkpoint already exists at this point)
+
+`enable_patching: True` is required: without it, `DBOS.patch` and `DBOS.deprecate_patch` raise `DBOSException`.
+
+In coroutine (`async def`) workflows, use the async variants; the sync versions raise an error when called from a running event loop:
+
+```python
+@DBOS.workflow()
+async def workflow():
+    if await DBOS.patch_async("use-baz"):
+        await baz()
+    else:
+        await foo()
+    await bar()
+
+# Later, when deprecating:
+#     await DBOS.deprecate_patch_async("use-baz")
+```
+
+If a patch is missing, or deprecated/removed too early, the workflow raises `DBOSUnexpectedStepError` pointing at the mismatched step.
+
+**Upgrading to DBOS 3.0 with patching:** 3.0 changes the storage format of workflow inputs/outputs, and 2.x processes cannot process workflows created by 3.0. If you use patching, shut down all DBOS 2.x processes before launching 3.0 processes (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
 
 Reference: [Patching](https://docs.dbos.dev/python/tutorials/upgrading-workflows#patching)
