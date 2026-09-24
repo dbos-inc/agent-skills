@@ -7,7 +7,7 @@ tags: queue, deduplication, idempotent, duplicate, singleton
 
 ## Deduplicate Queued Workflows
 
-Set a deduplication ID when enqueuing to prevent duplicate workflow executions. If a workflow with the same deduplication ID is already enqueued or executing on the queue, a `DBOSQueueDuplicatedError` is thrown.
+Set a deduplication ID when enqueuing to prevent duplicate workflow executions. If a workflow with the same deduplication ID is already delayed, enqueued, or executing on the queue, a `DBOSQueueDuplicatedError` is thrown.
 
 **Incorrect (no deduplication):**
 

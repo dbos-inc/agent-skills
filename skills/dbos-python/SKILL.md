@@ -92,7 +92,7 @@ def my_workflow():
 
 ### Removed in DBOS 3.0 (never generate these)
 
-`@DBOS.transaction` / `DBOS.sql_session` / `application_database_url` (use datasources), `Queue(...)` (use `DBOS.register_queue`), `partition_queue` / `priority_enabled`, `@DBOS.scheduled` (use `DBOS.apply_schedules`), and `DBOS(fastapi=...)` / `DBOS(flask=...)`. Set queue-wide concurrency with `global_concurrency=`. To migrate existing 2.x code, see `references/advanced-upgrading-v3.md`.
+`@DBOS.transaction` / `DBOS.sql_session` / `application_database_url` (use datasources), `Queue(...)` (use `DBOS.register_queue`), `partition_queue` / `priority_enabled`, `@DBOS.scheduled` (use `DBOS.apply_schedules`), and `DBOS(fastapi=...)` / `DBOS(flask=...)`. To migrate existing 2.x code, see `references/advanced-upgrading-v3.md`.
 
 ## How to Use
 

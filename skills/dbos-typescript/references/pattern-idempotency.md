@@ -62,7 +62,7 @@ Match the error with `isWorkflowIDInUseError` from the SDK's `Error` namespace, 
 ```typescript
 import { DBOS, Error as DBOSErrors } from "@dbos-inc/dbos-sdk";
 
-// processOrder is a registered workflow; client is a DBOSClient
+// processOrder is a registered workflow
 
 async function submitOrder(orderID: string, order: Order) {
   try {
@@ -83,6 +83,7 @@ async function submitOrder(orderID: string, order: Order) {
 The same option is available on `client.enqueue` (and `DBOS.enqueueWorkflowWithOptions`):
 
 ```typescript
+// client is a DBOSClient; orderID and order as in submitOrder above
 await client.enqueue(
   { workflowName: "processOrder", queueName: "orders", workflowID: `order-${orderID}`, workflowIDReusePolicy: "reject" },
   order,

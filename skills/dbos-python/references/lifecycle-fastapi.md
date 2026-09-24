@@ -64,7 +64,7 @@ The `DBOS(fastapi=app)` / `DBOS(flask=app)` constructor parameters were removed 
 
 ### Alternative: Launch From a Lifespan
 
-If the server is started by an external runner (e.g. `uvicorn main:app`), launch and destroy DBOS in a FastAPI lifespan:
+Alternatively (as shown in the 3.0 upgrade guide), launch and destroy DBOS in a FastAPI lifespan:
 
 ```python
 import os
@@ -105,6 +105,7 @@ async def status(workflow_id: str):
 **Correct:**
 
 ```python
+# my_async_workflow / my_sync_workflow are defined elsewhere
 @app.get("/status/{workflow_id}")
 async def status(workflow_id: str):
     return await DBOS.get_event_async(workflow_id, "status")

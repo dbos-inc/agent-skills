@@ -1,13 +1,13 @@
 ---
-title: Cancel, Resume, and Fork Workflows
+title: Cancel, Resume, Fork, and Rewind Workflows
 impact: CRITICAL
 impactDescription: Enables operational control over long-running workflows
-tags: workflow, cancel, resume, fork, management
+tags: workflow, cancel, resume, fork, rewind, management
 ---
 
-## Cancel, Resume, and Fork Workflows
+## Cancel, Resume, Fork, and Rewind Workflows
 
-DBOS provides methods to cancel, resume, and fork workflows for operational control.
+DBOS provides methods to cancel, resume, fork, and rewind workflows for operational control.
 
 **Incorrect (no way to handle stuck or failed workflows):**
 

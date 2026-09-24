@@ -25,7 +25,7 @@ await DBOS.registerQueue("tasks", { partitionQueue: true, concurrency: 1 });
 **Correct (per-partition limit):**
 
 ```typescript
-await DBOS.registerQueue("tasks", { partitionConcurrency: 1 });
+await DBOS.registerQueue("tasks", { partitionConcurrency: 1 }); // After DBOS.launch()
 
 async function onUserTask(userID: string, task: string) {
   // At most 1 task per user, but different users run concurrently
@@ -47,6 +47,7 @@ A partitioned queue enforces its per-partition limits **and** its queue-wide lim
 
 ```typescript
 // Fair queue: at most 1 task per user, at most 10 tasks per process
+// After DBOS.launch()
 await DBOS.registerQueue("fair_queue", { partitionConcurrency: 1, workerConcurrency: 10 });
 
 // Mix and match freely

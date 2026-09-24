@@ -7,7 +7,7 @@ tags: configuration, launch, setup, initialization
 
 ## Configure and Launch DBOS Properly
 
-Every DBOS application must configure and launch DBOS inside the main function.
+Every DBOS application must configure and launch DBOS inside the main function. (Exception: a FastAPI app that launches DBOS from a lifespan constructs `DBOS(config=...)` at module level; see [lifecycle-fastapi](lifecycle-fastapi.md).)
 
 **Incorrect (configuration at module level):**
 

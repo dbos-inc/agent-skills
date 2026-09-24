@@ -79,7 +79,7 @@ DBOS.launch()
 ds = SQLAlchemyDatasource.create(url)  # Raises DBOSException
 ```
 
-Create all datasources **before** `DBOS.launch()` (DBOS tracks them so `rewind_workflow` can delete their transaction checkpoints). Only use `await AsyncSQLAlchemyDatasource.create(...)` if you are already inside a coroutine that runs before launch.
+Create all datasources **before** `DBOS.launch()` (DBOS tracks them so `rewind_workflow` can delete their transaction checkpoints).
 
 For `AsyncSQLAlchemyDatasource` with SQLite, use an async driver URL such as `sqlite+aiosqlite:///app.sqlite` (install with `pip install "dbos[aiosqlite]"`); a plain `sqlite:///` URL raises an error.
 

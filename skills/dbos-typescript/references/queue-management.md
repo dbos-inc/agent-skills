@@ -54,6 +54,7 @@ Use the `get*` methods to read the latest value from the database; the cached fi
 await queue.setGlobalConcurrency(50);
 await queue.setWorkerConcurrency(5);
 await queue.setRateLimit({ limitPerPeriod: 500, periodSec: 60 });
+// Setting any partition limit partitions the queue (see note below)
 await queue.setPartitionConcurrency(1);
 await queue.setPartitionWorkerConcurrency(1);
 await queue.setPartitionRateLimit({ limitPerPeriod: 10, periodSec: 60 });

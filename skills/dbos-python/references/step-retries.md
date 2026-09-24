@@ -40,7 +40,7 @@ Retry parameters:
 - `backoff_rate`: Multiplier for exponential backoff (default: `2.0`)
 - `should_retry`: Optional predicate for selective retries (see below)
 
-With defaults, retry delays are: 1s, 2s, 4s, 8s, 16s...
+With defaults (`max_attempts=3`), retries happen after 1s and 2s; with a higher `max_attempts`, the delay keeps doubling (4s, 8s, ...).
 
 If a step fails on all `max_attempts` attempts, it raises `DBOSMaxStepRetriesExceeded` to the calling workflow.
 
@@ -103,6 +103,9 @@ def fetch_data():
 **Correct (async step with timeout and retries):**
 
 ```python
+import aiohttp
+from dbos import DBOS
+
 @DBOS.step(timeout_seconds=30, retries_allowed=True, max_attempts=3)
 async def fetch_data():
     async with aiohttp.ClientSession() as session:
@@ -111,7 +114,7 @@ async def fetch_data():
 ```
 
 - Each attempt gets its own timeout; time waiting between retries does not count. The example allows up to three 30-second attempts
-- If every attempt times out, the workflow sees `DBOSMaxStepRetriesExceeded`, not `DBOSStepTimeoutError`. To not retry timeouts, pass `should_retry=lambda e: not isinstance(e, dboserror.DBOSStepTimeoutError)` (with `from dbos import error as dboserror`)
+- If every attempt times out, the workflow sees `DBOSMaxStepRetriesExceeded`, not `DBOSStepTimeoutError`. To not retry timeouts, use a `should_retry` predicate that returns `False` for `DBOSStepTimeoutError`
 - `timeout_seconds` must be positive and finite
 - The timeout outcome is checkpointed like any failure: a recovered workflow re-raises it instead of re-running the step
 - Outside a workflow, the step runs as a plain function call with no timeout

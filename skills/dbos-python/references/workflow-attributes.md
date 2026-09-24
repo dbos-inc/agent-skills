@@ -15,6 +15,8 @@ Attach a dictionary of JSON-serializable key-value attributes to workflows with 
 import uuid
 from dbos import DBOS, SetWorkflowID
 
+# process_order is a workflow defined elsewhere
+
 with SetWorkflowID(f"acme-us-east-1-{uuid.uuid4()}"):
     process_order(order)
 
@@ -50,7 +52,7 @@ for w in acme:
 ```python
 @DBOS.workflow()
 def process_order(order):
-    reserve_inventory(order)
+    reserve_inventory(order)  # reserve_inventory / ship are steps defined elsewhere
     DBOS.update_workflow_attributes(DBOS.workflow_id, {"customer": "acme", "phase": "shipping"})
     ship(order)
 ```

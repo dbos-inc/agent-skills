@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS TypeScript best practices. Rules 
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Workflow versioning, patching, serialization, safe code upgrades, and upgrading from DBOS 4.x to 5.0.
+**Description:** Workflow versioning, patching, serialization, safe code upgrades, upgrading from DBOS 4.x to 5.0, and sharing a system database between applications.

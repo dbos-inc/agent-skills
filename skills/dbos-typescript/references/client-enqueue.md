@@ -126,22 +126,23 @@ declare class Orders {
 const orderId = "order-123";
 const pg = new Client({ connectionString: process.env.DBOS_SYSTEM_DATABASE_URL });
 await pg.connect();
+let handle;
 try {
   await pg.query("BEGIN");
   await pg.query("INSERT INTO orders (id, status) VALUES ($1, 'new')", [orderId]);
-  const handle = await client.enqueueInTransaction<typeof Orders.processOrder>(
+  handle = await client.enqueueInTransaction<typeof Orders.processOrder>(
     pg,
     { workflowName: "processOrder", workflowClassName: "Orders", queueName: "orders" },
     orderId,
   );
   await pg.query("COMMIT"); // The workflow does not exist until this commits
-  await handle.getResult(); // Only call getResult() after the commit
 } catch (e) {
   await pg.query("ROLLBACK"); // Neither the row nor the workflow is created
   throw e;
 } finally {
   await pg.end();
 }
+await handle.getResult(); // Only call getResult() after the commit
 ```
 
 - You own the transaction: DBOS never begins, commits, rolls back, or retries it
