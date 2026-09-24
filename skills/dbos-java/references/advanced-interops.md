@@ -36,14 +36,15 @@ public class OrderServiceImpl implements OrderService {
 }
 ```
 
-Enqueue a workflow whose implementation lives in another language, using portable JSON arguments:
+Enqueue a workflow whose implementation lives in another language, using portable JSON arguments (from inside a
+DBOS application, `dbos.enqueueWorkflow` takes the same arguments):
 
 ```java
-var options = new DBOSClient.EnqueueOptions("process_order", "OrderService", "order-queue")
-    .withSerialization(SerializationStrategy.PORTABLE);
+var options = new EnqueueOptions("process_order", QueueName.of("order-queue")) // a Python function: no class
+    .withSerialization(SerializationStrategy.PORTABLE); // required for named arguments
 
 // positional args, then named args (for languages that support them, e.g. Python kwargs)
-var handle = client.enqueuePortableWorkflow(
+var handle = client.enqueueWorkflow(
     options, new Object[] {"order-123", 5}, Map.of());
 ```
 
@@ -56,7 +57,10 @@ Cross-language notes:
   to `Map<String, Object>`. Coercion failure marks the workflow `ERROR` with a descriptive message.
 - Use `@WorkflowClassName` so other languages address a short, stable name instead of a Java package path, and set
   `@Workflow(name = "...")` when the workflow name must match another language's naming convention
-- Queues, schedules, and workflow management operate on the same system database regardless of language, so a Java
-  `DBOSClient` can inspect, cancel, or resume workflows owned by a Python or TypeScript application
+- Queues, schedules, and workflow management operate on the same system database regardless of language. A Java
+  `DBOSClient` can cancel or resume a Python or TypeScript workflow by ID, but its listings see another application's
+  workflows only if the client is unnamed (or names that application in the filter)
+- When the applications have different names, enqueue with `withApplicationName` set to the target application, or
+  the target never dequeues the workflow ([advanced-shared-database.md](advanced-shared-database.md))
 
 Reference: [Serialization Strategy](https://docs.dbos.dev/java/reference/methods#serialization-strategy)

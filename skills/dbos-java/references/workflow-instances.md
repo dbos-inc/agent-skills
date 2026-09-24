@@ -44,7 +44,7 @@ Rules and related APIs:
 - Register every named instance before `launch()`; recovery fails for an instance name that is not registered
 - Instance configuration must be constructor-supplied and stable — workflows must not mutate it
 - Target a specific instance from outside the app with
-  `new DBOSClient.EnqueueOptions(workflowName, className, queueName).withInstanceName("service-a")`
+  `new EnqueueOptions(workflowName, className, "service-a", QueueName.of(queueName))`
 - Filter by instance with `new ListWorkflowsInput().withInstanceName("service-a")`
 - Annotate the implementation with `@WorkflowClassName("data-processor")` to give it a short, stable class name that
   survives package renames and works across languages

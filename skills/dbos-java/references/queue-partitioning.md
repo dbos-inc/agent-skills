@@ -1,15 +1,17 @@
 ---
 title: Partition Queues for Per-Key Flow Control
 impact: MEDIUM
-impactDescription: Applies concurrency limits per tenant or user instead of globally
+impactDescription: Applies concurrency limits per tenant or user alongside queue-wide limits
 tags: queue, partitioning, multi-tenant, fairness, concurrency
 ---
 
 ## Partition Queues for Per-Key Flow Control
 
-In a partitioned queue, every flow-control limit applies per partition key rather than to the queue as a whole.
-Each key behaves like a dynamically created subqueue, which is how you enforce "one task at a time per user"
-without creating a queue per user.
+A partitioned queue enforces limits per partition key. Each key behaves like a dynamically created subqueue, which
+is how you enforce "one task at a time per user" without creating a queue per user.
+
+Setting any per-partition limit partitions the queue: `andPartitionConcurrency`, `andPartitionWorkerConcurrency`
+or `andPartitionRateLimit`.
 
 **Incorrect (a queue per tenant):**
 
@@ -23,12 +25,11 @@ for (String tenantId : tenants) {
 **Correct (one partitioned queue keyed by tenant):**
 
 ```java
-dbos.registerQueue("task-queue",
-    QueueOptions.setConcurrency(1).andPartitionQueue(true));
+dbos.launch();
+dbos.registerQueue("task-queue", QueueOptions.setPartitionConcurrency(1));
 
 void onUserTaskSubmission(String userId, Task task) {
-  // Concurrency of 1 is enforced per partition key: at most one task per user
-  // at a time, while different users run concurrently.
+  // At most one task per user at a time, while different users run concurrently.
   var options = new StartWorkflowOptions()
       .withQueue("task-queue")
       .withQueuePartitionKey(userId);
@@ -36,32 +37,63 @@ void onUserTaskSubmission(String userId, Task task) {
 }
 ```
 
-Rules:
+### Per-key and queue-wide limits on one queue
 
-- A partition key is required when enqueueing to a partitioned queue, and rejected on a non-partitioned queue
-- Partition keys and deduplication IDs cannot be used together
-- Concurrency and rate limits apply per partition, so a global cap needs a second, non-partitioned queue
-
-To enforce both per-key and global limits, chain two queues: enqueue a "concurrency manager" workflow on the
-partitioned queue, and have it enqueue the real workflow on a non-partitioned queue and await the result.
+Queue-wide limits mean queue-wide, and per-partition limits mean per key. Set both to bound a shared resource
+while keeping one tenant from monopolizing it:
 
 ```java
-dbos.registerQueue("concurrency-queue", QueueOptions.setWorkerConcurrency(5));
-dbos.registerQueue("partitioned-queue",
-    QueueOptions.setConcurrency(1).andPartitionQueue(true));
+// At most 10 running across the deployment, and at most 1 per user
+dbos.registerQueue("task-queue",
+    QueueOptions.setConcurrency(10).andPartitionConcurrency(1));
 
-@Workflow
-public void onUserTaskSubmission(String userId, Task task) {
-  dbos.startWorkflow(() -> self.concurrencyManager(task),
-      new StartWorkflowOptions().withQueue("partitioned-queue").withQueuePartitionKey(userId));
-}
+// Every limit has a per-partition counterpart
+dbos.registerQueue("api-queue",
+    QueueOptions.setConcurrency(20)
+        .andWorkerConcurrency(5)
+        .andRateLimit(100, Duration.ofSeconds(60))
+        .andPartitionConcurrency(2)
+        .andPartitionWorkerConcurrency(1)
+        .andPartitionRateLimit(10, Duration.ofSeconds(60)));
+```
 
-@Workflow
-public String concurrencyManager(Task task) throws Exception {
-  var handle = dbos.startWorkflow(() -> self.processTask(task),
-      new StartWorkflowOptions().withQueue("concurrency-queue"));
-  return handle.getResult();
-}
+A limit enforced at a narrower scope may never exceed one enforced at a wider scope. Limits are compared only when
+both are set. Registering or updating a queue fails if:
+
+- any concurrency limit, rate-limit max or rate-limit period is zero or negative
+- `partitionConcurrency` exceeds `concurrency`
+- `partitionWorkerConcurrency` exceeds `partitionConcurrency`, `workerConcurrency` or `concurrency`
+- `workerConcurrency` exceeds `concurrency`
+
+### Rules
+
+- Per-partition limits are supported only on database-backed queues — `registerQueue(String, QueueOptions)` after
+  launch. In-memory `registerQueue(Queue)` rejects them, because an in-memory queue is never written and its limits
+  could not be shared with other processes
+- A partition key is required when enqueueing to a partitioned queue, and rejected on a non-partitioned queue
+- Partition keys and deduplication IDs cannot be used together
+- Partitioning an existing queue strands whatever is already enqueued on it: those rows have no partition key, and
+  a partitioned queue dequeues only from the keys present. Drain it first; to rescue stranded workflows, move them
+  to a queue that is not partitioned with `dbos.resumeWorkflow(workflowId, queueName)`
+
+### The deprecated partitionQueue flag
+
+`andPartitionQueue(true)` is deprecated for removal since 1.1. Used alone, it enforces the *queue-wide* limits per
+partition — `setConcurrency(1).andPartitionQueue(true)` means one per key, not one per queue. Combined with any
+per-partition option at registration it is accepted but does nothing: the queue is partitioned by its per-partition
+limits and `concurrency` goes back to meaning queue-wide, so
+`setConcurrency(5).andPartitionConcurrency(2).andPartitionQueue(true)` runs at most five tasks across the whole queue,
+not five per key. An `updateQueue` that sets the flag on a queue partitioned by its limits throws. Do not mix them. A
+queue registered with the flag alone has its limits frozen: `updateQueue` throws `IllegalArgumentException` for any
+limit change, queue-wide or per-partition (only `pollingInterval` can still change), because the two modes disagree
+about what `concurrency` means. Re-register the queue with per-partition limits instead.
+
+```java
+// Deprecated: concurrency is enforced per key
+dbos.registerQueue("task-queue", QueueOptions.setConcurrency(1).andPartitionQueue(true));
+
+// Current equivalent
+dbos.registerQueue("task-queue", QueueOptions.setPartitionConcurrency(1));
 ```
 
 Reference: [Partitioning Queues](https://docs.dbos.dev/java/tutorials/queue-tutorial#partitioning-queues)

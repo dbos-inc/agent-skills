@@ -9,13 +9,14 @@ tags: advanced, versioning, deployment, blue-green, recovery
 
 Every workflow is tagged with the application version that started it, and DBOS only recovers workflows whose
 version matches the running executor. Set an explicit version so deployments are deliberate rather than driven by a
-source-code hash that changes with any edit.
+computed hash.
 
 **Incorrect (letting the version drift implicitly):**
 
 ```java
-// No version configured: DBOS hashes workflow source code, so an unrelated
-// edit silently produces a new version and old workflows stop recovering
+// No version configured: DBOS hashes the DBOS version, the application name, and the
+// bytecode of each registered workflow method. Changing a workflow method or upgrading DBOS
+// silently produces a new version, while changing a step it calls does not
 var config = DBOSConfig.defaultsFromEnv("my-app");
 ```
 
@@ -45,8 +46,14 @@ VersionInfo latest = dbos.getLatestApplicationVersion();
 dbos.setLatestApplicationVersion("2.0.0");                    // promote during cutover
 ```
 
-`VersionInfo` carries `versionId`, `versionName`, `versionTimestamp`, and `createdAt`. The promoted "latest"
-version determines which executors may claim queued workflows that have no version assigned.
+`VersionInfo` carries `versionId`, `versionName`, `versionTimestamp`, `createdAt`, and `applicationName`. The
+promoted "latest" version determines which executors may claim queued workflows that have no version assigned.
+Versions are tracked per application on a shared system database
+([advanced-shared-database.md](advanced-shared-database.md)).
+
+A computed version hashes the DBOS SDK version and the application name along with the workflow code, so upgrading
+the SDK changes it and strands `PENDING` workflows from the old version, as a code change would. Another reason to
+set the version explicitly.
 
 A workflow's version cannot be changed in place. To move an in-flight workflow onto new code, fork it with
 `dbos.forkWorkflow(workflowId, startStep, new ForkOptions().withApplicationVersion("2.0.0"))`

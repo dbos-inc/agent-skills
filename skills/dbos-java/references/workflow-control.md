@@ -25,10 +25,11 @@ try {
 **Correct (resume or fork the existing execution):**
 
 ```java
-// Resume a cancelled, failed, or stuck workflow from its last completed step
+// Resume a cancelled or stuck workflow from its last completed step. It is re-enqueued
+// on the DBOS internal queue (no flow control), so it starts as soon as it is dequeued
 WorkflowHandle<String, Exception> handle = dbos.resumeWorkflow(workflowId);
 
-// Resume onto a queue instead of starting immediately
+// Resume onto a specific queue instead
 dbos.resumeWorkflow(workflowId, "recovery-queue");
 
 // Fork: create a NEW workflow that replays checkpoints before startStep,
@@ -52,6 +53,8 @@ dbos.deleteWorkflow(workflowId, true);       // also delete children
 Other control operations:
 
 - `dbos.resumeWorkflows(List<String>)` / `dbos.resumeWorkflows(List<String>, String queueName)` — bulk resume
+- Resume works on an `ENQUEUED` workflow too, which moves a workflow stranded on a deleted or newly partitioned
+  queue; a resumed workflow keeps its application version. Workflows that ended `SUCCESS` or `ERROR` are not resumed
 - `dbos.setWorkflowDelay(workflowId, Duration)` or `setWorkflowDelay(workflowId, Instant)` — hold an enqueued or
   pending workflow in `DELAYED` state until the time passes
 - `dbos.updateWorkflowAttributes(workflowId, Map<String, Object>)` — replace searchable metadata; safe to call from

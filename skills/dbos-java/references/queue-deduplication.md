@@ -46,8 +46,14 @@ Behavior:
 - Deduplication is scoped to one queue and one ID; the same ID may be active on a different queue
 - The ID is held while the workflow is `ENQUEUED`, `DELAYED`, or `PENDING`, and released when it completes,
   fails, or is cancelled — the next call then enqueues a fresh workflow
-- Enqueueing a duplicate throws, so callers must handle `DBOSQueueDuplicatedException`
+- Enqueueing a duplicate throws, so callers must handle `DBOSQueueDuplicatedException`. Java has no
+  `return-existing` deduplication policy (the Go, Python and TypeScript SDKs can return a handle to the workflow
+  holding the ID instead); to attach to the holder, look up its ID with
+  `DBOSClient.findWorkflowIdByDeduplicationId(queue, id)` and retrieve it
 - Deduplication IDs cannot be combined with queue partition keys
+- The deduplication index is global across applications sharing a system database: a peer's active workflow with
+  the same queue and ID blocks yours. `DBOSClient.findDeduplicationHolder(queue, id)` reports the holder and its
+  owning application
 - To collapse a burst of calls into one delayed execution instead of rejecting them, use the debouncer
   ([pattern-debouncing.md](pattern-debouncing.md)); to make repeated calls resolve to the same execution, set an
   explicit workflow ID ([pattern-idempotency.md](pattern-idempotency.md))

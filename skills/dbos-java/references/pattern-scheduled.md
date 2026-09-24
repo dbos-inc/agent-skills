@@ -43,15 +43,40 @@ public void everyMinute(Instant scheduled, Object context) {
 }
 ```
 
+Scheduled workflow requirements:
+
+- The parameter types must be exactly `(Instant, Object)`; a schedule targeting any other signature never fires
+  and logs an error
+- Not supported for workflows on named instances: `WorkflowSchedule` has no instance name
+- `createSchedule` fails if the schedule already exists; use `applySchedules` for idempotent setup
+- Scheduled workflows are automatically routed to the latest application version
+
 `WorkflowSchedule(scheduleName, workflowName, className, cron)` where `className` is the fully-qualified
 implementation class name, or the short name set by `@WorkflowClassName`. The cron expression uses the Spring 5.3+
-6-field format (`second minute hour day month weekday`). Optional settings:
+6-field format with second precision:
+
+```text
+┌────────────── second
+│ ┌──────────── minute
+│ │ ┌────────── hour
+│ │ │ ┌──────── day of month
+│ │ │ │ ┌────── month
+│ │ │ │ │ ┌──── day of week
+* * * * * *
+```
+
+Optional settings:
 
 - `withCronTimezone(ZoneId)` — interpret the cron in this timezone (default UTC)
 - `withAutomaticBackfill(true)` — retroactively start firings missed while the app was down
-- `withQueueName(String)` — enqueue firings on a specific queue instead of the default scheduler queue
+- `withQueueName(String)` — enqueue firings on a specific queue instead of the internal queue, to enforce
+  concurrency or rate limits; the queue must already be registered
 - `withStatus(ScheduleStatus.PAUSED)` — create the schedule paused
 - `withContext(Object)` — attach a serializable context passed to the workflow
+
+Scheduled runs are always recorded with the application's own serializer; `@Workflow(serializationStrategy = ...)`
+is ignored for them, whether they are fired, triggered, or backfilled. Find a schedule's runs with
+`ListWorkflowsInput.withScheduleName(...)` ([workflow-introspection.md](workflow-introspection.md)).
 
 `applySchedules` is idempotent and atomic: run it on every startup to keep code as the source of truth. It replaces
 the full definition of an existing schedule (so an omitted option reverts to its default) while preserving status
@@ -74,6 +99,24 @@ WorkflowHandle<?, ?> handle = dbos.triggerSchedule("daily-report");
 dbos.backfillSchedule("every-minute",
     Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-01-02T00:00:00Z"));
 ```
+
+Dynamic per-entity schedules — create many schedules for the same workflow, using the context to differentiate:
+
+```java
+void onCustomerRegistration(String customerId) {
+  dbos.createSchedule(
+      new WorkflowSchedule("customer-" + customerId + "-sync", "customerSync", "com.example.CustomerImpl",
+              "0 0 * * * *")
+          .withContext(customerId));
+}
+```
+
+To manage schedules from another application, use the same methods on `DBOSClient`
+([client-setup.md](client-setup.md)).
+
+On a shared system database, a schedule is owned and fired by one application: `withApplicationName(String)` sets
+it (default: the creating application), and `listSchedules(status, workflowName, namePrefix, applicationName)`
+filters by owner ([advanced-shared-database.md](advanced-shared-database.md)).
 
 Backfills use the schedule's *current* cron expression, so widening a schedule and then backfilling generates one
 execution per tick of the new expression. Tune how often the scheduler polls with

@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS Java best practices. Rules are au
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Workflow versioning, patching, serialization, cross-language interoperability, and Kotlin extensions.
+**Description:** Workflow versioning, patching, serialization, cross-language interoperability, sharing a system database between applications, and Kotlin extensions.

@@ -45,6 +45,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/advanced-kotlin.md`
 - `references/advanced-patching.md`
 - `references/advanced-serialization.md`
+- `references/advanced-shared-database.md`
 - `references/advanced-versioning.md`
 
 **Client** (`client-`):
@@ -97,4 +98,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*37 reference files across 9 categories*
+*38 reference files across 9 categories*

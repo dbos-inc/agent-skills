@@ -4,9 +4,9 @@ description: DBOS Java SDK for building reliable, fault-tolerant applications wi
 license: MIT
 metadata:
   author: dbos
-  version: "1.0.0"
+  version: "1.1.0"
   organization: DBOS
-  date: July 2026
+  date: September 2026
   abstract: Comprehensive guide for building fault-tolerant Java applications with DBOS. Covers workflow registration and proxies, steps, queues, communication patterns, Spring Boot integration, and best practices for durable execution.
 ---
 
@@ -47,7 +47,7 @@ Add the DBOS dependency (Java 17+, Gradle 8+ recommended):
 
 ```kotlin
 dependencies {
-    implementation("dev.dbos:transact:1.0.0")
+    implementation("dev.dbos:transact:1.1.0")
     implementation("org.slf4j:slf4j-simple:2.0.17") // to see DBOS log messages
 }
 ```
@@ -99,9 +99,15 @@ public class App {
 }
 ```
 
-When creating a new application, set `withAppVersion("0.1.0")`. If omitted, DBOS derives an opaque hash from
-workflow source code. When editing an existing application, leave its configured version alone — changing it is a
-deployment decision (see `references/advanced-versioning.md`).
+When creating a new application, set `withAppVersion("0.1.0")`. If omitted, DBOS derives an opaque hash from the
+workflow code, SDK version, and application name. When editing an existing application, leave its configured version
+alone — changing it is a deployment decision (see `references/advanced-versioning.md`). Version names are unique
+across a shared system database, so applications sharing one need distinct version strings (for example
+`"billing-0.1.0"`; see `references/advanced-shared-database.md`).
+
+The name passed to `DBOSConfig.defaults(appName)` / `defaultsFromEnv(appName)` identifies the application and owns
+everything it creates. Multiple applications (in any language) can share one system database, isolated by
+application name (1.1+, see `references/advanced-shared-database.md`).
 
 ### Workflow and Step Structure
 
