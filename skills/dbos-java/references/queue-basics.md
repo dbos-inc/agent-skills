@@ -35,7 +35,7 @@ import dev.dbos.transact.StartWorkflowOptions;
 import dev.dbos.transact.workflow.QueueOptions;
 
 dbos.launch();
-dbos.registerQueue("task-queue", QueueOptions.setWorkerConcurrency(5));
+dbos.registerQueue("task-queue", new QueueOptions().withWorkerConcurrency(5));
 
 @Workflow
 public List<String> processAll(List<String> tasks) throws Exception {
@@ -56,12 +56,16 @@ public List<String> processAll(List<String> tasks) throws Exception {
 
 Key points:
 
-- Enqueued workflows are dequeued in priority order, then FIFO, by any process listening to the queue
+- Enqueued workflows are dequeued in priority order, then FIFO, by any process listening to the queue. Since 1.2,
+  creation, dequeue and rate-limit times come from the database clock, so clock skew between hosts does not affect
+  FIFO order or rate limits
 - Enqueueing is durable: once `startWorkflow` returns, the workflow will run even if this process dies
-- `QueueOptions` factories: `empty()`, `setConcurrency`, `setWorkerConcurrency`, `setRateLimit`,
-  `setPartitionConcurrency`, `setPartitionWorkerConcurrency`, `setPartitionRateLimit`, `setPollingInterval`
-  (`setPriorityEnabled` is deprecated and ignored: every queue dequeues in priority order); chain more with the
-  matching `and*` methods
+- Build `QueueOptions` like every other options type: start from `new QueueOptions()` (every property unset) and
+  chain `withConcurrency`, `withWorkerConcurrency`, `withRateLimit`, `withPartitionConcurrency`,
+  `withPartitionWorkerConcurrency`, `withPartitionRateLimit`, `withPollingInterval`. Since 1.2, `QueueOptions.empty()`,
+  the static `setX` factories, the `andX` methods and the `withX` overloads taking a `Field` or `Optional` are
+  deprecated for removal — do not generate them. `setPriorityEnabled` is deprecated and ignored: every queue dequeues
+  in priority order
 - Enqueue from outside the application with `DBOSClient` ([client-enqueue.md](client-enqueue.md))
 - Existing code using the in-memory `Queue` still works, but per-partition limits are supported only on
   database-backed queues ([queue-partitioning.md](queue-partitioning.md))

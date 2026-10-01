@@ -54,7 +54,7 @@ public class App {
       dbos.launch();
 
       // Database-backed queues are registered AFTER launch
-      dbos.registerQueue("example-queue", QueueOptions.setWorkerConcurrency(5));
+      dbos.registerQueue("example-queue", new QueueOptions().withWorkerConcurrency(5));
 
       proxy.workflow("input");
     }
@@ -122,6 +122,12 @@ hands the server connection back after each transaction orphans the registration
 dropped — `recv` and `getEvent` then fall back to re-checking only once a minute. With it off, DBOS polls the system
 database every second instead.
 Session-mode poolers keep a 1:1 connection mapping and work with `LISTEN`/`NOTIFY`.
+
+Upgrading a fleet: migrations apply to the whole system database as soon as the first node on a new release starts
+(1.2 migrates up to version 114). 1.2 writes workflow payloads to the `workflow_input` / `workflow_output` tables and
+debounced workflows as `DELAYED` rows, which 1.1 reads but 1.0 does not. Upgrade every node to 1.1 before rolling
+out 1.2; 1.1 and 1.2 can share a fleet and 1.2 can roll back to 1.1, but never run 1.0 alongside 1.2 or roll 1.2
+back to 1.0.
 
 Lifecycle rules:
 

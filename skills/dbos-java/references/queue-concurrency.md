@@ -14,28 +14,28 @@ is the recommended control; global concurrency applies across every process shar
 
 ```java
 // Every enqueued workflow starts as soon as a worker polls: memory blows up
-dbos.registerQueue("ml-queue", QueueOptions.empty());
+dbos.registerQueue("ml-queue", new QueueOptions());
 ```
 
 **Correct (bounded per-process concurrency):**
 
 ```java
 // Each process runs at most 5 of these workflows at a time
-dbos.registerQueue("ml-queue", QueueOptions.setWorkerConcurrency(5));
+dbos.registerQueue("ml-queue", new QueueOptions().withWorkerConcurrency(5));
 
 // Cap across the whole deployment (use sparingly, see caveat below)
-dbos.registerQueue("api-queue", QueueOptions.setConcurrency(10));
+dbos.registerQueue("api-queue", new QueueOptions().withConcurrency(10));
 
 // Both together: at most 10 globally, at most 2 per process
 dbos.registerQueue("mixed-queue",
-    QueueOptions.setConcurrency(10).andWorkerConcurrency(2));
+    new QueueOptions().withConcurrency(10).withWorkerConcurrency(2));
 ```
 
 **In-order processing (sequential):**
 
 ```java
 // Only one workflow at a time across all processes - guarantees order
-dbos.registerQueue("sequential-queue", QueueOptions.setConcurrency(1));
+dbos.registerQueue("sequential-queue", new QueueOptions().withConcurrency(1));
 
 void onEvent(String event) {
   dbos.startWorkflow(() -> proxy.processEvent(event),

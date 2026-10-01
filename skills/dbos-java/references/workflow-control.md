@@ -63,7 +63,9 @@ Other control operations:
 Notes:
 
 - `startStep` for `forkWorkflow` is the `functionId` reported by `dbos.listWorkflowSteps(workflowId)`
-- Forking creates a new workflow ID; the original is left untouched and its status reports `wasForkedFrom`
+- Forking creates a new workflow ID; the original is left untouched and its status reports `wasForkedFrom`, while
+  the fork's `forkedFrom` names the original. List either side with `ListWorkflowsInput.withWasForkedFrom(true)` or
+  `withIsFork(true)` ([workflow-introspection.md](workflow-introspection.md))
 - Resuming a workflow whose code changed incompatibly will fail — fork onto a new application version instead
 - The same operations are available from outside the application through `DBOSClient`
   ([client-setup.md](client-setup.md))

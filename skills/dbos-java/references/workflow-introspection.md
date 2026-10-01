@@ -21,6 +21,10 @@ try (var stmt = conn.prepareStatement(
 }
 ```
 
+The schema does change: since 1.2, rows store workflow inputs, outputs and errors only in `workflow_input` and
+`workflow_output`, and the `inputs`, `output` and `error` columns of `workflow_status` are `NULL` on new rows. Existing
+SQL or dashboards reading those columns must move to the new tables — or, better, to the API.
+
 **Correct (using the introspection API):**
 
 ```java
@@ -60,7 +64,9 @@ Useful `ListWorkflowsInput` filters (all optional, each returns a new instance):
 - `withApplicationName(...)` — owning applications on a shared system database; unset lists this application's
   workflows plus unclaimed ones, an empty list lists every application's workflows
   ([advanced-shared-database.md](advanced-shared-database.md))
-- `withParentWorkflowId(...)`, `withHasParent(true)`, `withForkedFrom(...)`, `withWasForkedFrom(true)`
+- `withParentWorkflowId(...)`, `withHasParent(true)`, `withForkedFrom(...)`
+- `withIsFork(Boolean)` (1.2+) — only forks (`true`) or only workflows that are not forks (`false`);
+  `withWasForkedFrom(Boolean)` filters on the other end — workflows that were (or were not) forked from
 - `withScheduleName(...)` — workflows started by the named schedules; `WorkflowStatus.scheduleName()` reports the
   schedule that started a workflow (null otherwise)
 - `withAttributes(Map<String, Object>)` — match workflows whose custom attributes contain these pairs
@@ -101,7 +107,9 @@ Status values:
 `instanceName`, `input`, `output`, `error`, `executorId`, `appVersion`, `queueName`, `priority`,
 `deduplicationId` (cleared on completion), `queuePartitionKey`, `createdAt`, `updatedAt`, `startedAt`, `completedAt`
 (terminal states only), `delayUntil`, `timeout`, `deadline`, `recoveryAttempts`, `parentWorkflowId`, `forkedFrom`,
-`wasForkedFrom`, `attributes`, `scheduleName`, and `applicationName`. Times are `Instant`s.
+`wasForkedFrom`, `attributes`, `scheduleName`, `applicationName`, `isDebounced` and `debounceDeadline` (1.2+; see
+[pattern-debouncing.md](pattern-debouncing.md)). Times are `Instant`s. A child that inherited its parent's deadline
+has a null `timeout` but a `deadline` ([workflow-timeout.md](workflow-timeout.md)).
 
 `listWorkflowSteps(workflowId, limit, offset)` paginates steps. Each `StepInfo` exposes `functionId`, `functionName`,
 `output`, `error`, `childWorkflowId`, `startedAt`, and `completedAt`.
