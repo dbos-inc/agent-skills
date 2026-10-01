@@ -46,7 +46,9 @@ new StartWorkflowOptions().withDeadline(Instant.now().plus(Duration.ofHours(1)))
 
 `withDeadline` and `deadline()` on `StartWorkflowOptions`, `EnqueueOptions` and `WorkflowOptions` are deprecated for
 removal — do not use them. Use a timeout; for a workflow that starts at once,
-`withTimeout(Duration.between(Instant.now(), deadline))` is the same bound. Building a `StartWorkflowOptions` or
+`withTimeout(Duration.between(Instant.now(), deadline))` is the same bound while the deadline is still in the future.
+A deadline that is now or already past gives a zero or negative timeout, which throws `IllegalArgumentException`, so
+handle that case before building the options. Building a `StartWorkflowOptions` or
 `EnqueueOptions` with both an explicit timeout and a deadline throws `IllegalArgumentException`.
 
 Child workflows (1.2+): a child with no bound of its own inherits the parent's *deadline*, not its timeout, so a
@@ -65,8 +67,7 @@ Rules and behavior:
 - `Timeout.of(Duration)` sets an explicit value, `Timeout.none()` runs with no timeout and does not inherit the
   parent's deadline, and `Timeout.inherit()` takes the parent's deadline even inside a `WorkflowOptions` block that
   sets a bound — outside a workflow, it means no timeout
-- A child that inherited its bound has a null timeout (`WorkflowStatus.timeout()`, `DBOSContext.getTimeout()`) but
-  a `deadline()`. Resuming it clears that deadline and leaves it unbounded
+- A child that inherited its bound has a null `WorkflowStatus.timeout()` but a non-null `deadline()`. Resuming it clears that deadline and leaves it unbounded
 - Expiry sets the workflow's status to `CANCELLED`; a cancelled workflow can be restarted with `resumeWorkflow`
 - A debounced workflow never inherits a timeout or deadline; use `Debouncer.withTimeout`
   ([pattern-debouncing.md](pattern-debouncing.md))

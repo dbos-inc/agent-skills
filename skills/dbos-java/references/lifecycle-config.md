@@ -123,11 +123,11 @@ dropped — `recv` and `getEvent` then fall back to re-checking only once a minu
 database every second instead.
 Session-mode poolers keep a 1:1 connection mapping and work with `LISTEN`/`NOTIFY`.
 
-Upgrading a fleet: migrations apply to the whole system database as soon as the first node on a new release starts
-(1.2 migrates up to version 114). 1.2 writes workflow payloads to the `workflow_input` / `workflow_output` tables and
-debounced workflows as `DELAYED` rows, which 1.1 reads but 1.0 does not. Upgrade every node to 1.1 before rolling
-out 1.2; 1.1 and 1.2 can share a fleet and 1.2 can roll back to 1.1, but never run 1.0 alongside 1.2 or roll 1.2
-back to 1.0.
+Upgrading a fleet: migrations apply to the whole system database as soon as the first node on a new release starts.
+Upgrade every node to 1.1 before rolling out 1.2. 1.2 stores workflow inputs and outputs only in the
+`workflow_input` / `workflow_output` tables, which 1.0 can't read, and 1.0 doesn't release the key of a workflow that
+1.2 debounced. 1.1 and 1.2 can share a fleet and 1.2 can roll back to 1.1, but never run 1.0 alongside 1.2 or roll
+1.2 back to 1.0.
 
 Lifecycle rules:
 

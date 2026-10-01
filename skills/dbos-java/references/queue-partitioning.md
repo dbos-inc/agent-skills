@@ -73,9 +73,8 @@ both are set. Registering or updating a queue fails if:
   could not be shared with other processes
 - A partition key is required when enqueueing to a partitioned queue, and rejected on a non-partitioned queue
 - Partition keys and deduplication IDs cannot be used together
-- A queue with `partitionConcurrency` 1 and no queue-wide concurrency, rate limit or partition rate limit (worker
-  limits are fine) dequeues the head of every idle partition in one transaction (1.2+); every other partitioned
-  configuration is swept one partition at a time. Prefer that shape when there are many partition keys
+- With many partition keys, prefer `partitionConcurrency` 1 and no queue-wide concurrency, rate limit or partition
+  rate limit (worker limits are fine); since 1.2 that shape dequeues fastest
 - Partitioning an existing queue strands whatever is already enqueued on it: those rows have no partition key, and
   a partitioned queue dequeues only from the keys present. Drain it first; to rescue stranded workflows, move them
   to a queue that is not partitioned with `dbos.resumeWorkflow(workflowId, queueName)`

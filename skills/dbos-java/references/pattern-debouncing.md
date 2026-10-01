@@ -41,12 +41,16 @@ Behavior and configuration:
   independently — and returns a handle to the workflow that will eventually run
 - Every call resets the inactivity window; `withDebounceTimeout(Duration)` caps how long absorbing may continue from
   the first call, after which the workflow starts regardless
-- Once the workflow begins executing, the next `debounce` call starts a fresh debouncing cycle
+- The key is released when the delay expires and the workflow becomes `ENQUEUED`, not when it starts running. The
+  next `debounce` call after that starts a fresh debouncing cycle, even if the first workflow is still waiting on a
+  busy queue
 - Other options: `withQueue(String)` / `withQueue(QueueName)` (the `Queue` overload is deprecated for removal),
   `withPriority(Integer)`, `withAppVersion(String)`, and `withTimeout(Duration)` (1.2+), a timeout for every workflow
   the debouncer starts, counted from when it is dequeued. It takes precedence over a timeout set with
   `WorkflowOptions` around the `debounce` call, which still applies when `withTimeout` is not set. The debounced
   workflow never inherits the calling workflow's timeout or deadline
+- Do not point `withQueue` at a partitioned queue: a debounced workflow has no partition key, and partitioned queues
+  reject deduplication IDs
 - `withPriority` requires a queue: `debounce()` throws `IllegalArgumentException` if a priority is set without
   `withQueue`. A negative priority, or a zero or negative `withTimeout`, throws `IllegalArgumentException` from the
   setter itself
@@ -62,13 +66,13 @@ Behavior and configuration:
 
 Under the hood (1.2+), the first call enqueues the workflow itself in the `DELAYED` state on its queue — the one set
 with `withQueue`, or the DBOS internal queue — holding `workflowName-key` as its deduplication ID. Each later call
-on the key updates that one row: it pushes the start back by the period (capped at the debounce timeout) and
-replaces the arguments. When the delay expires the workflow leaves `DELAYED`, frees the key, and runs with the latest
+on the key updates that one row: it resets the start to one period after this call (never past the debounce
+timeout) and replaces the arguments. When the delay expires the workflow leaves `DELAYED`, frees the key, and runs with the latest
 arguments. `WorkflowStatus.isDebounced()` and `debounceDeadline()` report the debounce on that workflow.
 
-1.1 debounced through an internal `debouncerWorkflow` instead. A mixed 1.1/1.2 fleet still coalesces every call on a
-key into one execution, and a leftover 1.1 `debouncerWorkflow` still holding a key is taken over by the next
-debounce on that key after about 5 seconds. Do not run 1.0 nodes alongside 1.2: 1.0 cannot read the `DELAYED` rows.
+1.1 debounced through an internal `debouncerWorkflow` instead. 1.2 still coalesces with a 1.1 `debouncerWorkflow`
+that holds a key, and takes it over if it stops answering. For which releases can share a fleet, see
+[lifecycle-config.md](lifecycle-config.md).
 
 From outside the application, use `DBOSClient.debouncer(workflowName)`, which requires `withClassName(...)` and
 takes positional arguments instead of a proxy lambda:

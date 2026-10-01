@@ -66,8 +66,9 @@ them. Options:
 - `withApplicationName(String)` — the application that owns and runs the workflow (default: the client's own, or
   unclaimed for an unnamed client) ([advanced-shared-database.md](advanced-shared-database.md))
 - `withTimeout(Duration | long, TimeUnit | Timeout)` / `withNoTimeout()` — an explicit timeout is timed from dequeue.
-  Inside a workflow (`dbos.enqueueWorkflow`) an unset timeout inherits the caller's *deadline* (1.2+), so the child
-  cannot outlive it, and `withNoTimeout()` declines it; from a client, unset means none
+  With `dbos.enqueueWorkflow`, an unset timeout takes the bound of an enclosing `WorkflowOptions` block if there is
+  one; otherwise, inside a workflow, it inherits the caller's *deadline* (1.2+), so the child cannot outlive it.
+  `withNoTimeout()` declines both. From a `DBOSClient`, unset means none
   ([workflow-timeout.md](workflow-timeout.md))
 - `withDelay(Duration)`. `withDeadline(Instant)` is deprecated for removal since 1.2 — use a timeout
 - `withDeduplicationId(String)` / `withPriority(Integer)` / `withQueuePartitionKey(String)`
