@@ -34,8 +34,8 @@ DBOS dbos = new DBOS(config);
 // register workflow classes...
 dbos.launch();
 
-dbos.registerQueue("cpuQueue", QueueOptions.setWorkerConcurrency(8));
-dbos.registerQueue("gpuQueue", QueueOptions.setWorkerConcurrency(1));
+dbos.registerQueue("cpuQueue", new QueueOptions().withWorkerConcurrency(8));
+dbos.registerQueue("gpuQueue", new QueueOptions().withWorkerConcurrency(1));
 ```
 
 Notes:

@@ -16,17 +16,17 @@ deprecated `partitionQueue` flag has its limits frozen ([queue-partitioning.md](
 ```java
 // Changing the registerQueue call and restarting every worker is
 // unnecessary — and this call would only take effect on the next deploy
-dbos.registerQueue("email-queue", QueueOptions.setConcurrency(20));
+dbos.registerQueue("email-queue", new QueueOptions().withConcurrency(20));
 ```
 
 **Correct (update the live configuration):**
 
 ```java
 // Change only the concurrency; the rate limit and other fields are untouched
-dbos.updateQueue("email-queue", QueueOptions.setConcurrency(20));
+dbos.updateQueue("email-queue", new QueueOptions().withConcurrency(20));
 
 // Change the rate limit
-dbos.updateQueue("email-queue", QueueOptions.setRateLimit(25, 30, TimeUnit.SECONDS));
+dbos.updateQueue("email-queue", new QueueOptions().withRateLimit(25, 30, TimeUnit.SECONDS));
 
 // Inspect what is registered
 Optional<Queue> queue = dbos.findQueue("email-queue");
@@ -48,13 +48,17 @@ runtime changes. Control this with `QueueConflictResolution`:
 
 ```java
 dbos.registerQueue("email-queue",
-    QueueOptions.setConcurrency(10),
+    new QueueOptions().withConcurrency(10),
     QueueConflictResolution.NEVER_UPDATE);
 ```
 
-Field semantics: each `QueueOptions` field is tri-state. Absent means "leave unchanged", a value sets it, and
-`null` clears it (for example `QueueOptions.setConcurrency(null)` removes the concurrency limit). The `set*`/`and*`
-helpers build these values; `Field.absent()` and `Field.of(value)` are available for direct construction.
+Field semantics: each `QueueOptions` field is tri-state. Absent (never set on `new QueueOptions()`) means "leave
+unchanged", a value sets it, and `null` clears it. While the deprecated `Field` overloads still exist, a bare `null`
+is ambiguous and does not compile, so clear with a cast: `new QueueOptions().withConcurrency((Integer) null)` removes
+the concurrency limit. To change one half of a stored rate limit and keep the other, use `withRateLimitMax(Integer)`
+or `withRateLimitPeriod(Duration)` (and `withPartitionRateLimitMax` / `withPartitionRateLimitPeriod`)
+([queue-rate-limiting.md](queue-rate-limiting.md)). Do not build `Field` values or use the deprecated `set*`/`and*`
+helpers.
 
 Deleting a queue leaves its enqueued workflows unrunnable — they resume only if a queue with the same name is
 registered later, which is rarely intended. Cancel or drain pending workflows before deleting. To rescue workflows

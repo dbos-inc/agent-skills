@@ -28,7 +28,7 @@ import dev.dbos.transact.workflow.QueueOptions;
 
 try (var client = new DBOSClient(dbUrl, dbUser, dbPassword)) {
   // Optionally register the queue from the client (persists to the system database)
-  client.registerQueue("pipelineQueue", QueueOptions.setConcurrency(10));
+  client.registerQueue("pipelineQueue", new QueueOptions().withConcurrency(10));
 
   var options = new EnqueueOptions(
           "dataPipeline",                  // workflow name
@@ -54,18 +54,23 @@ a worker becomes available.
 `(workflowName, queue)`, `(workflowName, className, queue)`, and `(workflowName, className, instanceName, queue)`.
 There is no `withClassName` or `withInstanceName`. A Java workflow is identified by its class, so always pass the
 fully qualified name of the implementing class (or its `@WorkflowClassName` value) when targeting a Java workflow;
-omit it only for a workflow not registered on a class, such as a Python workflow function. The nested `DBOSClient.EnqueueOptions`, and the client overloads that take it, are deprecated for
-removal since 1.1 — do not use them. Options:
+omit it only for a workflow not registered on a class, such as a Python workflow function. A Java executor that
+dequeues a workflow enqueued without a class name cannot run it: it fails with
+`DBOSWorkflowFunctionNotFoundException` and the workflow stays `PENDING`, as for any unregistered workflow. The nested
+`DBOSClient.EnqueueOptions`, and the client overloads that take it, are deprecated for removal since 1.1 — do not use
+them. Options:
 
 - `withWorkflowId(String)` — idempotency key
 - `withAppVersion(String)` — pin the application version that should process the workflow; left unset, the
   owning application's latest version dequeues it
 - `withApplicationName(String)` — the application that owns and runs the workflow (default: the client's own, or
   unclaimed for an unnamed client) ([advanced-shared-database.md](advanced-shared-database.md))
-- `withTimeout(Duration | long, TimeUnit | Timeout)` / `withNoTimeout()` — inside a workflow (`dbos.enqueueWorkflow`)
-  an unset timeout inherits the caller's and `withNoTimeout()` declines it; from a client, unset means none. Only an
-  explicit timeout conflicts with `withDeadline`
-- `withDeadline(Instant)` / `withDelay(Duration)`
+- `withTimeout(Duration | long, TimeUnit | Timeout)` / `withNoTimeout()` — an explicit timeout is timed from dequeue.
+  With `dbos.enqueueWorkflow`, an unset timeout takes the bound of an enclosing `WorkflowOptions` block if there is
+  one; otherwise, inside a workflow, it inherits the caller's *deadline* (1.2+), so the child cannot outlive it.
+  `withNoTimeout()` declines both. From a `DBOSClient`, unset means none
+  ([workflow-timeout.md](workflow-timeout.md))
+- `withDelay(Duration)`. `withDeadline(Instant)` is deprecated for removal since 1.2 — use a timeout
 - `withDeduplicationId(String)` / `withPriority(Integer)` / `withQueuePartitionKey(String)`
 - `withSerialization(SerializationStrategy)` — use `PORTABLE` for cross-language arguments
 - `withAttributes(Map<String, Object>)` — searchable metadata

@@ -16,14 +16,14 @@ priority; workflows with the same priority keep FIFO order.
 ```java
 // Two queues cannot express relative ordering: a worker polling both
 // has no way to know that urgent work should win
-dbos.registerQueue("urgent-queue", QueueOptions.empty());
-dbos.registerQueue("normal-queue", QueueOptions.empty());
+dbos.registerQueue("urgent-queue", new QueueOptions());
+dbos.registerQueue("normal-queue", new QueueOptions());
 ```
 
 **Correct (one queue, priority set per workflow):**
 
 ```java
-dbos.registerQueue("task-queue", QueueOptions.empty());
+dbos.registerQueue("task-queue", new QueueOptions());
 
 // Higher priority (dequeued first)
 dbos.startWorkflow(() -> proxy.processTask(urgentTask),
@@ -37,8 +37,9 @@ dbos.startWorkflow(() -> proxy.processTask(bulkTask),
 Behavior:
 
 - `setPriorityEnabled` is deprecated for removal since 1.1 and ignored: every queue already dequeues in priority order
-- A negative priority throws `IllegalArgumentException` as soon as it is set (`withPriority` on `StartWorkflowOptions`
-  or `EnqueueOptions`), or from `debounce()` for a debouncer
+- A negative priority throws `IllegalArgumentException` as soon as it is set (`withPriority` on `StartWorkflowOptions`,
+  `EnqueueOptions`, `Debouncer` or `DebouncerClient`). A debouncer's priority also needs `withQueue`, or `debounce()`
+  throws
 - Workflows enqueued *without* a priority get priority 0, the highest, so they outrank every prioritized workflow —
   either assign priorities consistently on a queue or not at all
 - Priority affects dequeue order only; it does not preempt workflows that are already running

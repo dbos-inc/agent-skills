@@ -28,15 +28,15 @@ import dev.dbos.transact.workflow.QueueOptions;
 
 // At most 100 workflow starts per 60 seconds across the entire application
 dbos.registerQueue("api-queue",
-    QueueOptions.setRateLimit(100, 60, TimeUnit.SECONDS));
+    new QueueOptions().withRateLimit(100, 60, TimeUnit.SECONDS));
 
 // Equivalent with a Duration
 dbos.registerQueue("api-queue",
-    QueueOptions.setRateLimit(100, Duration.ofSeconds(60)));
+    new QueueOptions().withRateLimit(100, Duration.ofSeconds(60)));
 
 // Combine with a concurrency limit
 dbos.registerQueue("api-queue",
-    QueueOptions.setRateLimit(100, Duration.ofSeconds(60)).andWorkerConcurrency(5));
+    new QueueOptions().withRateLimit(100, Duration.ofSeconds(60)).withWorkerConcurrency(5));
 ```
 
 Behavior:
@@ -45,11 +45,12 @@ Behavior:
 - Limits are enforced globally through the system database, so they hold no matter how many processes are running
 - Workflows above the limit stay `ENQUEUED` and start as the window opens up
 - A rate limit is set and cleared as a pair: pass `null` for both parameters
-  (`QueueOptions.setRateLimit(null, null)`) to clear one. Registering a queue with only the max or only the period
-  set throws `IllegalArgumentException`. An update may change just the max or just the period of an existing limit,
-  but one that would leave only one of them set (such as `setRateLimit(5, null)` on a queue with no limit) throws
+  (`new QueueOptions().withRateLimit(null, null)`) to clear one. Registering a queue with only the max or only the
+  period set throws `IllegalArgumentException`. On `updateQueue`, `withRateLimitMax(Integer)` or
+  `withRateLimitPeriod(Duration)` changes one half of a stored limit and keeps the other; on a queue with no stored
+  limit, half a limit throws
 - Rate limits and concurrency limits compose
-- `andPartitionRateLimit(max, period)` applies a rate limit per partition key, alongside rather than instead of the
+- `withPartitionRateLimit(max, period)` applies a rate limit per partition key, alongside rather than instead of the
   queue-wide one ([queue-partitioning.md](queue-partitioning.md))
 
 Common use cases:
@@ -64,10 +65,13 @@ Because queue configuration lives in the system database, you can change a queue
 redeploying ([queue-management.md](queue-management.md)):
 
 ```java
-dbos.updateQueue("api-queue", QueueOptions.setRateLimit(25, Duration.ofSeconds(30)));
+dbos.updateQueue("api-queue", new QueueOptions().withRateLimit(25, Duration.ofSeconds(30)));
+
+// Change only the max; the stored period carries over
+dbos.updateQueue("api-queue", new QueueOptions().withRateLimitMax(50));
 
 // Or remove the limit entirely
-dbos.updateQueue("api-queue", QueueOptions.setRateLimit(null, null));
+dbos.updateQueue("api-queue", new QueueOptions().withRateLimit(null, null));
 ```
 
 Reference: [Rate Limiting](https://docs.dbos.dev/java/tutorials/queue-tutorial#rate-limiting)
