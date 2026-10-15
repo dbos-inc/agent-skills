@@ -90,6 +90,7 @@ page = DBOS.list_workflows(limit=50, offset=100, sort_desc=True)
 - **queues_only**: If `True`, only `DELAYED`/`ENQUEUED`/`PENDING` workflows on a queue (same as `list_queued_workflows`)
 - **has_parent**: `True` for workflows with a parent, `False` for top-level only
 - **was_forked_from**: `True` for workflows that have been forked from, `False` for those that haven't
+- **is_fork**: `True` for workflows that are themselves forks of another workflow, `False` for those that aren't (also on `list_queued_workflows`)
 - **attributes**: Workflows whose custom attributes contain all given key-value pairs (Postgres only; see [workflow-attributes](workflow-attributes.md))
 - **schedule_name**: Workflows enqueued by this schedule (or list)
 - **application_name**: Owning application(s); defaults to this application (unowned workflows always included; with `workflow_ids` set, any application's workflows are returned)

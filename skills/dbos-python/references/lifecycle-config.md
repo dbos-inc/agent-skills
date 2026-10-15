@@ -2,7 +2,7 @@
 title: Configure and Launch DBOS Properly
 impact: CRITICAL
 impactDescription: Application won't function without proper setup
-tags: configuration, launch, setup, initialization
+tags: configuration, launch, setup, initialization, migrate, conductor
 ---
 
 ## Configure and Launch DBOS Properly
@@ -82,11 +82,12 @@ All fields except `name` are optional:
 | **dbos_system_schema** | Postgres schema for DBOS system tables | `"dbos"` |
 | **system_database_engine** | Custom SQLAlchemy engine (skips engine creation) | `None` |
 | **use_listen_notify** | Use Postgres LISTEN/NOTIFY vs polling (ignored on SQLite). Do not change after the system DB is created | `True` |
-| **run_migrations** | Create/migrate the system DB on launch. Set `False` for roles that can't run DDL (migrate out of band with `dbos migrate`); launch then only verifies the schema | `True` |
+| **run_migrations** | Create/migrate the system DB on launch. Set `False` for roles that can't run DDL (migrate out of band with `dbos migrate` or `DBOS.migrate`); launch then only verifies the schema | `True` |
 | **notification_listener_polling_interval_sec** | Polling interval when polling (min `0.001`); also default `read_stream` polling interval | `1.0` |
 | **notification_coalesce_sec** | Batching interval for LISTEN/NOTIFY wakeups of event/stream readers (min `0.001`) | `0.01` |
 | **observability_query_timeout_sec** | Statement timeout for `list_workflows`/`list_workflow_steps`-style queries on Postgres (raises `DBOSQueryTimeoutError`); <= 0 disables | `30` |
-| **conductor_key** | API key for DBOS Conductor | `None` |
+| **sys_db_idle_transaction_timeout_sec** | Postgres `idle_in_transaction_session_timeout` set on the system DB connections DBOS creates | `60` |
+| **conductor_key** | API key for DBOS Conductor. Requires `pip install "dbos[enterprise]"` (see below) | `None` |
 | **conductor_url** | Conductor service URL (only for self-hosted) | `None` |
 | **conductor_executor_metadata** | JSON dict of metadata sent to Conductor (region, instance type, etc.) | `None` |
 | **conductor_metadata_only_mode** | Send only workflow metadata (never inputs/outputs/events/etc.) to Conductor | `False` |
@@ -104,6 +105,23 @@ All fields except `name` are optional:
 | **serializer** | Custom serializer for system database | Default (pickle) |
 
 The `application_database_url` and `database_url` fields were removed in 3.0.
+
+### Connecting to Conductor
+
+Connecting to DBOS Conductor requires the `dbos-enterprise` package. Without it, setting `conductor_key` (or deploying to DBOS Cloud, which always connects to Conductor) raises `DBOSInitializationError` at initialization:
+
+```shell
+pip install "dbos[enterprise]"   # pins dbos-enterprise to the same version as dbos
+```
+
+```python
+config: DBOSConfig = {
+    "name": "my-app",
+    "application_version": "0.1.0",
+    "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
+    "conductor_key": os.environ.get("DBOS_CONDUCTOR_KEY"),
+}
+```
 
 ### Application Name
 
@@ -163,6 +181,15 @@ config: DBOSConfig = {
 dbos migrate -s "$ADMIN_SYSTEM_DATABASE_URL" -r my_app_role   # add --schema if not "dbos"
 ```
 
+Or run the same migration from code (for example, in a deployment migration script). `DBOS.migrate` creates the database if it does not exist and can be called without constructing a DBOS instance:
+
+```python
+from dbos import DBOS
+
+# Run with a privileged role; application_role is Postgres only
+DBOS.migrate(os.environ["ADMIN_SYSTEM_DATABASE_URL"], application_role="my_app_role")  # schema= defaults to "dbos"
+```
+
 ```python
 config: DBOSConfig = {
     "name": "my-app",
@@ -180,6 +207,8 @@ If a DBA must apply the SQL, print it instead of executing (`--print-migrations`
 dbos migrate --print-migrations all -s "$DBOS_SYSTEM_DATABASE_URL" > migrations.sql  # or a number to upgrade from
 dbos migrate --print-user-role -r my_app_role -s "$DBOS_SYSTEM_DATABASE_URL" > grants.sql
 ```
+
+`dbos migrate` and `DBOS.migrate` do not migrate datasource tables; use `SQLAlchemyDatasource.migrate` for those (see [step-transactions](step-transactions.md)).
 
 ## Connection Poolers (PgBouncer, PlanetScale, Supabase, Neon)
 

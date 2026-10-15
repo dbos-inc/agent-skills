@@ -2,7 +2,7 @@
 title: Keep Workflows Deterministic
 impact: CRITICAL
 impactDescription: Non-deterministic workflows cannot recover correctly
-tags: workflow, determinism, recovery, reliability
+tags: workflow, determinism, recovery, reliability, DBOSStepNondeterminismError
 ---
 
 ## Keep Workflows Deterministic
@@ -50,5 +50,7 @@ Non-deterministic operations that must be in steps:
 - Accessing external APIs
 - Reading files
 - Database queries (use transactions or steps)
+
+If DBOS detects that a single execution of a workflow recorded different results for the same step, it throws `DBOSStepNondeterminismError`: the workflow is not deterministic.
 
 Reference: [Workflow Determinism](https://docs.dbos.dev/typescript/tutorials/workflow-tutorial#determinism)

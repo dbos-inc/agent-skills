@@ -2,7 +2,7 @@
 title: Use Datasources for Database Operations
 impact: HIGH
 impactDescription: Datasource transactions provide exactly-once database execution within workflows
-tags: datasource, transaction, database, postgres, sqlite, sqlalchemy, async
+tags: datasource, transaction, database, postgres, sqlite, sqlalchemy, async, migrate, sessionmaker
 ---
 
 ## Use Datasources for Database Operations
@@ -83,6 +83,23 @@ Create all datasources **before** `DBOS.launch()` (DBOS tracks them so `rewind_w
 
 For `AsyncSQLAlchemyDatasource` with SQLite, use an async driver URL such as `sqlite+aiosqlite:///app.sqlite` (install with `pip install "dbos[aiosqlite]"`); a plain `sqlite:///` URL raises an error.
 
+### Running Datasource Migrations Separately
+
+By default, `create()` creates or migrates the `datasource_outputs` table (and its schema), which requires DDL privileges. If the application's database role can't run DDL, migrate with a privileged role and create the datasource with `run_migrations=False`, so it only verifies the table is migrated (raising `DBOSInitializationError` if not):
+
+```python
+# In your migration script, run with a privileged role.
+# application_role (Postgres only) is granted USAGE on the schema, SELECT/INSERT/DELETE
+# on datasource_outputs, and SELECT on the migration version table.
+SQLAlchemyDatasource.migrate(os.environ["ADMIN_DATABASE_URL"], application_role="my_app_role")
+# Async: await AsyncSQLAlchemyDatasource.migrate(...)
+
+# In your application, run as my_app_role:
+ds = SQLAlchemyDatasource.create(os.environ["APP_DATABASE_URL"], run_migrations=False)
+```
+
+`dbos migrate` and `DBOS.migrate` migrate only the system database, not datasource tables (see [lifecycle-config](lifecycle-config.md)).
+
 ### Running Inline Without a Decorator
 
 Use `run_tx_step` (sync) or `run_tx_step_async` (async) to run an undecorated function as a datasource transaction:
@@ -107,8 +124,10 @@ For async code, use `await ads.run_tx_step_async({...}, async_fn, *args)`.
 - `@ds.transaction(name=..., isolation_level=...)`: `isolation_level` is one of `"SERIALIZABLE"` (default), `"REPEATABLE READ"`, or `"READ COMMITTED"` (SQLite supports only `"SERIALIZABLE"`). `name` is the step name recorded in the workflow log (defaults to the function's `__qualname__`).
 - `SQLAlchemyDatasource` only supports `def` functions; `AsyncSQLAlchemyDatasource` only supports `async def`. Decorating the wrong kind raises `DBOSException` at decoration time.
 - Call `ds.sql_session()` / `ads.sql_session()` only inside a datasource transaction; it raises otherwise.
-- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=...)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only). The default `serializer` is pickle, not the `serializer` in `DBOSConfig`. DBOS connects to Postgres with the psycopg driver.
+- `create(database_url, engine_kwargs=..., engine=..., schema=..., serializer=..., sessionmaker=..., run_migrations=True)`: pass an existing engine via `engine`, or set `schema` for the `datasource_outputs` tracking table (defaults to `"dbos"`; Postgres only). The default `serializer` is pickle, not the `serializer` in `DBOSConfig`. DBOS connects to Postgres with the psycopg driver.
+- `sessionmaker`: a custom `sessionmaker` (or `async_sessionmaker` for `AsyncSQLAlchemyDatasource`) for transaction sessions, e.g. a custom `Session` subclass, session options, or event hooks. Sessions are always bound to the datasource's engine: any `bind` is ignored, and setting `binds` raises `DBOSException`. Defaults to `sessionmaker(expire_on_commit=False)`.
 - `@DBOS.transaction`, `DBOS.sql_session`, and `application_database_url` were removed in 3.0; datasources replace them (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
 - Outside a workflow, datasource transactions run as ordinary SQLAlchemy transactions with no tracking overhead.
+- Once a workflow completes, DBOS deletes its rows from `datasource_outputs` (the outcome is recorded in the system database).
 
 Reference: [Transactions & Datasources](https://docs.dbos.dev/python/tutorials/transaction-tutorial)

@@ -103,6 +103,7 @@ Workflows started by a schedule are tagged with the schedule name; find them wit
 - **queuesOnly**: If `true`, only currently-enqueued workflows (`ENQUEUED`, `DELAYED`, or `PENDING` on a queue; `listQueuedWorkflows` is equivalent to this plus `loadOutput: false`)
 - **forkedFrom**: Source workflow ID(s) for forks
 - **wasForkedFrom**: `true` for workflows that have been forked from, `false` for those that haven't
+- **isFork**: `true` for workflows that are themselves forks of another workflow, `false` for those that aren't
 - **parentWorkflowID**: Parent workflow ID(s)
 - **hasParent**: `true` for child workflows only, `false` for top-level only
 - **attributes**: Workflows whose custom attributes contain all these key-value pairs

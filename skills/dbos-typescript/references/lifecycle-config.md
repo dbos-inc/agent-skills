@@ -2,7 +2,7 @@
 title: Configure and Launch DBOS Properly
 impact: CRITICAL
 impactDescription: Application won't function without proper setup
-tags: configuration, launch, setup, initialization
+tags: configuration, launch, setup, initialization, migrate, conductor
 ---
 
 ## Configure and Launch DBOS Properly
@@ -74,8 +74,9 @@ All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializatio
 | **systemDatabasePollingConcurrency** | Max concurrent database-backed polling reads from wait operations (`getResult`, `waitFirst`, `recv`, `getEvent`, ...), so high-fan-out polling can't starve enqueue/dequeue, status writes, recovery, and cancellation. Non-positive disables the limit | Half the pool size (min 1) |
 | **systemDatabaseSchemaName** | Postgres schema for DBOS system tables | `"dbos"` |
 | **systemDatabasePool** | Custom `node-postgres` pool (skips pool creation; you own it, `shutdown` doesn't close it) | `undefined` |
-| **runMigrations** | Create/migrate the system database on launch. Set `false` if the role can't run DDL and you migrate with `npx dbos schema`; launch then only verifies the schema | `true` |
+| **runMigrations** | Create/migrate the system database on launch. Set `false` if the role can't run DDL and you migrate with `npx dbos schema` or `DBOS.migrate`; launch then only verifies the schema | `true` |
 | **observabilityQueryTimeoutMs** | Statement timeout for `listWorkflows`, `listQueuedWorkflows`, `listWorkflowSteps`, etc.; exceeding it throws `DBOSQueryTimeoutError`. `<= 0` disables | `30000` |
+| **systemDatabaseIdleTransactionTimeoutMs** | Postgres `idle_in_transaction_session_timeout` set on the system database connections DBOS creates | `60000` |
 | **useListenNotify** | Use Postgres `LISTEN/NOTIFY` to wake `recv`/`getEvent`/`readStream` waiters. Set `false` if unsupported (e.g., CockroachDB) to poll instead | `true` |
 | **notificationCoalesceMs** | With `useListenNotify`, interval over which event/stream notifications are batched | `10` |
 | **tracingEnabled** | Generate DBOS traces for an external OpenTelemetry `TracerProvider` | — |
@@ -84,12 +85,29 @@ All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializatio
 | **otlpTracesEndpoints** | OTLP trace receiver URLs (built-in provider only) | `undefined` |
 | **otlpLogsEndpoints** | OTLP log receiver URLs (built-in provider only) | `undefined` |
 | **logLevel** | DBOS logger severity | `"info"` |
-| **logger** | Custom logger implementing the `DLogger` interface, to which DBOS directs all its internal logging, replacing the built-in console and OTLP log sinks | `undefined` |
+| **logger** | Custom logger implementing the `DLogger` interface, to which DBOS directs all its internal logging, replacing the built-in console and OTLP log sinks. `error()` receives the `Error`'s message, with its stack (including its `cause` chain) in `metadata.stack` and the original `Error` in `metadata.error` | `undefined` |
 | **addContextMetadata** | Append workflow ID/operation name to console logs from workflows and steps (only when `enableOTLP` is on) | `false` |
 | **listenQueues** | Names of the only queues this process dequeues from (`string[]`). Names not matching a queue at launch are picked up when registered | All queues owned by this application |
 | **maxConcurrentQueueDispatches** | Max number of queues this process dequeues from concurrently | `3` |
 | **schedulerPollingIntervalMs** | Scheduler polling interval for new schedules (ms) | `30000` |
 | **serializer** | Custom serializer for system database | Default (SuperJSON) |
+
+## Connecting to Conductor
+
+Pass Conductor settings to `DBOS.launch` (not `DBOS.setConfig`). Connecting to Conductor requires the `@dbos-inc/dbos-enterprise` package at the same minor version as `@dbos-inc/dbos-sdk` (upgrade the two together); without it, `DBOS.launch` throws `DBOSInitializationError` when `conductorKey` is set or the app runs in DBOS Cloud:
+
+```shell
+npm install @dbos-inc/dbos-enterprise
+```
+
+```typescript
+await DBOS.launch({
+  conductorKey: process.env.DBOS_CONDUCTOR_KEY, // API key from the DBOS Console
+  // conductorURL: only when self-hosting Conductor
+  // conductorExecutorMetadata: { region: "us-east-1" },
+  // conductorMetadataOnlyMode: true, // never send workflow data, only metadata
+});
+```
 
 ## Least-Privilege Deployment
 
@@ -104,6 +122,16 @@ npx dbos schema --print-migrations all ${DBOS_SYSTEM_DATABASE_URL} > migrations.
 npx dbos schema --print-user-role -r my_app_role ${DBOS_SYSTEM_DATABASE_URL} > grants.sql
 ```
 
+Or run the same migration from code (for example, in a deployment migration script). It creates the database if it does not exist:
+
+```typescript
+// Run with a privileged role
+await DBOS.migrate(process.env.ADMIN_SYSTEM_DATABASE_URL!, {
+  applicationRole: "my_app_role", // grant this role access to the DBOS schema
+  // schemaName: "dbos",
+});
+```
+
 ```typescript
 DBOS.setConfig({
   name: "my-app",
@@ -116,5 +144,6 @@ await DBOS.launch();
 - `-s, --schema <name>` targets a non-default schema (match `systemDatabaseSchemaName`)
 - `--print-migrations <all|NUMBER>` prints all migrations (fresh database) or those from a migration number (upgrade)
 - With `runMigrations: false`, launch only verifies the schema: a missing or outdated system database fails with `DBOSInitializationError`; a newer schema is accepted
+- `npx dbos schema` and `DBOS.migrate` do not migrate datasource tables; see `step-transactions.md`
 
 Reference: [DBOS Configuration](https://docs.dbos.dev/typescript/reference/configuration)

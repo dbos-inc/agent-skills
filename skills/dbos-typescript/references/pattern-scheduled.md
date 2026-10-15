@@ -107,6 +107,10 @@ await DBOS.createSchedule({
 });
 ```
 
+### Cron Syntax
+
+DBOS parses cron expressions with [node-cron](https://github.com/node-cron/node-cron#cron-syntax), so schedules support its full syntax, including an optional leading seconds field (`*/30 * * * * *` runs every 30 seconds).
+
 ### Cron Timezone
 
 Cron expressions default to the **system's local timezone**. Set `cronTimezone` to an IANA timezone to evaluate explicitly:

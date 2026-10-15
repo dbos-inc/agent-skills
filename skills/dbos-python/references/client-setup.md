@@ -48,6 +48,7 @@ Constructor parameters:
 - `lazy` (default `False`): don't connect until first use; check explicitly with `client.check_connection()`. Cannot be combined with `use_listen_notify`
 - `retry_connection_errors` (default `True`): block and retry on lost connections; `False` raises instead
 - `observability_query_timeout_sec` (default 30): statement timeout for listing queries on Postgres
+- `sys_db_idle_transaction_timeout_sec` (default 60): Postgres `idle_in_transaction_session_timeout` set on the client's system database connections
 
 **Upgrading:** A DBOS 2.x client cannot read the inputs or results of workflows created by DBOS 3.0. Upgrade applications that use `DBOSClient` together with your DBOS processes (see [advanced-upgrading-v3](advanced-upgrading-v3.md)).
 
