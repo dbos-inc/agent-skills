@@ -44,7 +44,7 @@ serialQueue, err := dbos.RegisterQueue(ctx, "sequential_queue",
 
 Worker concurrency is recommended for most use cases. Take care with global concurrency as any `PENDING` workflow on the queue counts toward the limit, including workflows from previous application versions.
 
-Limits can be changed at runtime with the `Queue` setters (e.g. `queue.SetWorkerConcurrency(ctx, &n)`); changes persist to the database and live workers pick them up without a restart. Pass `nil` to clear a limit.
+Limits can be changed at runtime with the `Queue` setters (e.g. `queue.SetWorkerConcurrency(ctx, &n)`); changes persist to the database and live workers pick them up without a restart. Pass `nil` to clear a limit. Worker concurrency must be `<=` global concurrency when both are set. For per-partition limits (`WithPartitionConcurrency`, `WithPartitionWorkerConcurrency`), see [queue-partitioning.md](queue-partitioning.md).
 
 When using worker concurrency, each process must have a unique `ExecutorID` set in configuration (this is automatic with DBOS Conductor or Cloud).
 

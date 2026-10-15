@@ -30,8 +30,9 @@ if err != nil {
 }
 defer dbos.Shutdown(client, 10*time.Second)
 
-// Send a message to a workflow
-err = dbos.Send(client, workflowID, "notification", "topic")
+// Send a message to a workflow (WithIdempotencyKey makes a retried send deliver at most once)
+err = dbos.Send(client, workflowID, "notification", "topic", dbos.WithIdempotencyKey("notify-42"))
+err = dbos.SendBulk(client, []dbos.SendMessage{{DestinationID: workflowID, Message: "a", Topic: "topic"}})
 
 // Get an event from a workflow
 event, err := dbos.GetEvent[string](client, workflowID, "status", 60*time.Second)
@@ -51,6 +52,11 @@ err = dbos.CancelWorkflows(client, []string{"wf-1", "wf-2"})   // Bulk
 handle, err = dbos.ResumeWorkflow[string](client, workflowID)
 handles, err := dbos.ResumeWorkflows[string](client, []string{"wf-1", "wf-2"},
     dbos.WithResumeQueue("priority"))                          // Bulk + queue
+handle, err = dbos.RewindWorkflow[string](client, workflowID,
+    dbos.WithRewindStartStep(3),
+    dbos.WithRewindDataSources(ds))  // A client has no datasource registry: list them to drop their checkpoints
+forkHandle, err := dbos.ForkWorkflow[string](client, dbos.ForkWorkflowInput{
+    OriginalWorkflowID: workflowID, StartStep: 3})
 err = dbos.SetWorkflowDelay(client, workflowID,
     dbos.WithDelayDuration(30*time.Minute))                    // Delay a queued workflow
 err = dbos.DeleteWorkflows(client, []string{"wf-1"})
@@ -94,7 +100,10 @@ ClientConfig options:
 - `DatabaseSchema`: Schema name (default: `"dbos"`)
 - `Logger`: Custom `*slog.Logger`
 - `Serializer`: Custom `Serializer[any]` for inputs/outputs/events (defaults to JSON). The serializer must match the application that owns the workflows. See [advanced-serialization.md](advanced-serialization.md).
-- `SystemDBStartupTimeout`: Maximum time for system-database connection and migrations (default: 2m)
+- `SystemDBStartupTimeout`: Maximum time for system-database connection and schema verification (default: 2m)
+- `SystemDBIdleTransactionTimeout`: Postgres `idle_in_transaction_session_timeout` for the connections the client creates (default: 1m; negative leaves the server setting)
+
+A client never creates or migrates the system database: it verifies the schema and fails if it is missing or behind. A client can create datasources with `dbos.NewDataSource(client, pool)` at any time, to pass to `WithRewindDataSources`. To enqueue or send atomically with your own writes, see `WithEnqueueTransaction` ([client-enqueue.md](client-enqueue.md)) and `WithSendTransaction` ([comm-messages.md](comm-messages.md)).
 
 Always call `dbos.Shutdown(client, timeout)` when done.
 

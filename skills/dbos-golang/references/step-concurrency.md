@@ -75,5 +75,7 @@ Key behaviors:
 - `dbos.Select` durably selects the first completed result and checkpoints which channel was selected
 - On recovery, `Select` replays the same selection, maintaining determinism
 - Steps started with `Go` follow the same retry and checkpointing rules as `RunAsStep`
+- A panic in a step started with `Go` is recovered on the goroutine DBOS owns and delivered as the outcome's `Err`, matching `dbos.ErrWorkflowPanic`, instead of crashing the process
+- A step started with `Go` that completes after its workflow has completed (for example, after the workflow was cancelled or timed out) has its outcome discarded; it cannot checkpoint over the finished workflow
 
 Reference: [Concurrent Steps](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#concurrent-steps)

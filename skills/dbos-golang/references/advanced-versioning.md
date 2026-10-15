@@ -48,15 +48,22 @@ oldWorkflows, _ := dbos.ListWorkflows(ctx,
 
 5. Once all v1 workflows are complete, retire v1 processes
 
-**Fork to new version (for stuck workflows):**
+**Fork or rewind onto the new version (for stuck workflows):**
 
 ```go
-// Fork a workflow from a failed step to run on the new version
+// Fork a workflow from a failed step to run on the new version (new workflow ID)
 handle, _ := dbos.ForkWorkflow[string](ctx, dbos.ForkWorkflowInput{
 	OriginalWorkflowID: workflowID,
 	StartStep:          failedStepID,
 	ApplicationVersion: "2.0.0",
 })
+
+// Or re-run it in place, keeping its workflow ID (the workflow must be terminal)
+handle, _ = dbos.RewindWorkflow[string](ctx, workflowID,
+	dbos.WithRewindStartStep(failedStepID),
+	dbos.WithRewindApplicationVersion("2.0.0"))
 ```
+
+Rewinding onto the running executor's version is also how a workflow stranded on a retired version is brought back. See [workflow-control.md](workflow-control.md).
 
 Reference: [Versioning](https://docs.dbos.dev/golang/tutorials/upgrading-workflows#versioning)

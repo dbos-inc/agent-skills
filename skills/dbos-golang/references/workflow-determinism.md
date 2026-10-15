@@ -48,4 +48,6 @@ Non-deterministic operations that must be in steps:
 - Reading files
 - Database queries
 
+When an execution records a step ID it had already recorded with a different result (for example because steps ran concurrently in plain goroutines instead of `dbos.Go`), DBOS returns an error matching `dbos.ErrStepNondeterminism` (v1.6.0+). Return it from the workflow and fix the workflow function.
+
 Reference: [Workflow Determinism](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#determinism)

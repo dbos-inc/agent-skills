@@ -60,11 +60,12 @@ func myWorkflow(ctx dbos.Context, input string) (string, error) {
 }
 ```
 
-Workflow operations that return an error when called inside a step: starting or enqueueing workflows, `RunAsTransaction`, `handle.GetResult`, `CloseStream`, `Send`, `Recv`, `GetEvent`, `Sleep`, and `Go`. Read operations (e.g. `ListWorkflows`), `SetEvent`, and `WriteStream` are allowed inside steps.
+Workflow operations that return an error when called inside a step: starting or enqueueing workflows, `RunAsTransaction`, `handle.GetResult`, `CloseStream`, `Send`, `Recv`, `GetEvent`, `Sleep`, and `Go`. Read operations (e.g. `ListWorkflows`), `SetEvent`, `WriteStream`, and `GetAuthenticatedUser` are allowed inside steps.
 
 Additional constraints:
 - Don't modify global variables from workflows or steps
-- All workflows and queues must be registered **before** `Launch()`
+- All workflows and queues must be registered, and all datasources created with `NewDataSource`, **before** `Launch()` ([step-transactions.md](step-transactions.md))
 - Concurrent steps must start in deterministic order using `dbos.Go`/`dbos.Select`
+- Return DBOS errors such as `dbos.ErrConflictingWorkflowID` from the workflow instead of swallowing them: it means another execution owns the workflow (it was recovered, resumed, rewound, or cancelled elsewhere), and returning the error lets this execution adopt the owner's outcome
 
 Reference: [Workflow Guarantees](https://docs.dbos.dev/golang/tutorials/workflow-tutorial#workflow-guarantees)

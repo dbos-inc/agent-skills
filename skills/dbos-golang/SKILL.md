@@ -4,9 +4,9 @@ description: DBOS Go SDK for building reliable, fault-tolerant applications with
 license: MIT
 metadata:
   author: dbos
-  version: "2.1.0"
+  version: "2.2.0"
   organization: DBOS
-  date: August 2026
+  date: October 2026
   abstract: Comprehensive guide for building fault-tolerant Go applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
 ---
 
@@ -19,6 +19,7 @@ Guide for building reliable, fault-tolerant Go applications with DBOS durable wo
 Reference these guidelines when:
 - Adding DBOS to existing Go code
 - Creating workflows and steps
+- Running database transactions durably through datasources
 - Using queues for concurrency control
 - Implementing workflow communication (events, messages, streams)
 - Configuring and launching DBOS applications
@@ -47,6 +48,12 @@ Install the DBOS Go module (v1):
 
 ```bash
 go get github.com/dbos-inc/dbos-transact-golang/dbos@latest
+```
+
+Connecting to DBOS Conductor (setting `ConductorAPIKey`, or running in DBOS Cloud) requires importing `go.dbos.dev/dbos-enterprise-go` (`go get go.dbos.dev/dbos-enterprise-go`), with a blank import anywhere in the program; otherwise `dbos.NewContext` fails with an initialization error:
+
+```go
+import _ "go.dbos.dev/dbos-enterprise-go"
 ```
 
 ### DBOS Configuration and Launch
@@ -86,7 +93,7 @@ func main() {
 
 When creating a new application, set `ApplicationVersion` to `"0.1.0"`. If omitted, DBOS derives an opaque hash from the binary. When editing an existing application, leave its configured version alone — changing it is a deployment decision (see `references/advanced-application-versions.md`).
 
-`DatabaseURL` accepts Postgres/CockroachDB URLs or SQLite URLs (`sqlite:/path/to.db`, `sqlite::memory:`; SQLite requires a blank import of `github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite`). See `references/lifecycle-config.md` for all configuration options.
+`DatabaseURL` accepts Postgres/CockroachDB URLs or SQLite URLs (`sqlite:/path/to.db`, `sqlite::memory:`; SQLite requires a blank import of `github.com/dbos-inc/dbos-transact-golang/dbos/driver/sqlite`). See `references/lifecycle-config.md` for all configuration options, including Conductor settings and running schema migrations separately from the application.
 
 `dbos.Context` extends `dbos.Client`: management functions (`Enqueue`, `ListWorkflows`, `CancelWorkflow`, queue and schedule management, ...) take a `dbos.Client` and accept either a `Context` or a standalone client from `dbos.NewClient` (see `references/client-setup.md`).
 
@@ -116,6 +123,8 @@ func myWorkflow(ctx dbos.Context, input string) (string, error) {
 }
 ```
 
+Database writes that must happen exactly once belong in a datasource transaction (`dbos.RunAsTransaction`), not a step (see `references/step-transactions.md`).
+
 ### Key Constraints
 
 - Do NOT start or enqueue workflows from within steps
@@ -123,7 +132,9 @@ func myWorkflow(ctx dbos.Context, input string) (string, error) {
 - Do NOT use uncontrolled goroutines to start workflows - use `dbos.RunWorkflow` with queues or `dbos.Go`/`dbos.Select` for concurrent steps
 - Workflows MUST be deterministic - non-deterministic operations go in steps
 - Do NOT modify global variables from workflows or steps
-- All workflows MUST be registered before calling `Launch()`; queues are registered with `dbos.RegisterQueue` and persisted in the database
+- All workflows MUST be registered, and all datasources created with `dbos.NewDataSource`, before calling `Launch()`; queues are registered with `dbos.RegisterQueue` and persisted in the database
+- Starting a workflow with an ID already in use returns the existing workflow by default; pass `dbos.WithWorkflowIDReusePolicy(dbos.WorkflowIDReusePolicyReject)` to get `dbos.ErrWorkflowIDInUse` instead (see `references/pattern-idempotency.md`)
+- A panic in a workflow does not crash the process: DBOS records it as the workflow's error (`dbos.ErrWorkflowPanic`)
 
 ## How to Use
 
@@ -132,7 +143,9 @@ Read individual rule files for detailed explanations and examples:
 ```
 references/lifecycle-config.md
 references/workflow-determinism.md
+references/step-transactions.md
 references/queue-concurrency.md
+references/workflow-control.md
 ```
 
 ## References
