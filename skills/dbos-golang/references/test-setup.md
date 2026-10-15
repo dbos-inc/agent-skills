@@ -53,7 +53,8 @@ func setupDBOS(t *testing.T) dbos.Context {
 	}
 
 	ctx, err := dbos.NewContext(context.Background(), dbos.Config{
-		AppName:            "test-" + t.Name(),
+		// Application names allow only lowercase letters, digits, dashes, and underscores
+		AppName:            strings.ToLower(strings.ReplaceAll("test-"+t.Name(), "/", "-")),
 		ApplicationVersion: "0.1.0",
 		DatabaseURL:        databaseURL,
 	})
@@ -84,7 +85,7 @@ func TestWorkflowIntegration(t *testing.T) {
 
 Key points:
 - Use `t.Cleanup` to ensure `Shutdown` is called after each test
-- Use unique `AppName` per test to avoid collisions
+- Use a unique, valid `AppName` per test to avoid collisions (3 to 256 characters of lowercase letters, digits, dashes, and underscores)
 - Mock `dbos.Context` for fast unit tests without Postgres
 - Use real Postgres for integration tests that verify durable behavior
 

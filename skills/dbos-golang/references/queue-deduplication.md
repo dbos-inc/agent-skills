@@ -56,7 +56,7 @@ handle, err := dbos.RunWorkflow(ctx, processTask, task,
 
 `WithDeduplicationPolicy` must be used alongside `WithQueue` and `WithDeduplicationID`. When enqueuing by name with `dbos.Enqueue`, use `WithEnqueueDeduplicationID` and `WithEnqueueDeduplicationPolicy` with the same semantics.
 
-Deduplication is per-queue. The deduplication ID is active while the workflow has status `ENQUEUED` or `PENDING`. Once the workflow completes, a new workflow with the same deduplication ID can be enqueued.
+Deduplication is per-queue. The deduplication ID is active while the workflow has status `ENQUEUED` or `PENDING`. Once the workflow completes, a new workflow with the same deduplication ID can be enqueued. To reject a duplicate for the lifetime of a workflow instead, including after it completes, give it a workflow ID and use `WithWorkflowIDReusePolicy(dbos.WorkflowIDReusePolicyReject)` ([pattern-idempotency.md](pattern-idempotency.md)).
 
 This is useful for:
 - Ensuring one active task per user

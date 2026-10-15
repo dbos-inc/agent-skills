@@ -80,6 +80,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 - `references/step-basics.md`
 - `references/step-concurrency.md`
 - `references/step-retries.md`
+- `references/step-transactions.md`
 
 **Testing** (`test-`):
 - `references/test-setup.md`
@@ -96,4 +97,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*36 reference files across 9 categories*
+*37 reference files across 9 categories*

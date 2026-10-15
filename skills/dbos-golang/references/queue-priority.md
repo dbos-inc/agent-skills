@@ -7,21 +7,21 @@ tags: queue, priority, ordering, importance
 
 ## Set Queue Priority for Workflows
 
-Enable priority on a queue to process higher-priority workflows first. Lower numbers indicate higher priority.
+Set a priority when enqueuing a workflow to have it dequeued before lower-priority work. Lower numbers indicate higher priority. Every queue dequeues in priority order; there is nothing to enable on the queue.
 
-**Incorrect (no priority - FIFO only):**
+**Incorrect (urgent work waits behind the backlog):**
+
+```go
+// FIFO only: an urgent task enqueued behind thousands of background tasks runs last
+dbos.RunWorkflow(ctx, processTask, "urgent-task",
+	dbos.WithQueue(queue),
+)
+```
+
+**Correct (prioritized enqueue):**
 
 ```go
 queue, err := dbos.RegisterQueue(ctx, "tasks")
-// All tasks processed in FIFO order regardless of importance
-```
-
-**Correct (priority-enabled queue):**
-
-```go
-queue, err := dbos.RegisterQueue(ctx, "tasks",
-	dbos.WithPriorityEnabled(),
-)
 
 // High priority task (lower number = higher priority)
 dbos.RunWorkflow(ctx, processTask, "urgent-task",
@@ -41,5 +41,6 @@ Priority rules:
 - Lower number = higher priority
 - Workflows **without** assigned priorities have the highest priority (run first)
 - Workflows with the same priority are dequeued in FIFO order
+- From an external application, use `WithEnqueuePriority` with `dbos.Enqueue` ([client-enqueue.md](client-enqueue.md))
 
 Reference: [Priority](https://docs.dbos.dev/golang/tutorials/queue-tutorial#priority)

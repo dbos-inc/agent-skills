@@ -41,6 +41,7 @@ Key behaviors:
 - When the workflow finally executes, it uses the **last** set of inputs
 - After execution begins, the next `Debounce` call starts a new cycle
 - `WithDebouncerQueue("name")` runs the debounced workflow on a specific queue (must already be registered)
+- A debounced workflow cannot use `WorkflowIDReusePolicyReject` ([pattern-idempotency.md](pattern-idempotency.md))
 
 Type signature: `Debouncer[R any, P any]` — result type first, then the workflow input type.
 

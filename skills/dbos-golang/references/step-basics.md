@@ -78,4 +78,6 @@ When to use steps:
 - Getting current time
 - Any non-deterministic operation
 
+Steps are at-least-once: a step that writes to a database can re-execute if the process crashes before the step is checkpointed. For exactly-once database writes, use a datasource transaction with `dbos.RunAsTransaction` ([step-transactions.md](step-transactions.md)).
+
 Reference: [DBOS Steps](https://docs.dbos.dev/golang/tutorials/step-tutorial)

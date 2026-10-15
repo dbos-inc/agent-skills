@@ -50,6 +50,7 @@ Other useful filters:
 - `WithFilterQueueName` / `WithFilterQueuesOnly`: queued workflows
 - `WithFilterHasParent(bool)`: whether the workflow has a parent (child workflows)
 - `WithFilterWasForkedFrom(bool)`: whether the workflow has been forked from
+- `WithFilterIsFork(bool)`: whether the workflow is itself a fork of another workflow (v1.6.0+); `WithFilterForkedFrom(ids...)` selects the forks of given workflows
 - `WithFilterWorkflowIDPrefix`, `WithFilterAppVersion`, `WithFilterExecutorIDs`, `WithFilterOffset`
 - `WithFilterApplicationName`: workflows owned by these applications, when multiple applications [share a system database](advanced-shared-database.md). By default only the calling application's workflows (plus unowned ones) are listed; a client with no `AppName` lists everything
 

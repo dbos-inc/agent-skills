@@ -52,6 +52,7 @@ handle, err := dbos.Enqueue[string](client, "task_queue", "processTask", "task-d
 
 Enqueue options:
 - `WithEnqueueWorkflowID`: Custom workflow ID
+- `WithEnqueueWorkflowIDReusePolicy`: What to do if that workflow ID already exists — `WorkflowIDReusePolicyReturnExisting` (default, returns a handle to the existing workflow) or `WorkflowIDReusePolicyReject` (returns an error matching `dbos.ErrWorkflowIDInUse` without enqueueing anything). See [pattern-idempotency.md](pattern-idempotency.md)
 - `WithEnqueueDeduplicationID`: Prevent duplicate enqueues
 - `WithEnqueueDeduplicationPolicy`: How a colliding deduplication ID is handled — `DeduplicationPolicyReject` (default, returns a `QueueDeduplicated` error) or `DeduplicationPolicyReturnExisting` (returns a handle to the existing workflow)
 - `WithEnqueuePriority`: Queue priority (lower = higher priority)
@@ -62,9 +63,32 @@ Enqueue options:
 - `WithEnqueueDelay`: Delay execution; the workflow stays in `DELAYED` status until the delay expires
 - `WithEnqueueClassName`: Class/namespace name, required when enqueueing to Python, TypeScript, or Java targets
 - `WithEnqueueConfigName`: Config/instance name, required when the target workflow is registered on a configured instance (Go's `WithInstance`, Python/TypeScript/Java class instances)
-- `WithEnqueueAuthenticatedUser`, `WithEnqueueAssumedRole`, `WithEnqueueAuthenticatedRoles`: Attach authentication metadata
+- `WithEnqueueAuthenticatedUser`, `WithEnqueueAssumedRole`, `WithEnqueueAuthenticatedRoles`: Attach authentication metadata (the workflow reads the user back with `dbos.GetAuthenticatedUser(ctx)`)
+- `WithEnqueueTransaction(tx)`: Enqueue on a transaction you own (a `pgx.Tx`, `*sql.Tx`, or `dbos.Tx` on the DBOS system database), so the enqueue commits atomically with your own writes
 
 The workflow name must match the registered name or custom name set with `WithWorkflowName` during registration.
+
+**Enqueue atomically with your own writes:**
+
+```go
+tx, err := pool.Begin(ctx)
+if err != nil {
+	return err
+}
+defer tx.Rollback(ctx)
+tx.Exec(ctx, "INSERT INTO orders (id) VALUES ($1)", orderID)
+handle, err := dbos.Enqueue[string](client, "task_queue", "processOrder", orderID,
+	dbos.WithEnqueueTransaction(tx))
+if err != nil {
+	return err // the transaction is aborted: roll back, do not retry on it
+}
+if err := tx.Commit(ctx); err != nil {
+	return err // until this commits, the workflow does not exist
+}
+result, err := handle.GetResult() // only after the commit
+```
+
+You own the transaction: `Enqueue` neither commits nor rolls back, and the handle does not resolve until you commit. Not available inside a workflow (where an enqueue is checkpointed as a step) nor with `DeduplicationPolicyReturnExisting`.
 
 Always call `dbos.Shutdown(client, timeout)` when done.
 

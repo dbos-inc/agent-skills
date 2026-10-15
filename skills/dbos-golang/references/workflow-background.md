@@ -61,4 +61,6 @@ result, err := handle.GetResult()
 - `dbos.WithHandleTimeout(timeout)`: Return a timeout error if the workflow doesn't complete within the duration
 - `dbos.WithHandlePollingInterval(interval)`: Control how often the database is polled for completion
 
+A workflow that returns an error terminates with status `ERROR` and is not recovered; put operations that may transiently fail in steps with retries ([step-retries.md](step-retries.md)). A panic in a workflow function (or in a step run with `dbos.Go`) does not crash the process (v1.5.0+): DBOS recovers it, logs it with its stack, and records it as the workflow's error, so `GetResult` returns an error matching `dbos.ErrWorkflowPanic`. When the panic value is an `error`, it is wrapped, so `errors.Is` and `errors.As` still reach it.
+
 Reference: [Workflows](https://docs.dbos.dev/golang/tutorials/workflow-tutorial)

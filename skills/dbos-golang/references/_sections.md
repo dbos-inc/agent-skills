@@ -6,15 +6,15 @@ This file defines the rule categories for DBOS Go best practices. Rules are auto
 
 ## 1. Lifecycle (lifecycle)
 **Impact:** CRITICAL
-**Description:** DBOS configuration, initialization, and launch patterns. Foundation for all DBOS applications.
+**Description:** DBOS configuration, initialization, launch patterns, Conductor connection, and system database migrations. Foundation for all DBOS applications.
 
 ## 2. Workflow (workflow)
 **Impact:** CRITICAL
-**Description:** Workflow creation, determinism requirements, background execution, and workflow IDs.
+**Description:** Workflow creation, determinism requirements, background execution, workflow IDs, timeouts, and management (cancel, resume, fork, rewind).
 
 ## 3. Step (step)
 **Impact:** HIGH
-**Description:** Step creation, retries, concurrent steps with Go/Select, and when to use steps vs workflows.
+**Description:** Step creation, retries, concurrent steps with Go/Select, datasource transactions, and when to use steps vs workflows.
 
 ## 4. Queue (queue)
 **Impact:** HIGH
