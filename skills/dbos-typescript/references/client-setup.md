@@ -50,7 +50,7 @@ try {
 
   // Workflow management
   await client.cancelWorkflow(workflowID);
-  await client.resumeWorkflow(workflowID);
+  const resumed = await client.resumeWorkflow<string>(workflowID); // returns a handle
   await client.forkWorkflow(workflowID, stepID, { applicationVersion: "2.0.0" });
 
   // Update queued workflows in place
@@ -78,6 +78,7 @@ Constructor options:
 - `systemDatabaseSchemaName`: Optional Postgres schema name (default: `"dbos"`)
 - `applicationName`: The application on whose behalf the client acts. Enqueued workflows, registered queues, and created schedules are owned by it, and listing operations default to its rows. Always set it if multiple applications share a system database (see `advanced-shared-database.md`)
 - `observabilityQueryTimeoutMs`: Statement timeout for listing queries (default 30000); exceeding it throws `DBOSQueryTimeoutError`
+- `systemDatabaseIdleTransactionTimeoutMs`: Postgres `idle_in_transaction_session_timeout` set on the client's system database connections (default 60000)
 - `logger`: A custom logger implementing the `DLogger` interface, to which the client directs all its logging, replacing the built-in console logger.
 
 **DBOS 5.0 compatibility:** Upgrade clients together with your DBOS processes. A 5.0 client requires the 5.0 system database schema, so launch a DBOS 5.0 process (or run `npx dbos schema`) before using it, and a 4.x client cannot read inputs or results of workflows created by 5.0.

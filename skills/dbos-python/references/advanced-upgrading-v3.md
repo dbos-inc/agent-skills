@@ -2,7 +2,7 @@
 title: Upgrade DBOS Python 2.x Code to 3.x
 impact: HIGH
 impactDescription: 3.0 removed deprecated APIs and changed the storage format; old code fails and mixed deployments break
-tags: upgrade, migration, 3.0, breaking-changes, transaction, datasource, queue, scheduled, fastapi
+tags: upgrade, migration, 3.0, breaking-changes, transaction, datasource, queue, scheduled, fastapi, conductor, dbos-enterprise
 ---
 
 ## Upgrade DBOS Python 2.x Code to 3.x
@@ -16,6 +16,15 @@ DBOS Python 3.0 removed features deprecated in 2.x. When you see any API below i
 - Don't run 2.x and 3.0 processes concurrently with the same application version. If you set `application_version` yourself, change it when you upgrade.
 - If you use patching, shut down all 2.x processes before launching 3.0 processes.
 - Upgrade applications that use `DBOSClient` together with your DBOS processes: a 2.x client cannot read inputs or results of workflows created by 3.0.
+- Be careful reusing the IDs of workflows created by 2.x: if 3.0 starts or enqueues a workflow with the same ID as a 2.x workflow but different inputs, the new inputs can replace the recorded ones, and an unfinished workflow may run with them.
+
+### Conductor Requires `dbos[enterprise]`
+
+The DBOS Conductor client moved out of `dbos` into a separate package, `dbos-enterprise`. Apps that set `conductor_key`, and all apps deployed to DBOS Cloud (which always connect to Conductor), must install it; otherwise DBOS raises `DBOSInitializationError` when it initializes. Install it as an extra, which pins it to the same version as `dbos`:
+
+```shell
+pip install "dbos[enterprise]"
+```
 
 ### `@DBOS.transaction` → Datasources
 

@@ -2,7 +2,7 @@
 title: Use Transactions for Database Operations
 impact: HIGH
 impactDescription: Transactions provide exactly-once database execution within workflows
-tags: step, transaction, database, datasource
+tags: step, transaction, database, datasource, migrate, runMigrations, initializeDBOSSchema
 ---
 
 ## Use Transactions for Database Operations
@@ -65,6 +65,22 @@ Available datasource packages: `@dbos-inc/knex-datasource`, `@dbos-inc/kysely-da
 
 Transaction config (e.g., Knex `{ isolationLevel, readOnly }`) is passed as the second argument to `runTransaction`/`registerTransaction`. `isolationLevel` defaults to the database's default (`read committed` in Postgres).
 
-Datasources require installing the DBOS schema (`transaction_completion` table) via `initializeDBOSSchema`.
+### Datasource Schema and Migrations
+
+Datasources record each transaction in a `transaction_completion` table (in the `dbos` schema by default) so it runs exactly once; once a workflow completes, DBOS deletes its rows. By default, each datasource creates or migrates this table when DBOS launches, which requires DDL privileges in your database.
+
+If the app's database role can't run DDL, install the schema with the datasource's static `initializeDBOSSchema` method using a privileged role (e.g., in your schema migrations), then construct the datasource with `runMigrations: false` in its final options argument so launch only verifies the schema (throwing `DBOSInitializationError` if it is missing or outdated):
+
+```typescript
+// Migration script, run with a privileged role.
+// applicationRole is granted USAGE on the schema, SELECT/INSERT/DELETE on transaction_completion,
+// and SELECT on the dbos_transaction_completion_migrations version table.
+await KnexDataSource.initializeDBOSSchema(adminConfig, "dbos", { applicationRole: "my_app_role" });
+
+// Application, running as my_app_role:
+const dataSource = new KnexDataSource("app-db", config, "dbos", { runMigrations: false });
+```
+
+`npx dbos schema` and `DBOS.migrate` migrate only the system database, not datasource tables.
 
 Reference: [Transactions & Datasources](https://docs.dbos.dev/typescript/tutorials/transaction-tutorial)

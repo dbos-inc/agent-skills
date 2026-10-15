@@ -152,6 +152,8 @@ handle = DBOS.trigger_schedule("my-task")
 
 ### Crontab Format
 
+DBOS parses schedules with [croniter](https://pypi.org/project/croniter/) (with `second_at_beginning` enabled), so they follow croniter's syntax and semantics, with seconds as an optional first field:
+
 ```
  ┌────────────── second (optional)
  │ ┌──────────── minute

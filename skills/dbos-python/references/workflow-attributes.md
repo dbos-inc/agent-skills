@@ -47,18 +47,27 @@ for w in acme:
 
 ### Updating Attributes
 
-`DBOS.update_workflow_attributes` (and `_async`) **replaces** the whole dictionary (not a merge); pass `None` to clear. It is safe to call from within a workflow, including on itself (the update is recorded as a step):
+`DBOS.update_workflow_attributes` (and `_async`) **replaces** the whole dictionary by default; pass `None` to clear. To add or update individual keys while keeping the rest, pass `merge=True`, which atomically merges the given top-level keys into the existing attributes (nested dictionaries are replaced, not merged; concurrent merges don't lose each other's keys; `None` with `merge=True` raises `DBOSException`). It is safe to call from within a workflow, including on itself (the update is recorded as a step):
+
+**Incorrect (replace drops the other keys):**
+
+```python
+# Attributes were {"customer": "acme", "region": "us-east-1"}; now they are just {"phase": "shipping"}
+DBOS.update_workflow_attributes(DBOS.workflow_id, {"phase": "shipping"})
+```
+
+**Correct (merge keeps the other keys):**
 
 ```python
 @DBOS.workflow()
 def process_order(order):
     reserve_inventory(order)  # reserve_inventory / ship are steps defined elsewhere
-    DBOS.update_workflow_attributes(DBOS.workflow_id, {"customer": "acme", "phase": "shipping"})
+    DBOS.update_workflow_attributes(DBOS.workflow_id, {"phase": "shipping"}, merge=True)
     ship(order)
 ```
 
 From outside the application:
-- `DBOSClient` has `client.update_workflow_attributes(workflow_id, attrs)`, `list_workflows(attributes=...)`, and `list_queued_workflows(attributes=...)`
+- `DBOSClient` has `client.update_workflow_attributes(workflow_id, attrs, merge=False)`, `list_workflows(attributes=...)`, and `list_queued_workflows(attributes=...)`
 - Set attributes at enqueue time with `"attributes": {...}` in `EnqueueOptions`
 
 ### Schedule Name Tagging

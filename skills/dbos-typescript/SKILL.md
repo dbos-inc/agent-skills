@@ -4,9 +4,9 @@ description: DBOS TypeScript SDK for building reliable, fault-tolerant applicati
 license: MIT
 metadata:
   author: dbos
-  version: "2.0.0"
+  version: "2.1.0"
   organization: DBOS
-  date: September 2026
+  date: October 2026
   abstract: Comprehensive guide for building fault-tolerant TypeScript applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
 ---
 
@@ -97,6 +97,7 @@ const myWorkflow = DBOS.registerWorkflow(myWorkflowFn);
 - Do NOT modify global variables from workflows or steps
 - Register queues (`DBOS.registerQueue`) and create schedules (`DBOS.applySchedules`/`DBOS.createSchedule`) AFTER `DBOS.launch()` - they are stored in the system database
 - Steps are only durable when called from a workflow; outside a workflow they run as plain function calls
+- Connecting to DBOS Conductor (`conductorKey`, or deploying to DBOS Cloud) requires installing `@dbos-inc/dbos-enterprise` at the same minor version as `@dbos-inc/dbos-sdk`
 
 ## How to Use
 

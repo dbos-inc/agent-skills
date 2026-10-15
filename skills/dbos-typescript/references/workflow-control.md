@@ -37,7 +37,7 @@ await DBOS.cancelWorkflow(workflowID, { cancelChildren: true });
 
 The same `options?: { cancelChildren?: boolean }` is available on `cancelWorkflows(workflowIDs, options?)`.
 
-Resume restarts a workflow from its last completed step. Use this for workflows that are cancelled or have exceeded their maximum recovery attempts. You can also use this to start an enqueued workflow immediately, bypassing its queue.
+Resume restarts a workflow from its last completed step. Use this for workflows that are cancelled or have exceeded their maximum recovery attempts. You can also use this to start an enqueued workflow immediately, bypassing its queue. `resumeWorkflow` throws `DBOSNonExistentWorkflowError` if the workflow does not exist. `resumeWorkflows(workflowIDs, options?)` returns a list of handles; if any workflow does not exist, it throws `DBOSNonExistentWorkflowError` and resumes none of them. `DBOSClient.resumeWorkflow`/`resumeWorkflows` also return handles.
 
 Fork a workflow from a specific step:
 

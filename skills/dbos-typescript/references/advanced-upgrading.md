@@ -2,7 +2,7 @@
 title: Upgrade from DBOS TypeScript 4.x to 5.0
 impact: LOW
 impactDescription: Avoids code that fails on 5.x and unrecoverable workflows during the upgrade
-tags: advanced, upgrade, migration, 5.0, breaking-change, removed
+tags: advanced, upgrade, migration, 5.0, breaking-change, removed, conductor, dbos-enterprise
 ---
 
 ## Upgrade from DBOS TypeScript 4.x to 5.0
@@ -14,6 +14,15 @@ DBOS 5.0 removes features deprecated in 4.x. Every replacement below is also ava
 DBOS 5.0 changes the storage schema for workflow inputs and outputs. 5.0 can process workflows created by 4.x, but **4.x cannot process workflows created by 5.0**:
 - Don't run 4.x and 5.0 processes concurrently on the same application version. If you set `applicationVersion`, change it when you upgrade. If you use patching, shut down all 4.x processes before launching 5.0 processes.
 - Upgrade `DBOSClient` users together with your DBOS processes. A 4.x client cannot read inputs or results of 5.0 workflows, and a 5.0 client requires the new schema: launch a 5.0 process (or run `npx dbos schema`) before using it.
+- Be careful reusing the IDs of workflows created by 4.x: if 5.0 starts or enqueues a workflow with the same ID as a 4.x workflow but different inputs, the new inputs can replace the recorded ones, and an unfinished workflow may run with them.
+
+### Conductor Requires `@dbos-inc/dbos-enterprise`
+
+The DBOS Conductor client moved out of `@dbos-inc/dbos-sdk` into a separate package, `@dbos-inc/dbos-enterprise`. Apps that pass `conductorKey` to `DBOS.launch`, and all apps deployed to DBOS Cloud (which always connect to Conductor), must install it; otherwise `DBOS.launch` throws `DBOSInitializationError`. It must be at the same minor version as `@dbos-inc/dbos-sdk`, so upgrade the two together:
+
+```shell
+npm install @dbos-inc/dbos-enterprise
+```
 
 ### In-Memory Queues
 
