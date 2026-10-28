@@ -4,7 +4,7 @@ description: DBOS Python SDK (3.x) for building reliable, fault-tolerant applica
 license: MIT
 metadata:
   author: dbos
-  version: "2.1.0"
+  version: "2.2.0"
   organization: DBOS
   date: October 2026
   abstract: Comprehensive guide for building fault-tolerant Python applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
@@ -89,7 +89,8 @@ def my_workflow():
 - Do NOT create/update global variables from workflows or steps
 - In `async def` code, use the `_async` variants of DBOS methods (`await DBOS.start_workflow_async(...)`, `send_async`, `recv_async`, `sleep_async`, `register_queue_async`, ...): many synchronous DBOS methods (such as `DBOS.sleep`, `DBOS.recv`, `DBOS.send`, `DBOS.set_event`, `DBOS.get_event`, and `DBOS.register_queue`) raise `RuntimeError` when called while an event loop is running
 - Register queues and create schedules AFTER `DBOS.launch()`; create datasources BEFORE it
-- Connecting to DBOS Conductor (`conductor_key`, or deploying to DBOS Cloud) requires `pip install "dbos[enterprise]"`
+- Connecting to DBOS Conductor (`conductor_key`, or deploying to DBOS Cloud), and auto-upgrade (`auto_upgrade`) require `pip install "dbos[enterprise]"`; auto-upgrade also needs an entitled key (`conductor_key`, or `transact_enterprise_key` in development). See `references/lifecycle-config.md`
+- Do NOT set `enable_patching` (deprecated in 3.4): `DBOS.patch` and `DBOS.deprecate_patch` work without it. To let patched code recover older workflows, pin `application_version` or use auto-upgrade (see `references/advanced-patching.md`)
 
 ### Removed in DBOS 3.0 (never generate these)
 

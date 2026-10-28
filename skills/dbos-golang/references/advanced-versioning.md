@@ -48,6 +48,8 @@ oldWorkflows, _ := dbos.ListWorkflows(ctx,
 
 5. Once all v1 workflows are complete, retire v1 processes
 
+To skip the drain, patch every breaking change and enable auto-upgrade (v1.8.0+, DBOS Enterprise): DBOS then moves workflows left on older versions to the latest version (see [advanced-patching.md](advanced-patching.md#auto-upgrade)).
+
 **Fork or rewind onto the new version (for stuck workflows):**
 
 ```go

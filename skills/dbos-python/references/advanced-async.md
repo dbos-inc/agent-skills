@@ -62,7 +62,7 @@ async def other_async_workflow():
 async def async_workflow(target_id: str):
     handle = await DBOS.enqueue_workflow_async("tasks", other_async_workflow)
     await DBOS.send_async(target_id, "msg")           # not send
-    if await DBOS.patch_async("new-logic"):           # not patch (requires enable_patching)
+    if await DBOS.patch_async("new-logic"):           # not patch
         ...
     return await handle.get_result()
 ```
@@ -108,7 +108,31 @@ async def bad_parallel_workflow():
     await asyncio.gather(seq_a(), seq_b())
 ```
 
-If you need concurrent sequences, use child workflows instead of interleaving steps.
+**Correct (concurrent sequences with reserved step IDs, 3.4+):**
+
+Reserve step IDs in a deterministic order with `DBOS.reserve_step()`, then run each step from its reservation with `run_async` (or `run` in a sync workflow), which takes the same arguments as `DBOS.run_step_async`: step options (or `None`), a function, and its arguments. Each step is recorded at its reserved position, whenever it actually starts:
+
+```python
+def fetch(arg):  # plain function, run as a step through its reservation
+    ...
+
+@DBOS.workflow()
+async def concurrent_sequences_workflow():
+    # Reserve all step IDs before starting any concurrent work
+    r1, r2, r3, r4 = [DBOS.reserve_step() for _ in range(4)]
+
+    async def seq_a():
+        await r1.run_async({"name": "step1"}, fetch, "arg1")
+        await r2.run_async({"name": "step2"}, fetch, "arg2")
+
+    async def seq_b():
+        await r3.run_async({"name": "step3"}, fetch, "arg3")
+        await r4.run_async({"name": "step4"}, fetch, "arg4")
+
+    return await asyncio.gather(seq_a(), seq_b(), return_exceptions=True)
+```
+
+Call `DBOS.reserve_step()` from workflow code, outside any step or datasource transaction; it raises `DBOSException` otherwise. Run each reservation exactly once, from the workflow that reserved it (a second run raises `DBOSException`); a reservation never run leaves an unused step ID, which is safe. Alternatively, run each sequence in a child workflow.
 
 For database operations in async workflows, use an `AsyncSQLAlchemyDatasource`, which runs transactions natively in `async def`. Create it at module scope with `asyncio.run`, before `DBOS.launch()`. With SQLite, use a `sqlite+aiosqlite:///` URL:
 

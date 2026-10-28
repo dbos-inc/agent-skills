@@ -2,7 +2,7 @@
 title: Configure and Launch DBOS Properly
 impact: CRITICAL
 impactDescription: Application won't function without proper setup
-tags: configuration, launch, setup, initialization, migrate, conductor
+tags: configuration, launch, setup, initialization, migrate, conductor, enterprise, auto-upgrade
 ---
 
 ## Configure and Launch DBOS Properly
@@ -66,9 +66,13 @@ All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializatio
 | Field | Description | Default |
 |-------|-------------|---------|
 | **name** | Application name and ownership key | (required) |
-| **applicationVersion** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash (`PATCHING_ENABLED` if patching is enabled) |
+| **applicationVersion** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash |
 | **executorID** | Unique process ID for distributed environments | Auto-set by Conductor/Cloud |
-| **enablePatching** | Enable `DBOS.patch()`/`DBOS.deprecatePatch()` | — |
+| **enablePatching** | Deprecated (5.4): `DBOS.patch()` no longer needs it; it only pins `applicationVersion` to `PATCHING_ENABLED` and logs a warning. Set `applicationVersion` instead | — |
+| **transactEnterpriseKey** | Key entitling the app to DBOS Transact Enterprise features without Conductor. Development only; in production, pass `conductorKey` to `DBOS.launch` (it stands in for this key) | `undefined` |
+| **autoUpgrade** | Auto-upgrade every workflow except those registered with `autoUpgrade: false` (see `advanced-patching.md`). Requires DBOS Transact Enterprise | `false` |
+| **autoUpgradeIntervalMs** | Milliseconds between auto-upgrade passes | `30000` |
+| **autoUpgradeGraceMs** | Milliseconds the latest version must have been the latest before `PENDING` workflows on older versions are moved (`ENQUEUED`/`DELAYED` move without waiting) | `0` |
 | **systemDatabaseUrl** | Postgres connection string for system DB | `postgresql://postgres:dbos@localhost:5432/[name]_dbos_sys` |
 | **systemDatabasePoolSize** | System DB connection pool size | `10` |
 | **systemDatabasePollingConcurrency** | Max concurrent database-backed polling reads from wait operations (`getResult`, `waitFirst`, `recv`, `getEvent`, ...), so high-fan-out polling can't starve enqueue/dequeue, status writes, recovery, and cancellation. Non-positive disables the limit | Half the pool size (min 1) |
@@ -108,6 +112,8 @@ await DBOS.launch({
   // conductorMetadataOnlyMode: true, // never send workflow data, only metadata
 });
 ```
+
+The same package provides the DBOS Transact Enterprise feature auto-upgrade (`autoUpgrade`, see `advanced-patching.md`). It also requires a key whose organization is entitled to it, which `DBOS.launch` checks with Conductor: the `conductorKey` in production or, in development without Conductor, `transactEnterpriseKey` in `DBOS.setConfig` (a Conductor API key from the DBOS Console). A missing package, key, or entitlement makes `DBOS.launch` throw `DBOSInitializationError`.
 
 ## Least-Privilege Deployment
 

@@ -10,7 +10,7 @@ This file defines the rule categories for DBOS Go best practices. Rules are auto
 
 ## 2. Workflow (workflow)
 **Impact:** CRITICAL
-**Description:** Workflow creation, determinism requirements, background execution, workflow IDs, timeouts, and management (cancel, resume, fork, rewind).
+**Description:** Workflow creation, determinism requirements, background execution, workflow IDs, timeouts, searchable attributes, and management (cancel, resume, fork, rewind).
 
 ## 3. Step (step)
 **Impact:** HIGH
@@ -38,4 +38,4 @@ This file defines the rule categories for DBOS Go best practices. Rules are auto
 
 ## 9. Advanced (advanced)
 **Impact:** LOW
-**Description:** Workflow versioning, patching, safe code upgrades, cross-language interop, and sharing a system database between applications.
+**Description:** Workflow versioning, patching, auto-upgrade, safe code upgrades, cross-language interop, and sharing a system database between applications.

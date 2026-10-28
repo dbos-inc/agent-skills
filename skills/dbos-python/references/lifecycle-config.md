@@ -2,7 +2,7 @@
 title: Configure and Launch DBOS Properly
 impact: CRITICAL
 impactDescription: Application won't function without proper setup
-tags: configuration, launch, setup, initialization, migrate, conductor
+tags: configuration, launch, setup, initialization, migrate, conductor, enterprise, auto-upgrade
 ---
 
 ## Configure and Launch DBOS Properly
@@ -73,7 +73,7 @@ All fields except `name` are optional:
 |-------|-------------|---------|
 | **name** | Application name (see rules below) | (required) |
 | **system_database_url** | System DB connection string (Postgres or SQLite). Postgres always uses the psycopg (v3) driver | `sqlite:///[name].sqlite` |
-| **enable_patching** | Enable patching strategy for workflow upgrades | `False` |
+| **enable_patching** | Deprecated (3.4): `DBOS.patch` no longer needs it; it only pins `application_version` to `"PATCHING_ENABLED"` and logs a warning. Set `application_version` instead | `False` |
 | **application_version** | Version tag for versioning strategy. Set to `"0.1.0"` in new applications | Auto-computed hash |
 | **executor_id** | Unique process ID for distributed environments | Auto-set by Conductor |
 | **sys_db_pool_size** | System DB connection pool size | `20` |
@@ -91,6 +91,10 @@ All fields except `name` are optional:
 | **conductor_url** | Conductor service URL (only for self-hosted) | `None` |
 | **conductor_executor_metadata** | JSON dict of metadata sent to Conductor (region, instance type, etc.) | `None` |
 | **conductor_metadata_only_mode** | Send only workflow metadata (never inputs/outputs/events/etc.) to Conductor | `False` |
+| **transact_enterprise_key** | Key entitling the app to DBOS Transact Enterprise features without Conductor. Development only; in production, connect to Conductor (`conductor_key` stands in for it) | `None` |
+| **auto_upgrade** | Auto-upgrade every workflow except those with `@DBOS.workflow(auto_upgrade=False)` (see [advanced-patching](advanced-patching.md)). Requires DBOS Transact Enterprise | `False` |
+| **auto_upgrade_interval_sec** | Seconds between auto-upgrade passes | `30` |
+| **auto_upgrade_grace_sec** | Seconds the latest version must have been the latest before `PENDING` workflows on older versions are moved (`ENQUEUED`/`DELAYED` move without waiting) | `0` |
 | **enable_otlp** | Enable OpenTelemetry spans for workflows and steps | `False` |
 | **otlp_traces_endpoints** | OTLP trace receiver URLs (built-in exporter) | `None` |
 | **otlp_logs_endpoints** | OTLP log receiver URLs (built-in exporter) | `None` |
@@ -122,6 +126,8 @@ config: DBOSConfig = {
     "conductor_key": os.environ.get("DBOS_CONDUCTOR_KEY"),
 }
 ```
+
+The same package provides the DBOS Transact Enterprise feature auto-upgrade (`auto_upgrade`, see [advanced-patching](advanced-patching.md)). It also requires a key whose organization is entitled to it, which DBOS checks with Conductor at initialization: the `conductor_key` in production or, in development without Conductor, `transact_enterprise_key` (a Conductor API key from the DBOS Console). A missing package, key, or entitlement raises `DBOSInitializationError`.
 
 ### Application Name
 

@@ -87,6 +87,7 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 **Workflow** (`workflow-`):
 - `references/workflow-aggregates.md`
+- `references/workflow-attributes.md`
 - `references/workflow-background.md`
 - `references/workflow-constraints.md`
 - `references/workflow-control.md`
@@ -97,4 +98,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*37 reference files across 9 categories*
+*38 reference files across 9 categories*
