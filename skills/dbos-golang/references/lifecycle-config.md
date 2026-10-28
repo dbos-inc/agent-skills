@@ -2,7 +2,7 @@
 title: Configure and Launch DBOS Properly
 impact: CRITICAL
 impactDescription: Application won't function without proper setup
-tags: configuration, launch, setup, initialization, conductor, migrations
+tags: configuration, launch, setup, initialization, conductor, migrations, enterprise, auto-upgrade
 ---
 
 ## Configure and Launch DBOS Properly
@@ -67,9 +67,13 @@ Config fields:
 - `ConductorURL`: DBOS Conductor service URL; only set it when self-hosting Conductor
 - `ConductorExecutorMetadata`: `map[string]any` of metadata to identify this executor in the Conductor dashboard (must be JSON-serializable)
 - `ConductorMetadataOnlyMode`: Send only workflow metadata to Conductor, never workflow data (inputs, outputs, errors, step outputs, events, messages, streams, or schedule context), whatever the console setting (default: `false`)
+- `TransactEnterpriseKey`: DBOS key that entitles the application to Transact Enterprise features (auto-upgrade) without connecting to Conductor. For development only: in production, connect to Conductor, whose `ConductorAPIKey` stands in for it
+- `AutoUpgrade`: Auto-upgrade every registered workflow except those registered with `dbos.WithAutoUpgrade(false)` (default: `false`; requires the enterprise import and an entitled key; see [advanced-patching.md](advanced-patching.md#auto-upgrade))
+- `AutoUpgradeInterval`: Time between two auto-upgrade passes (default: 30s)
+- `AutoUpgradeGracePeriod`: How long the latest application version must have been the latest before auto-upgrade re-enqueues `PENDING` workflows left on older versions; `ENQUEUED` and `DELAYED` workflows move without waiting (default: 0)
 - `ApplicationVersion`: App version — set to `"0.1.0"` in new applications (overridden by `DBOS__APPVERSION` env var; auto-computed from binary hash if not set)
 - `ExecutorID`: Executor identifier (overridden by `DBOS__VMID` env var; default: `"local"`)
-- `EnablePatching`: Enable code patching system (default: `false`)
+- `EnablePatching`: Deprecated (v1.8.0). `dbos.Patch` and `dbos.DeprecatePatch` no longer require it; it only pins the application version to `"PATCHING_ENABLED"` and logs a warning. Set `ApplicationVersion` instead
 - `Serializer`: Custom `Serializer[any]` for workflow inputs/outputs/events (defaults to JSON). See [advanced-serialization.md](advanced-serialization.md).
 - `SchedulerPollingInterval`: How often DB-backed schedules are reconciled (default: 30s)
 - `SystemDBStartupTimeout`: Maximum time for system-database connection and schema migration or verification (default: 2m)
@@ -77,16 +81,16 @@ Config fields:
 - `NotificationCoalesceInterval`: How often stream-write and set-event notifications are batched before being sent
 - `SkipMigrations`: Verify the system database schema on startup instead of creating and migrating it (default: `false`; see [Migrating the system database separately](#migrating-the-system-database-separately))
 
-`Launch()` starts the system database pool, the scheduler, the queue runner, a workflow timeouts monitor that durably cancels this application's workflows past their deadline, and, if configured, the Conductor connection. It also recovers this executor's `PENDING` workflows, except when Conductor is configured, where Conductor drives recovery.
+`Launch()` starts the system database pool, the scheduler, the queue runner, a workflow timeouts monitor that durably cancels this application's workflows past their deadline, and, if configured, the Conductor connection and the auto-upgrade pass. It also recovers this executor's `PENDING` workflows, except when Conductor is configured, where Conductor drives recovery.
 
 ### Connecting to Conductor
 
-Connecting to DBOS Conductor (setting `ConductorAPIKey`, or running in DBOS Cloud) requires importing `go.dbos.dev/dbos-enterprise-go`. Add it with `go get go.dbos.dev/dbos-enterprise-go` and import it once, anywhere in the program:
+Connecting to DBOS Conductor (setting `ConductorAPIKey`, or running in DBOS Cloud) requires importing DBOS Enterprise for Go, `go.dbos.dev/dbos-enterprise-go`, which must be at the same minor version as the core module. Add it with `go get go.dbos.dev/dbos-enterprise-go@v1.8.0` and import it once, anywhere in the program:
 
 ```go
 import (
 	"github.com/dbos-inc/dbos-transact-golang/dbos"
-	_ "go.dbos.dev/dbos-enterprise-go" // required to connect to Conductor
+	_ "go.dbos.dev/dbos-enterprise-go" // required for Conductor and auto-upgrade
 )
 
 ctx, err := dbos.NewContext(context.Background(), dbos.Config{
@@ -98,7 +102,7 @@ ctx, err := dbos.NewContext(context.Background(), dbos.Config{
 })
 ```
 
-Without the import, `NewContext` fails with an initialization error whenever `ConductorAPIKey` is set or the application runs in DBOS Cloud. Conductor configuration is otherwise unchanged; applications that do not connect to Conductor need no import.
+Without the import, `NewContext` fails with an initialization error whenever `ConductorAPIKey` is set or the application runs in DBOS Cloud. Conductor configuration is otherwise unchanged; applications that neither connect to Conductor nor auto-upgrade workflows need no import. The same import provides auto-upgrade, which also requires a key whose organization is entitled to it (`ConductorAPIKey`, or `TransactEnterpriseKey` in development); see [advanced-patching.md](advanced-patching.md#auto-upgrade).
 
 ### Alert Handler
 
@@ -132,4 +136,4 @@ ctx, err := dbos.NewContext(context.Background(), dbos.Config{
 
 `dbos.Migrate(ctx context.Context, databaseURL string, opts ...MigrateOption)` takes `WithMigrateSchema(schema)` (default `"dbos"`), `WithMigrateApplicationRole(role)` (grants the role access to the migrated schema; Postgres only), and `WithMigrateLogger(logger)`. For your own migration tooling, `dbos.MigrationStatements(schema, from)` returns the SQL of the migrations from version `from` onwards and `dbos.PermissionStatements(schema, role)` the grants. A standalone client never migrates the system database. Datasources have their own schema, migrated with `MigrateDataSource` ([step-transactions.md](step-transactions.md)).
 
-Reference: [Integrating DBOS](https://docs.dbos.dev/golang/integrating-dbos)
+Reference: [Integrating DBOS](https://docs.dbos.dev/golang/integrating-dbos), [DBOS Transact Enterprise](https://docs.dbos.dev/explanations/transact-enterprise)

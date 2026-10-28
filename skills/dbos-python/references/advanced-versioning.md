@@ -73,6 +73,8 @@ if not active:
     print("Safe to retire version 1.0.0")
 ```
 
+To skip the drain, patch every breaking change and enable auto-upgrade (3.4+, DBOS Transact Enterprise): DBOS then moves workflows left on older versions to the latest version (see [advanced-patching](advanced-patching.md)).
+
 ### Reading the Current Version
 
 ```python

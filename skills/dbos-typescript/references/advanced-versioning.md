@@ -29,7 +29,7 @@ DBOS.setConfig({
 });
 ```
 
-By default, the application version is automatically computed from a hash of workflow source code (or fixed to `PATCHING_ENABLED` if patching is enabled). Set it explicitly for more control. If you set `applicationVersion` yourself, change it when upgrading from DBOS 4.x to 5.0, since DBOS 4.x cannot process workflows created by DBOS 5.0.
+By default, the application version is automatically computed from a hash of workflow source code. Set it explicitly for more control. If you set `applicationVersion` yourself, change it when upgrading from DBOS 4.x to 5.0, since DBOS 4.x cannot process workflows created by DBOS 5.0.
 
 ### Directing Enqueued Workflows to Latest Version
 
@@ -56,6 +56,8 @@ if (active.length === 0) {
   console.log("Safe to retire version 1.0.0");
 }
 ```
+
+To skip the drain, patch every breaking change and enable auto-upgrade (5.4+, DBOS Transact Enterprise): DBOS then moves workflows left on older versions to the latest version (see `advanced-patching.md`).
 
 ### Version Management APIs
 

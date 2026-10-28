@@ -4,7 +4,7 @@ description: DBOS Go SDK for building reliable, fault-tolerant applications with
 license: MIT
 metadata:
   author: dbos
-  version: "2.2.0"
+  version: "2.3.0"
   organization: DBOS
   date: October 2026
   abstract: Comprehensive guide for building fault-tolerant Go applications with DBOS. Covers workflows, steps, queues, communication patterns, and best practices for durable execution.
@@ -50,7 +50,7 @@ Install the DBOS Go module (v1):
 go get github.com/dbos-inc/dbos-transact-golang/dbos@latest
 ```
 
-Connecting to DBOS Conductor (setting `ConductorAPIKey`, or running in DBOS Cloud) requires importing `go.dbos.dev/dbos-enterprise-go` (`go get go.dbos.dev/dbos-enterprise-go`), with a blank import anywhere in the program; otherwise `dbos.NewContext` fails with an initialization error:
+Connecting to DBOS Conductor (setting `ConductorAPIKey`, or running in DBOS Cloud) and auto-upgrading workflows (`AutoUpgrade` in `dbos.Config`, or `dbos.WithAutoUpgrade(true)` at registration) require DBOS Enterprise for Go, at the same minor version as the core module (`go get go.dbos.dev/dbos-enterprise-go@v1.8.0`), with a blank import anywhere in the program; otherwise `dbos.NewContext` (or `dbos.Launch`, for a workflow enrolled with `WithAutoUpgrade`) fails with an initialization error:
 
 ```go
 import _ "go.dbos.dev/dbos-enterprise-go"
@@ -135,6 +135,7 @@ Database writes that must happen exactly once belong in a datasource transaction
 - All workflows MUST be registered, and all datasources created with `dbos.NewDataSource`, before calling `Launch()`; queues are registered with `dbos.RegisterQueue` and persisted in the database
 - Starting a workflow with an ID already in use returns the existing workflow by default; pass `dbos.WithWorkflowIDReusePolicy(dbos.WorkflowIDReusePolicyReject)` to get `dbos.ErrWorkflowIDInUse` instead (see `references/pattern-idempotency.md`)
 - A panic in a workflow does not crash the process: DBOS records it as the workflow's error (`dbos.ErrWorkflowPanic`)
+- Do NOT set `EnablePatching` (deprecated in v1.8.0): `dbos.Patch` and `dbos.DeprecatePatch` work without it. To let patched code recover older workflows, pin `ApplicationVersion` or use auto-upgrade (see `references/advanced-patching.md`)
 
 ## How to Use
 

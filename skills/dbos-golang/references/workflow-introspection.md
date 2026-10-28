@@ -52,6 +52,7 @@ Other useful filters:
 - `WithFilterWasForkedFrom(bool)`: whether the workflow has been forked from
 - `WithFilterIsFork(bool)`: whether the workflow is itself a fork of another workflow (v1.6.0+); `WithFilterForkedFrom(ids...)` selects the forks of given workflows
 - `WithFilterWorkflowIDPrefix`, `WithFilterAppVersion`, `WithFilterExecutorIDs`, `WithFilterOffset`
+- `WithFilterAttributes(map[string]any)`: workflows whose custom attributes contain all the given pairs (Postgres only; see [workflow-attributes.md](workflow-attributes.md))
 - `WithFilterApplicationName`: workflows owned by these applications, when multiple applications [share a system database](advanced-shared-database.md). By default only the calling application's workflows (plus unowned ones) are listed; a client with no `AppName` lists everything
 
 Each `WorkflowStatus` includes timing and lineage fields: `CreatedAt`, `StartedAt`, `CompletedAt`, `ParentWorkflowID`, `ForkedFrom`, and `WasForkedFrom`, plus the owning `ApplicationName`.
