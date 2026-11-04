@@ -7,7 +7,7 @@ tags: workflow, timeout, deadline, cancellation
 
 ## Set Workflow Timeouts
 
-Set a durable timeout with the `timeout` field of `StartOptions` (or `RunOptions`), a `Timeout`: `Inherit` (default: a child takes its parent's deadline), `None`, or `Explicit(duration)` (`duration.into()`). On expiry the workflow is cancelled, with the children that inherited its deadline (children with their own timeout or `Timeout::None` keep running); its next DBOS call fails with `Error::WorkflowCancelled`. Timeouts are start-to-completion (an enqueued workflow's clock starts when it is dequeued) and survive restarts.
+Set a durable timeout with the `timeout` field of `StartOptions` (or `RunOptions`), a `Timeout`: `Inherit` (default: a child takes its parent's deadline), `None`, or `Explicit(duration)` (`duration.into()`). On expiry the workflow is cancelled, with the children that inherited its deadline (children with their own timeout or `Timeout::None` keep running). In the process running the workflow, it is dropped at its current `.await`; awaiting its handle returns `Error::WorkflowCancelled`. Timeouts are start-to-completion (an enqueued workflow's clock starts when it is dequeued) and survive restarts.
 
 **Incorrect (tokio::time::timeout around a workflow):**
 

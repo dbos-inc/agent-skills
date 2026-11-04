@@ -50,10 +50,11 @@ Add the `dbos` crate (0.6) and Tokio:
 cargo add dbos
 cargo add tokio --features full
 cargo add serde --features derive
-cargo add thiserror tracing-subscriber
+cargo add thiserror tracing-subscriber futures
+cargo add --dev uuid --features v4
 ```
 
-`serde` is for workflow inputs and outputs, `thiserror` for workflow error types, and `tracing-subscriber` to see DBOS's logs.
+`serde` is for workflow inputs and outputs, `thiserror` for workflow error types, `tracing-subscriber` to see DBOS's logs, `futures` for joining DBOS calls (`try_join_all`), and `uuid` for fresh workflow IDs in tests.
 
 DBOS runs on Tokio by default; smol and async-global-executor are Cargo features (see `references/lifecycle-runtimes.md`). DBOS for Rust does not support DBOS Conductor or DBOS Cloud.
 
@@ -93,7 +94,7 @@ An application version is REQUIRED: DBOS for Rust doesn't compute one, so set `c
 
 `Config::from_env(app_name)` reads the system database URL from `DBOS_SYSTEM_DATABASE_URL`; DBOS creates the database if it doesn't exist. See `references/lifecycle-config.md` for all configuration options.
 
-`DBOS` is cheap to clone. Outside a workflow, call its methods (`dbos.send`, `dbos.cancel`, `dbos.list_workflows`, queue and schedule management, ...); from another application, use a `Client` (see `references/client-setup.md`).
+`DBOS` is cheap to clone. Outside a workflow, call its methods (`dbos.send`, `dbos.cancel`, `dbos.list_workflows`, queue and schedule management, ...); queue, schedule and app-version management have no free-function forms; from another application, use a `Client` (see `references/client-setup.md`).
 
 ### Workflow and Step Structure
 

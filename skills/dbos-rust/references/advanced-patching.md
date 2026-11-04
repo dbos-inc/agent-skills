@@ -7,7 +7,7 @@ tags: advanced, patch, deprecate_patch, upgrade
 
 ## Use Patching for Safe Workflow Upgrades
 
-With a pinned app version, branch new code on `dbos::patch(name)`: `true` for executions that take the new code, `false` for those already past this point. When no old execution can run, replace it with `dbos::deprecate_patch(name)` and keep only the new path; later remove it. Call both from the workflow body only, and await each on its own: inside a `join!`, or built before another call that is awaited first, a patch fails with `Error::PatchNondeterminism`.
+With a pinned app version, branch new code on `dbos::patch(name)`: `true` for executions that take the new code, `false` for those already past this point. When no old execution can run, replace it with `dbos::deprecate_patch(name)` and keep only the new path; later remove it. Call both from the workflow body only, and await each on its own: if another call takes its position between the patch being built and awaited (for example, a call built after it and awaited first, as in a `join!`), it fails with `Error::PatchNondeterminism`.
 
 **Incorrect (changing steps in place):**
 
