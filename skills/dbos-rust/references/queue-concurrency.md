@@ -7,7 +7,7 @@ tags: queue, concurrency, worker, limits
 
 ## Control Queue Concurrency
 
-`worker_concurrency` limits how many of a queue's workflows one process runs at once; `concurrency` limits them across all processes. Prefer `worker_concurrency`: every `PENDING` workflow on the queue counts toward `concurrency`, including old versions'. `Some(0)` in either pauses the queue. Change limits at runtime with `update_queue` and a `QueueChange` of `Change::Set(..)` / `Change::Leave` fields.
+`worker_concurrency` limits how many of a queue's workflows one process runs at once; `concurrency` limits them across all processes. Prefer `worker_concurrency`: every `PENDING` workflow on the queue counts toward `concurrency`, including old versions'. `worker_concurrency: Some(0)` pauses the queue; `concurrency` can't be set below `worker_concurrency` or a partition limit, so `concurrency: Some(0)` works only when those are 0 or unset. Change limits at runtime with `update_queue` and a `QueueChange` of `Change::Set(..)` / `Change::Leave` fields.
 
 **Incorrect (no limits):**
 
@@ -49,4 +49,4 @@ async fn register_limited(dbos: &DBOS) -> dbos::Result<()> {
 }
 ```
 
-`queue(name)` and `list_queues()` read the stored configuration. A startup `register_queue` with `AlwaysUpdate` overwrites runtime changes; use `NeverUpdate` to keep them.
+`queue(name)` and `list_queues()` read the stored configuration. A startup `register_queue` with `UpdateIfLatestVersion` (on the latest version) or `AlwaysUpdate` overwrites changes made at runtime; register with `NeverUpdate` to keep them.

@@ -50,7 +50,7 @@ async fn launch_for_test() -> dbos::Result<(DBOS, dbos::WorkflowRef<String, u32>
 async fn quote_runs_as_a_workflow() -> dbos::Result<()> {
     let (dbos, quote) = launch_for_test().await?;
 
-    let workflow_id = format!("quote-test-{}", std::process::id());
+    let workflow_id = format!("quote-test-{}", uuid::Uuid::new_v4());
     let options = StartOptions {
         workflow_id: Some(&workflow_id),
         ..StartOptions::default()

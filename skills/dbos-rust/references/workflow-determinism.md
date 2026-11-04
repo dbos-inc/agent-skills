@@ -37,4 +37,4 @@ async fn example_workflow(_: ()) -> dbos::Result<String> {
 }
 ```
 
-A recovery that reaches a different step than the one recorded at that position is refused with `dbos::sysdb::Error::UnexpectedStep`; the workflow stays `PENDING`, recovery retries it, and after 100 attempts it is parked as `MAX_RECOVERY_ATTEMPTS_EXCEEDED`. DBOS compares step names, not inputs, so it can't catch every mistake. Iterate a `HashMap` in sorted order (or use a `BTreeMap`) before calling steps for its entries.
+A recovery that reaches a different step than the one recorded at that position is refused with `dbos::sysdb::Error::UnexpectedStep`; the workflow stays `PENDING`, recovery retries it, and after 100 attempts it is parked as `MAX_RECOVERY_ATTEMPTS_EXCEEDED`. DBOS compares step names, not inputs, so it can't catch every mistake. Iterate a `HashMap` in sorted order (or use a `BTreeMap`) before calling steps for its entries. A DBOS call takes its step ID when it is built, so one that is built and then dropped without being awaited (on one branch only) shifts every later step's ID; build each call only where you await it.

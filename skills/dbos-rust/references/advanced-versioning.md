@@ -17,14 +17,28 @@ Give each release its own `app_version`, keep old executors running until their 
 config.app_version = Some("1.0.0".to_owned());
 ```
 
-**Correct (a per-release version):**
+**Correct (a per-release version, and a drain check):**
 
 ```rust
-fn gpu_worker_config() -> Config {
-    let mut config = Config::from_env("media-app");
-    config.app_version = Some("0.1.0".to_owned());
-    // Only dequeue from this queue. Some(vec![]) dequeues from none.
-    config.listen_queues = Some(vec!["gpu_queue".to_owned()]);
+fn release_config() -> Config {
+    let mut config = Config::from_env("my-app");
+    // A new version for every release; recovery only resumes workflows of the running version.
+    config.app_version = Some(env!("CARGO_PKG_VERSION").to_owned());
     config
+}
+
+async fn old_version_drained(dbos: &DBOS, old_version: &str) -> dbos::Result<bool> {
+    use dbos::sysdb::types::{WorkflowFilter, WorkflowStatus};
+    let filter = WorkflowFilter {
+        app_versions: vec![old_version],
+        status: vec![
+            WorkflowStatus::Pending,
+            WorkflowStatus::Enqueued,
+            WorkflowStatus::Delayed,
+        ],
+        limit: Some(1),
+        ..WorkflowFilter::default()
+    };
+    Ok(dbos.list_workflows(&filter).await?.is_empty())
 }
 ```

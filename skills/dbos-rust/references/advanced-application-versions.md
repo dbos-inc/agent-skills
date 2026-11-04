@@ -9,23 +9,12 @@ tags: advanced, versioning, app_version, recovery
 
 Every workflow is tagged with the application version it started on, and recovery resumes only workflows of the running version. DBOS for Rust doesn't compute a version: set `config.app_version` (or `DBOS__APPVERSION`). Pin one value across deployments to use patching, or change it per release for blue-green deploys. `env!("CARGO_PKG_VERSION")` or a commit SHA are typical choices.
 
-**Incorrect (no version):**
+**Incorrect (a version that changes on every build):**
 
 ```rust
-async fn my_workflow(_: ()) -> dbos::Result<String> {
-    Ok("done".to_owned())
-}
-
-#[tokio::main]
-async fn main() -> dbos::Result<()> {
-    // No app_version: launch fails unless DBOS__APPVERSION is set.
-    let dbos = DBOS::new(Config::from_env("my-app"));
-    dbos.launch().await?;
-    // Registered after launch: refused with Error::AlreadyLaunched.
-    let workflow = dbos.register_workflow("my_workflow", my_workflow)?;
-    workflow.run(()).await?;
-    Ok(())
-}
+// WRONG: a new version on every build, even when no workflow changed, strands the
+// previous build's PENDING workflows: no executor of their version is left to recover them.
+config.app_version = Some(format!("{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs()));
 ```
 
 **Correct (a pinned version):**

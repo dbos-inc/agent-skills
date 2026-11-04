@@ -13,7 +13,8 @@ Configure retries with `dbos::step_with(name, StepOptions { .. }, f)`. `max_atte
 
 ```rust
 async fn fetch_workflow(url: String) -> dbos::Result<String, FetchError> {
-    // WRONG: each attempt is its own step, and a crash loses the loop's place.
+    // WRONG: no backoff between attempts, a recorded step per attempt, every error
+    // but the last thrown away, and no way to stop retrying errors that won't clear.
     for attempt in 0..10 {
         if let Ok(body) = step("fetch_page", || fetch_page(&url)).await {
             return Ok(body);

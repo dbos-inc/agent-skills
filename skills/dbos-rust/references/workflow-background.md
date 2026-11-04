@@ -9,60 +9,25 @@ tags: workflow, start, run, handle, background
 
 `register_workflow` returns a typed `WorkflowRef<P, R, E>`. `start(input)` starts the workflow in the background and returns a `WorkflowHandle`; `run(input)` starts it and waits for its result. Await `handle.result()` when the result is needed. Called inside a workflow, both start a child workflow, recorded in the parent so recovery doesn't start it twice.
 
-**Incorrect (waiting on each workflow before starting the next):**
+**Incorrect (running each workflow to completion in the request):**
 
 ```rust
-async fn start_example(process_order: &WorkflowRef<Order, String>) -> dbos::Result<()> {
-    let order = Order {
-        id: 1,
-        item: "widget".to_owned(),
-    };
-
-    // Start the workflow in the background and get a handle to it...
-    let handle = process_order.start(order).await?;
-    let result = handle.result().await?;
-    println!("Workflow result: {result}");
-
-    // ...or run it and wait for its result in one call.
-    let result = process_order
-        .run(Order {
-            id: 2,
-            item: "gadget".to_owned(),
-        })
-        .await?;
-    Ok(())
+async fn handle_request(process_task: &WorkflowRef<String, String>, task: String) -> dbos::Result<String> {
+    // WRONG: the request waits for the whole workflow; a slow workflow times out the request.
+    process_task.run(task).await
 }
 ```
 
-**Correct (start in the background, collect results later):**
+**Correct (start in the background, return the ID):**
 
 ```rust
-async fn process_all(
-    dbos: &DBOS,
+async fn handle_request(
     process_task: &WorkflowRef<String, String>,
-    tasks: Vec<String>,
-) -> dbos::Result<Vec<String>> {
-    // A queue is a database row: register it after launch.
-    dbos.register_queue(
-        "task_queue",
-        QueueOptions::default(),
-        QueueConflict::UpdateIfLatestVersion,
-    )
-    .await?;
-
-    let mut handles = Vec::new();
-    for task in tasks {
-        let options = StartOptions {
-            queue: Some(QueueRequest::new("task_queue")),
-            ..StartOptions::default()
-        };
-        handles.push(process_task.start_with(task, options).await?);
-    }
-    let mut results = Vec::new();
-    for handle in handles {
-        results.push(handle.result().await?);
-    }
-    Ok(results)
+    task: String,
+) -> dbos::Result<String> {
+    // Start in the background and return the ID at once; the workflow runs durably.
+    let handle = process_task.start(task).await?;
+    Ok(handle.workflow_id().to_owned())
 }
 ```
 

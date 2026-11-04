@@ -9,17 +9,16 @@ tags: workflow, cancel, resume, fork, rewind, delete, management
 
 Outside a workflow, manage workflows with `DBOS` methods: `cancel`/`cancel_all`, `resume`/`resume_with`/`resume_all`, `fork`/`fork_with`/`fork_all`, `rewind`/`rewind_with`, `delete`/`delete_all`, `set_workflow_delay`. Inside a workflow, use the free functions (`dbos::cancel_workflow`, `resume_workflow`, `fork_workflow`, `rewind_workflow`, `delete_workflow`, ...), which are recorded as steps.
 
-**Incorrect (capturing DBOS to manage a child):**
+**Incorrect (capturing DBOS to cancel a child):**
 
 ```rust
-fn register(dbos: &DBOS) -> dbos::Result<()> {
+fn register_supervisor(dbos: &DBOS) -> dbos::Result<()> {
     let instance = dbos.clone();
-    // WRONG: the closure holds the DBOS instance, which owns the closure,
-    // so the instance is never freed.
-    dbos.register_workflow("notify", move |order_id: String| {
+    // WRONG: the closure holds the DBOS instance, which owns the closure.
+    dbos.register_workflow("supervisor", move |child_id: String| {
         let dbos = instance.clone();
         async move {
-            dbos.send(&order_id, &"shipped").await?;
+            dbos.cancel(&child_id).await?;
             Ok::<_, dbos::Error>(())
         }
     })?;

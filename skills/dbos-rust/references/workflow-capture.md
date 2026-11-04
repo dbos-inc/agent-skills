@@ -7,7 +7,7 @@ tags: workflow, ownership, leak, free-functions
 
 ## Don't Capture the DBOS Instance in a Workflow
 
-The `DBOS` instance owns its registered workflow closures, so a closure that holds the instance keeps it alive forever. A workflow body never needs it: steps, sleeps, messages, events, streams and every management call have a free function in the `dbos` crate (`dbos::send`, `dbos::cancel_workflow`, `dbos::resume_workflow`, ...) that finds the running workflow on its own, and records the call as a step.
+The `DBOS` instance owns its registered workflow closures, so a closure that holds the instance keeps it alive forever. A workflow body never needs it: steps, sleeps, messages, events, streams and every management call have a free function in the `dbos` crate (`dbos::send`, `dbos::cancel_workflow`, `dbos::resume_workflow`, ...) that finds the running workflow on its own, and records the call as a step (except `retrieve_workflow`, which does no I/O).
 
 **Incorrect (capturing the instance):**
 

@@ -49,7 +49,11 @@ Add the `dbos` crate (0.6) and Tokio:
 ```bash
 cargo add dbos
 cargo add tokio --features full
+cargo add serde --features derive
+cargo add thiserror tracing-subscriber
 ```
+
+`serde` is for workflow inputs and outputs, `thiserror` for workflow error types, and `tracing-subscriber` to see DBOS's logs.
 
 DBOS runs on Tokio by default; smol and async-global-executor are Cargo features (see `references/lifecycle-runtimes.md`). DBOS for Rust does not support DBOS Conductor or DBOS Cloud.
 
@@ -58,6 +62,8 @@ DBOS runs on Tokio by default; smol and async-global-executor are Cargo features
 A DBOS application MUST create a `DBOS` instance, register every workflow, and launch before running any workflows:
 
 ```rust
+use dbos::{Config, DBOS};
+
 async fn my_workflow(_: ()) -> dbos::Result<String> {
     Ok("done".to_owned())
 }
@@ -111,7 +117,9 @@ Inputs, outputs and error types must implement `serde::Serialize` and `serde::De
 
 - Workflows MUST be deterministic: non-deterministic operations go in steps
 - Do NOT race, time out, spawn, or consume in completion order any DBOS call in a workflow body: no `tokio::select!`, `tokio::time::timeout`, `FuturesUnordered`, `buffer_unordered` or `tokio::spawn` around DBOS calls. Use `dbos::select_step!` to race, `tokio::join!` / `futures::future::try_join_all` to run concurrently, and `dbos::sleep` to wait (see `references/workflow-concurrency.md`)
-- Every DBOS call takes its step ID where it is built, not where it is awaited
+- Every DBOS call takes its step ID where it is built, not where it is awaited; `dbos::patch`, `dbos::deprecate_patch` and a debouncer's `debounce` are the exceptions, so await those on their own, never inside a join
+- A workflow's future must be `Send + 'static`: don't hold an `Rc`, a `std::sync::MutexGuard` or a borrow across an `.await` in a workflow body
+- To start a child workflow, capture its `WorkflowRef` in the parent's registered closure; a `WorkflowRef` can't be a workflow's input
 - Do NOT start or enqueue workflows, or call `dbos::recv`, `dbos::set_event` or `dbos::patch`, from within steps (`Error::InsideStep`)
 - Do NOT capture the `DBOS` instance in a workflow closure: use the free functions (`dbos::send`, `dbos::cancel_workflow`, ...), which need none (see `references/workflow-capture.md`)
 - All workflows MUST be registered before `launch`; queues are registered and schedules created after it
