@@ -42,4 +42,4 @@ fn register(dbos: &DBOS) -> dbos::Result<()> {
 }
 ```
 
-Capturing a `WorkflowRef` (to start a child) also holds the instance; for a process that launches once this is a bounded cost, and it is the way to start a child workflow today.
+Capturing a child's `WorkflowRef` is different: it doesn't keep the instance alive, and it is how a workflow starts a child.
