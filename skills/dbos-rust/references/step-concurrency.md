@@ -7,7 +7,7 @@ tags: step, concurrency, join, parallel
 
 ## Run Steps Concurrently with join!
 
-Build several steps, then join them with `tokio::join!` or `futures::future::try_join_all`. Each step takes its ID where it is built, so the IDs are the same on every recovery, and the join returns results in build order. To race steps, use `select_step!` (see `workflow-concurrency.md`).
+Build several steps, then join them with `tokio::join!` or `futures::future::try_join_all`, one step per join element. Each step takes its ID where it is built, so the IDs are the same on every recovery, and the join returns results in build order. `try_join_all` stops at the first failure, so use it only when the error goes straight out of the workflow; to handle a failure, use `join_all` and inspect the results. To race steps, use `select_step!` (see `workflow-concurrency.md`).
 
 **Incorrect (awaiting independent steps one at a time):**
 
