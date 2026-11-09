@@ -7,7 +7,7 @@ tags: testing, tokio-test, integration
 
 ## Use Proper Test Setup for DBOS
 
-Outside a workflow, `dbos::step` and `dbos::sleep` run as plain calls, so functions built from steps are unit-testable without a database. To test durable behavior, launch DBOS against a test database inside each test, with fresh workflow IDs (an ID that exists returns the existing workflow), and shut it down at the end. Each `#[tokio::test]` has its own runtime, so don't share a `DBOS` across tests through a `static`.
+Outside a workflow, `dbos::step` and `dbos::sleep` run as plain calls, so functions built from steps are unit-testable without a database. To test durable behavior, launch DBOS against a test database inside each test, with fresh workflow IDs (an ID that exists returns the existing workflow), and shut it down at the end. Each `#[tokio::test]` has its own runtime, so don't share a `DBOS` across tests through a `static`. Tests run in parallel, and instances that share a database, application version and executor ID (`"local"` by default) interfere: launching re-enqueues the `PENDING` workflows recorded under that executor ID and version, including another test's running ones. Fresh workflow IDs don't prevent this. Give each test its own database or `Config::schema`, or run tests that share one with `--test-threads=1`.
 
 **Incorrect (calling set_event outside a workflow in a unit test):**
 

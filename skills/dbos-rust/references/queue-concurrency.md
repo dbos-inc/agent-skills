@@ -7,7 +7,7 @@ tags: queue, concurrency, worker, limits
 
 ## Control Queue Concurrency
 
-`worker_concurrency` limits how many of a queue's workflows one process runs at once; `concurrency` limits them across all processes. Prefer `worker_concurrency`: every `PENDING` workflow on the queue counts toward `concurrency`, including old versions'. `worker_concurrency: Some(0)` pauses the queue; `concurrency` can't be set below `worker_concurrency` or a partition limit, so `concurrency: Some(0)` works only when those are 0 or unset. Change limits at runtime with `update_queue` and a `QueueChange` of `Change::Set(..)` / `Change::Leave` fields.
+`worker_concurrency` limits how many of a queue's workflows one process runs at once; `concurrency` limits them across all processes. Prefer `worker_concurrency`: every `PENDING` workflow on the queue counts toward `concurrency`, including old versions'. `worker_concurrency: Some(0)` pauses the queue. The per-partition limits must be at least 1, `worker_concurrency` can't be below `partition_worker_concurrency`, and `concurrency` can't be below `worker_concurrency` or either per-partition concurrency limit. So to pause a queue that sets `partition_worker_concurrency`, clear it and set `worker_concurrency: Some(0)` in the same `QueueChange` (clearing the queue's only partition limit also un-partitions it), and `concurrency: Some(0)` works only when `worker_concurrency` is 0 or unset and no per-partition concurrency limit is set. Change limits at runtime with `update_queue` and a `QueueChange` of `Change::Set(..)` / `Change::Leave` fields.
 
 **Incorrect (no limits):**
 
