@@ -67,7 +67,8 @@ Rules and behavior:
 - `Timeout.of(Duration)` sets an explicit value, `Timeout.none()` runs with no timeout and does not inherit the
   parent's deadline, and `Timeout.inherit()` takes the parent's deadline even inside a `WorkflowOptions` block that
   sets a bound — outside a workflow, it means no timeout
-- A child that inherited its bound has a null `WorkflowStatus.timeout()` but a non-null `deadline()`. Resuming it clears that deadline and leaves it unbounded
+- A child that inherited its bound has a null `WorkflowStatus.timeout()` but a non-null `deadline()`. Resuming it clears
+  that deadline and leaves it unbounded
 - Expiry sets the workflow's status to `CANCELLED`; a cancelled workflow can be restarted with `resumeWorkflow`
 - A debounced workflow never inherits a timeout or deadline; use `Debouncer.withTimeout`
   ([pattern-debouncing.md](pattern-debouncing.md))

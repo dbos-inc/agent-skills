@@ -67,9 +67,9 @@ Behavior and configuration:
   debounce of this one, `debounce()` throws `DBOSQueueDuplicatedException`
 
 Under the hood (1.2+), the first call enqueues the workflow itself in the `DELAYED` state on its queue — the one set
-with `withQueue`, or the DBOS internal queue — holding `workflowName-key` as its deduplication ID. Each later call
-on the key updates that one row: it resets the start to one period after this call (never past the debounce
-timeout) and replaces the arguments. When the delay expires the workflow leaves `DELAYED`, frees the key, and runs with the latest
+with `withQueue`, or the DBOS internal queue — holding `workflowName-key` as its deduplication ID. Each later call on
+the key updates that one row: it resets the start to one period after this call (never past the debounce timeout) and
+replaces the arguments. When the delay expires the workflow leaves `DELAYED`, frees the key, and runs with the latest
 arguments. `WorkflowStatus.isDebounced()` and `debounceDeadline()` report the debounce on that workflow.
 
 1.1 debounced through an internal `debouncerWorkflow` instead. 1.2 still coalesces with a 1.1 `debouncerWorkflow`
