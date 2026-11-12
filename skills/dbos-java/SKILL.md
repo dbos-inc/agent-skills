@@ -55,8 +55,8 @@ dependencies {
 DBOS requires a PostgreSQL-compatible database. Connection settings are typically supplied through
 `DBOS_SYSTEM_JDBC_URL`, `PGUSER`, and `PGPASSWORD`.
 
-Connecting to DBOS Conductor (`withConductorKey`, `dbos.conductor.key` in Spring Boot, or running on DBOS Cloud with
-Conductor settings) requires `dev.dbos:transact-enterprise` at exactly the same version as `dev.dbos:transact`
+Connecting to DBOS Conductor (`withConductorKey`, or `dbos.conductor.key` in Spring Boot) requires
+`dev.dbos:transact-enterprise` at exactly the same version as `dev.dbos:transact`
 (1.3+); otherwise `launch()` throws `IllegalStateException`. Add it only when the application connects to Conductor:
 
 ```kotlin
