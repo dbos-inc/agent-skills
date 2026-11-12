@@ -89,17 +89,29 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
 - `withDatabaseSchema(String)`: schema for DBOS system tables (default `dbos`)
 - `withAppVersion(String)`: code version for this application — set `"0.1.0"` in new applications
 - `withMigrate(boolean)`: apply system database migrations on launch (default `true`). With `false`, launch only
-  checks that the schema is at least the minimum version this SDK needs and throws `IllegalStateException` if it is
-  missing or too old; migrate out-of-band with `dbosctl sysdb migrate` (`--app-role` grants the application's role
+  checks that the schema has every migration this release defines (125 for 1.3; a schema migrated further by a newer
+  release is accepted) and throws `IllegalStateException` if it is missing or too old; migrate out-of-band with `dbosctl sysdb migrate` (`--app-role` grants the application's role
   access, `--print-migrations all|N` and `--print-user-role` print the SQL instead of running it,
   `--no-listen-notify` omits the notification triggers). There is no Java `dbos` CLI
-- `withConductorKey(String)` / `withConductorDomain(String)`: connect to DBOS Conductor
+- `withConductorKey(String)` / `withConductorDomain(String)`: connect to DBOS Conductor. Since 1.3 this requires the
+  `dev.dbos:transact-enterprise` artifact on the class path, at exactly the same version as `dev.dbos:transact`
+  (DBOS loads it through `ServiceLoader`; no code change). Without it, `launch()` throws `IllegalStateException`
+  ("Connecting to DBOS Conductor requires dev.dbos:transact-enterprise on the class path..."); with a different
+  version, launch fails naming both. The same applies on DBOS Cloud when `DBOS__CONDUCTOR_APP_NAME`,
+  `DBOS__CONDUCTOR_KEY` and `DBOS__CONDUCTOR_URL` are set. Do not add it to applications that don't use Conductor
 - `withConductorExecutorMetadata(Map<String, Object>)`: JSON-serializable metadata identifying this executor in the
   Conductor dashboard (region, instance type, ...)
+- `withConductorMetadataOnlyMode(boolean)` (1.3+): send Conductor only workflow metadata, never inputs, outputs,
+  errors, step outputs, events, messages or streams (default `false`)
+- `withSystemDatabaseIdleTransactionTimeout(Duration)` (1.3+): `idle_in_transaction_session_timeout` for the pool
+  DBOS creates (default 1 minute; zero or negative keeps the server's setting). Not applied to a supplied
+  `DataSource` or when the JDBC URL already sets it
 - `withExecutorId(String)`: unique identifier for this process
 - `withEnablePatching(boolean)`: enable workflow patching (default `false`)
 - `withListenQueues(String...)`: only dequeue from these queues (default: all)
-- `withSchedulerPollingInterval(Duration)`: how often scheduled workflows are polled (default 30s)
+- `withSchedulerPollingInterval(Duration)`: how often scheduled workflows are polled (default 30s,
+  `DBOSConfig.DEFAULT_SCHEDULER_POLLING_INTERVAL`). Since 1.3 it must be at least 1ms and at most `Long.MAX_VALUE`
+  ms; zero, negative, sub-millisecond or larger values throw `IllegalArgumentException` when the config is built
 - `withUseListenNotify(boolean)`: use PostgreSQL `LISTEN`/`NOTIFY` for `recv`/`getEvent`/`readStream` (default
   `true`; automatically disabled on CockroachDB)
 - `withNotificationCoalesceInterval(Duration)`: how often this process flushes the stream and workflow-event
@@ -128,6 +140,13 @@ Upgrade every node to 1.1 before rolling out 1.2. 1.2 stores workflow inputs and
 `workflow_input` / `workflow_output` tables, which 1.0 can't read, and 1.0 doesn't release the key of a workflow that
 1.2 debounced. 1.1 and 1.2 can share a fleet and 1.2 can roll back to 1.1, but never run 1.0 alongside 1.2 or roll
 1.2 back to 1.0.
+
+Upgrading to 1.3: it migrates the system database to version 125. With `withMigrate(false)`, run
+`dbosctl sysdb migrate` (dbosctl v0.12.0+) first. A 1.3 `DBOSClient` never migrates and throws
+`IllegalStateException` against a schema below 125, so upgrade clients after a 1.3 executor has launched. Conductor
+users add `dev.dbos:transact-enterprise` (above). A schedule without `cronTimezone` now fires in UTC rather than the
+JVM's zone; set `withCronTimezone` to keep a local zone. Transactional step factories must be created before
+`launch()` (1.3 throws `IllegalStateException` otherwise).
 
 Lifecycle rules:
 

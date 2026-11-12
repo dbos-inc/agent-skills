@@ -50,7 +50,9 @@ Behavior:
   `return-existing` deduplication policy (the Go, Python and TypeScript SDKs can return a handle to the workflow
   holding the ID instead); to attach to the holder, look up its ID with
   `DBOSClient.findWorkflowIdByDeduplicationId(queue, id)` and retrieve it
-- Deduplication IDs cannot be combined with queue partition keys
+- Since 1.3 a deduplication ID can be combined with a queue partition key, and it is deduplicated across the whole
+  queue, whatever the partition key (1.2 threw `IllegalArgumentException`). To deduplicate within one partition,
+  put the partition key in the ID, e.g. `partitionKey + ":" + userId`
 - The deduplication index is global across applications sharing a system database: a peer's active workflow with
   the same queue and ID blocks yours. `DBOSClient.findDeduplicationHolder(queue, id)` reports the holder and its
   owning application

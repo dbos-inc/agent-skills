@@ -4,9 +4,9 @@ description: DBOS Java SDK for building reliable, fault-tolerant applications wi
 license: MIT
 metadata:
   author: dbos
-  version: "1.2.0"
+  version: "1.3.0"
   organization: DBOS
-  date: October 2026
+  date: November 2026
   abstract: Comprehensive guide for building fault-tolerant Java applications with DBOS. Covers workflow registration and proxies, steps, queues, communication patterns, Spring Boot integration, and best practices for durable execution.
 ---
 
@@ -47,13 +47,21 @@ Add the DBOS dependency (Java 17+, Gradle 8+ recommended):
 
 ```kotlin
 dependencies {
-    implementation("dev.dbos:transact:1.2.0")
+    implementation("dev.dbos:transact:1.3.0")
     implementation("org.slf4j:slf4j-simple:2.0.17") // to see DBOS log messages
 }
 ```
 
 DBOS requires a PostgreSQL-compatible database. Connection settings are typically supplied through
 `DBOS_SYSTEM_JDBC_URL`, `PGUSER`, and `PGPASSWORD`.
+
+Connecting to DBOS Conductor (`withConductorKey`, `dbos.conductor.key` in Spring Boot, or running on DBOS Cloud with
+Conductor settings) requires `dev.dbos:transact-enterprise` at exactly the same version as `dev.dbos:transact`
+(1.3+); otherwise `launch()` throws `IllegalStateException`. Add it only when the application connects to Conductor:
+
+```kotlin
+implementation("dev.dbos:transact-enterprise:1.3.0")
+```
 
 ### DBOS Configuration and Launch
 
@@ -139,6 +147,8 @@ public String parse(String body) { /* ... */ }
 - Do NOT mutate state outside the workflow's own scope from workflows or steps
 - Workflow arguments and step/workflow return values MUST be JSON-serializable by Jackson
 - Use `dbos.sleep`, not `Thread.sleep`, inside workflows
+- A workflow MUST NOT cancel, resume, or delete itself (1.3+ throws `IllegalArgumentException`); return or throw to
+  stop it
 
 ## How to Use
 

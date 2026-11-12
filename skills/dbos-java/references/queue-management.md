@@ -38,6 +38,13 @@ boolean deleted = dbos.deleteQueue("email-queue");
 
 Workers pick up new configuration on their next polling iteration.
 
+Pausing (1.3+): set `workerConcurrency` to 0 to stop every process dequeueing from the queue, and raise it again to
+resume: `dbos.updateQueue("email-queue", new QueueOptions().withWorkerConcurrency(0))`. `concurrency` 0 also pauses,
+but a narrower limit may not exceed a wider one, so it is refused while `workerConcurrency` or a per-partition
+concurrency limit is above 0; `workerConcurrency` 0 is refused while `partitionWorkerConcurrency` is set. Negative
+limits are refused. Limits are checked only on write: `findQueue`/`listQueues` load a stored row that breaks the
+rules (for example one another SDK wrote) instead of throwing.
+
 Startup conflicts: if your application calls `registerQueue` on every start, the next process to boot can overwrite
 runtime changes. Control this with `QueueConflictResolution`:
 
