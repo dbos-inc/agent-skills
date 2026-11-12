@@ -52,6 +52,23 @@ try (var opts = new WorkflowOptions("order-123").setContext()) {
 }
 ```
 
+- To refuse a taken ID instead of attaching to the existing workflow (1.3+), set
+  `withWorkflowIdReusePolicy(WorkflowIdReusePolicy.REJECT)` on `StartWorkflowOptions`, `EnqueueOptions` or
+  `WorkflowOptions`. The call then throws `DBOSWorkflowIdInUseException` (`workflowId()`, `workflowStatus()`,
+  `workflowName()`) whatever the existing workflow's status, and leaves it unchanged. `RETURN_EXISTING` is the
+  default. A refused child is recorded at the parent's step, so recovery throws it again. On `WorkflowOptions` the
+  policy needs an ID in the same block (`setContext()` throws otherwise); debouncing with `REJECT` throws
+
+```java
+try {
+  dbos.startWorkflow(() -> checkoutProxy.checkout(key),
+      new StartWorkflowOptions().withWorkflowId(key)
+          .withWorkflowIdReusePolicy(WorkflowIdReusePolicy.REJECT));
+} catch (DBOSWorkflowIdInUseException e) {
+  // already submitted
+}
+```
+
 - Child workflows started inside a workflow are already exactly-once; explicit IDs are for entry points
 - To reject rather than coalesce concurrent duplicates on a queue, use a deduplication ID
   ([queue-deduplication.md](queue-deduplication.md))

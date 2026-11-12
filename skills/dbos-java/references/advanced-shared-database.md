@@ -91,8 +91,7 @@ try (var client = new DBOSClient(url, user, password, null, null, false, "order-
 ### Names and versions
 
 - Application names are only enforced where Conductor needs them: 3–256 characters of lowercase letters, digits,
-  `-` and `_`. Other names log a warning, but fail launch when a Conductor key is set or on DBOS Cloud (which takes
-  the name from `DBOS_APP_NAME`)
+  `-` and `_`. Other names log a warning, but fail launch when a Conductor key is set
 - A computed application version (no `withAppVersion`) hashes the application name, so two applications built from
   one jar do not share a version row — and upgrading to 1.1 changes existing computed versions
 - An explicit version string is a globally unique name too: if two applications both set `withAppVersion("0.1.0")`,

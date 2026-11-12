@@ -50,6 +50,10 @@ try (var client = new DBOSClient(
   client.cancelWorkflow(workflowId, true);       // cancel descendants too
   client.resumeWorkflow(workflowId);
   client.forkWorkflow(workflowId, 2, new ForkOptions());
+  // 1.3+: re-run a finished workflow in place, same ID, from step 2. A client can't delete
+  // step-factory checkpoints: a cancelled workflow, or one finished before 1.3, still has them and those
+  // transactional steps replay; a workflow that finished on 1.3 has none, so its transactions run again
+  client.rewindWorkflow(workflowId, 2);
   client.setWorkflowDelay(workflowId, Duration.ofMinutes(30));
 
   // Bulk variants

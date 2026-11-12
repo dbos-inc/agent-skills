@@ -81,8 +81,14 @@ public class OrderStepService {
 Rules:
 
 - The callback receives an open connection/handle/configuration; it must not `commit`, `rollback`, or `close` it
-- Construct factories before `dbos.launch()`; each verifies the datasource is PostgreSQL and creates the
-  `tx_step_outputs` table in the configured schema, so the database user needs `CREATE TABLE` there
+- Construct factories before `dbos.launch()` (1.3+ throws `IllegalStateException` after launch); each verifies the
+  datasource is PostgreSQL and creates the `tx_step_outputs` table in the configured schema, so the database user
+  needs `CREATE TABLE` there. Since 1.3 a workflow's `tx_step_outputs` rows are deleted when it finishes, and
+  `dbos.rewindWorkflow` deletes them from the rewound step on
+- If a `Jdbi` shares the system database's pool (the Spring Boot starter's default), pass that pool to
+  `new JdbiStepFactory(dbos, Jdbi.create(pool), pool)` (1.3+). Jdbi steps begin and commit on the handle
+  themselves, so a `TransactionHandler` installed on the `Jdbi` (e.g. `SerializableTransactionRunner`) does not wrap
+  them
 - Pass `StepFactoryOptions(name, IsolationLevel.SERIALIZABLE)` (or `JdbiStepOptions`) instead of a bare name to
   control isolation
 - Steps retry automatically on PostgreSQL serialization failures (`40001`) and deadlocks (`40P01`)

@@ -35,7 +35,9 @@ public class OrderService {
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("dev.dbos:transact-spring-boot-starter:1.2.0")
+    implementation("dev.dbos:transact-spring-boot-starter:1.3.0")
+    // Only if the app connects to DBOS Conductor (dbos.conductor.key), 1.3+; same version as the starter
+    // implementation("dev.dbos:transact-enterprise:1.3.0")
 }
 ```
 
@@ -93,8 +95,10 @@ Auto-configured beans (all `@ConditionalOnMissingBean`, so any of them can be re
 
 Key configuration properties: `dbos.application.name`, `dbos.application.version`, `dbos.datasource.url`,
 `dbos.datasource.username`, `dbos.datasource.password`, `dbos.datasource.schema`, `dbos.datasource.migrate`,
-`dbos.datasource.use-listen-notify`, `dbos.conductor.key`, `dbos.conductor.domain`, `dbos.executor-id`,
-`dbos.enable-patching`, `dbos.listen-queues`, `dbos.scheduler-polling-interval`.
+`dbos.datasource.use-listen-notify`, `dbos.conductor.key`, `dbos.conductor.domain`,
+`dbos.conductor.metadata-only-mode` (1.3+), `dbos.executor-id`, `dbos.enable-patching`, `dbos.listen-queues`,
+`dbos.scheduler-polling-interval` (at least 1ms since 1.3). Setting `dbos.conductor.key` requires
+`dev.dbos:transact-enterprise` at the same version as the starter (1.3+); launch fails without it.
 
 To adjust config programmatically without replacing it, declare a `DBOSConfigCustomizer` bean:
 
@@ -105,9 +109,15 @@ public DBOSConfigCustomizer myCustomizer() {
 }
 ```
 
-Settings with no `dbos.*` property yet — notably `withNotificationCoalesceInterval` and
-`withDatabasePollingConcurrency` (see [lifecycle-config.md](lifecycle-config.md)) — are set the same way, through a
-customizer.
+Settings with no `dbos.*` property yet — notably `withNotificationCoalesceInterval`,
+`withDatabasePollingConcurrency` and `withSystemDatabaseIdleTransactionTimeout` (see
+[lifecycle-config.md](lifecycle-config.md)) — are set the same way, through a customizer.
+
+Without `dbos.datasource.url`, the starter hands DBOS the application's `DataSource` bean (`withDataSource`), so DBOS
+creates no pool and its 1-minute idle-in-transaction timeout (1.3+) is not applied. To keep a stalled session from
+holding a workflow's row lock, set `idle_in_transaction_session_timeout` on that pool yourself, e.g.
+`spring.datasource.hikari.connection-init-sql=SET idle_in_transaction_session_timeout = '1min'` (this also bounds the
+application's own transactions on that pool).
 
 Requirements and behavior:
 

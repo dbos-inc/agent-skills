@@ -61,7 +61,9 @@ dbos.registerQueue("api-queue",
 A limit enforced at a narrower scope may never exceed one enforced at a wider scope. Limits are compared only when
 both are set. Registering or updating a queue fails if:
 
-- any concurrency limit, rate-limit max or rate-limit period is zero or negative
+- `concurrency` or `workerConcurrency` is negative (0 pauses the queue, 1.3+), or `partitionConcurrency`,
+  `partitionWorkerConcurrency` or a rate-limit max is zero or negative, or a rate-limit period is under 1ms
+- the deprecated `partitionQueue` flag is `true` together with any per-partition limit (1.3+)
 - `partitionConcurrency` exceeds `concurrency`
 - `partitionWorkerConcurrency` exceeds `partitionConcurrency`, `workerConcurrency` or `concurrency`
 - `workerConcurrency` exceeds `concurrency`
@@ -72,7 +74,8 @@ both are set. Registering or updating a queue fails if:
   launch. In-memory `registerQueue(Queue)` rejects them, because an in-memory queue is never written and its limits
   could not be shared with other processes
 - A partition key is required when enqueueing to a partitioned queue, and rejected on a non-partitioned queue
-- Partition keys and deduplication IDs cannot be used together
+- A deduplication ID used with a partition key (1.3+) is deduplicated across the whole queue, not per partition;
+  include the partition key in the ID for per-partition deduplication
 - With many partition keys, prefer `partitionConcurrency` 1 and no queue-wide concurrency, rate limit or partition
   rate limit (worker limits are fine); since 1.2 that shape dequeues fastest
 - Partitioning an existing queue strands whatever is already enqueued on it: those rows have no partition key, and
@@ -83,13 +86,12 @@ both are set. Registering or updating a queue fails if:
 
 `andPartitionQueue(true)` is deprecated for removal since 1.1. Used alone, it enforces the *queue-wide* limits per
 partition — `withConcurrency(1).andPartitionQueue(true)` means one per key, not one per queue. Combined with any
-per-partition option at registration it is accepted but does nothing: the queue is partitioned by its per-partition
-limits and `concurrency` goes back to meaning queue-wide, so
-`withConcurrency(5).withPartitionConcurrency(2).andPartitionQueue(true)` runs at most five tasks across the whole queue,
-not five per key. An `updateQueue` that sets the flag on a queue partitioned by its limits throws. Do not mix them. A
-queue registered with the flag alone has its limits frozen: `updateQueue` throws `IllegalArgumentException` for any
-limit change, queue-wide or per-partition (only `pollingInterval` can still change), because the two modes disagree
-about what `concurrency` means. Re-register the queue with per-partition limits instead.
+per-partition option, registration and update throw `IllegalArgumentException` since 1.3 ("partitionQueue is
+deprecated in favor of the partition limits; set only one of them"); 1.2 accepted the flag and ignored it. Do not
+mix them. A queue registered with the flag alone has its limits frozen: `updateQueue` throws
+`IllegalArgumentException` for any limit change, queue-wide or per-partition (only `pollingInterval` can still
+change), because the two modes disagree about what `concurrency` means. Re-register the queue with per-partition
+limits instead.
 
 ```java
 // Deprecated: concurrency is enforced per key
