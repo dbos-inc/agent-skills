@@ -110,8 +110,14 @@ public DBOSConfigCustomizer myCustomizer() {
 ```
 
 Settings with no `dbos.*` property yet — notably `withNotificationCoalesceInterval`,
-`withDatabasePollingConcurrency` and `withSystemDatabaseIdleTransactionTimeout` (see [lifecycle-config.md](lifecycle-config.md)) — are set the same way, through a
-customizer.
+`withDatabasePollingConcurrency` and `withSystemDatabaseIdleTransactionTimeout` (see
+[lifecycle-config.md](lifecycle-config.md)) — are set the same way, through a customizer.
+
+Without `dbos.datasource.url`, the starter hands DBOS the application's `DataSource` bean (`withDataSource`), so DBOS
+creates no pool and its 1-minute idle-in-transaction timeout (1.3+) is not applied. To keep a stalled session from
+holding a workflow's row lock, set `idle_in_transaction_session_timeout` on that pool yourself, e.g.
+`spring.datasource.hikari.connection-init-sql=SET idle_in_transaction_session_timeout = '1min'` (this also bounds the
+application's own transactions on that pool).
 
 Requirements and behavior:
 

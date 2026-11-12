@@ -25,6 +25,9 @@ try {
 **Correct (resume or fork the existing execution):**
 
 ```java
+import dev.dbos.transact.workflow.ForkOptions;
+import dev.dbos.transact.workflow.RewindOptions;
+
 // Resume a cancelled or stuck workflow from its last completed step. It is re-enqueued
 // on the DBOS internal queue (no flow control), so it starts as soon as it is dequeued
 WorkflowHandle<String, Exception> handle = dbos.resumeWorkflow(workflowId);
@@ -34,8 +37,6 @@ dbos.resumeWorkflow(workflowId, "recovery-queue");
 
 // Fork: create a NEW workflow that replays checkpoints before startStep,
 // then re-executes from startStep onward with fixed code
-import dev.dbos.transact.workflow.ForkOptions;
-
 var forked = dbos.forkWorkflow(workflowId, 2,
     new ForkOptions()
         .withApplicationVersion("2.0.0")   // run on the new code version
@@ -50,8 +51,6 @@ dbos.cancelWorkflows(List.of("wf-1", "wf-2"));
 dbos.deleteWorkflow(workflowId, true);       // also delete children
 
 // Rewind (1.3+): re-run a FINISHED workflow in place, under the SAME ID, from step 3
-import dev.dbos.transact.workflow.RewindOptions;
-
 dbos.rewindWorkflow(workflowId, 3);
 dbos.rewindWorkflow(workflowId, 0,           // 0 re-runs the whole workflow
     new RewindOptions().withApplicationVersion("2.0.0").withQueue("recovery-queue"));
@@ -106,7 +105,9 @@ Notes:
   From `startStep` on, rewind discards recorded steps and the output, rolls events back to their value before
   `startStep`, deletes messages the discarded steps consumed (and unconsumed ones), and reopens closed streams.
   `DBOS.rewindWorkflow` also deletes step-factory checkpoints past the cut; `DBOSClient.rewindWorkflow` can't, so
-  those transactional steps replay their recorded results. Called from a workflow, a rewind is a step
+  those transactional steps replay their recorded results. Called from a workflow, a rewind is a step. Child
+  workflows are left alone and keep their IDs, so the replay gets the existing child back; rewind a child separately
+  to re-run it
 - Resuming a workflow whose code changed incompatibly will fail — fork onto a new application version instead
 - The same operations are available from outside the application through `DBOSClient`
   ([client-setup.md](client-setup.md))

@@ -88,10 +88,10 @@ both are set. Registering or updating a queue fails if:
 partition — `withConcurrency(1).andPartitionQueue(true)` means one per key, not one per queue. Combined with any
 per-partition option, registration and update throw `IllegalArgumentException` since 1.3 ("partitionQueue is
 deprecated in favor of the partition limits; set only one of them"); 1.2 accepted the flag and ignored it. Do not
-mix them. A
-queue registered with the flag alone has its limits frozen: `updateQueue` throws `IllegalArgumentException` for any
-limit change, queue-wide or per-partition (only `pollingInterval` can still change), because the two modes disagree
-about what `concurrency` means. Re-register the queue with per-partition limits instead.
+mix them. A queue registered with the flag alone has its limits frozen: `updateQueue` throws
+`IllegalArgumentException` for any limit change, queue-wide or per-partition (only `pollingInterval` can still
+change), because the two modes disagree about what `concurrency` means. Re-register the queue with per-partition
+limits instead.
 
 ```java
 // Deprecated: concurrency is enforced per key

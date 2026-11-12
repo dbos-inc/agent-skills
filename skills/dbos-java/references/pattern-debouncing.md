@@ -49,8 +49,10 @@ Behavior and configuration:
   the debouncer starts, counted from when it is dequeued. It takes precedence over a timeout set with
   `WorkflowOptions` around the `debounce` call, which still applies when `withTimeout` is not set. The debounced
   workflow never inherits the calling workflow's timeout or deadline
-- Do not point `withQueue` at a partitioned queue: a debounced workflow has no partition key, and partitioned queues
-  reject deduplication IDs
+- Do not point `withQueue` at a partitioned queue: the debouncer enqueues the workflow without a partition key, which
+  a partitioned queue refuses
+- Do not call `debounce` inside a `WorkflowOptions` block with `WorkflowIdReusePolicy.REJECT`: it throws
+  `IllegalArgumentException`, because the debouncer decides how its workflow starts
 - `withPriority` requires a queue: `debounce()` throws `IllegalArgumentException` if a priority is set without
   `withQueue`. A negative priority, or a zero or negative `withTimeout`, throws `IllegalArgumentException` from the
   setter itself

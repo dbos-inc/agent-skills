@@ -90,9 +90,10 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
 - `withAppVersion(String)`: code version for this application — set `"0.1.0"` in new applications
 - `withMigrate(boolean)`: apply system database migrations on launch (default `true`). With `false`, launch only
   checks that the schema has every migration this release defines (125 for 1.3; a schema migrated further by a newer
-  release is accepted) and throws `IllegalStateException` if it is missing or too old; migrate out-of-band with `dbosctl sysdb migrate` (`--app-role` grants the application's role
-  access, `--print-migrations all|N` and `--print-user-role` print the SQL instead of running it,
-  `--no-listen-notify` omits the notification triggers). There is no Java `dbos` CLI
+  release is accepted) and throws `IllegalStateException` if it is missing or too old; migrate out-of-band with
+  `dbosctl sysdb migrate` (`--app-role` grants the application's role access, `--print-migrations all|N` and
+  `--print-user-role` print the SQL instead of running it, `--no-listen-notify` omits the notification triggers).
+  There is no Java `dbos` CLI
 - `withConductorKey(String)` / `withConductorDomain(String)`: connect to DBOS Conductor. Since 1.3 this requires the
   `dev.dbos:transact-enterprise` artifact on the class path, at exactly the same version as `dev.dbos:transact`
   (DBOS loads it through `ServiceLoader`; no code change). Without it, `launch()` throws `IllegalStateException`
@@ -146,6 +147,19 @@ Upgrading to 1.3: it migrates the system database to version 125. With `withMigr
 users add `dev.dbos:transact-enterprise` (above). A schedule without `cronTimezone` now fires in UTC rather than the
 JVM's zone; set `withCronTimezone` to keep a local zone. Transactional step factories must be created before
 `launch()` (1.3 throws `IllegalStateException` otherwise).
+
+Mixing 1.2 and 1.3 executors during a rolling upgrade:
+
+- The computed application version includes the DBOS version, so unless `withAppVersion` pins it, 1.3 executors
+  don't recover workflows 1.2 left `PENDING` or dequeue ones 1.2 enqueued (they keep the old version). Pin the
+  version across the upgrade, or resume or fork that work afterwards
+- 1.2 doesn't fence writes on the owning execution, so a 1.2 executor can still write a step for a stale run; the
+  1.3 owner then fails the workflow with `DBOSStepNondeterminismException`
+- On hosts not in UTC, a schedule without `cronTimezone` also gets new tick workflow IDs (1.2 built them in the host's
+  zone, 1.3 in UTC), even if its firing times don't move. While 1.2 and 1.3 run together every tick runs twice, and a
+  1.3 backfill over ticks 1.2 fired runs them again. On the first start after the upgrade, automatic backfill reads
+  the schedule in UTC from a `lastFiredAt` recorded in the host's zone and may enqueue a tick that was never due. For
+  such apps, don't run 1.2 and 1.3 together and don't backfill across the upgrade
 
 Lifecycle rules:
 

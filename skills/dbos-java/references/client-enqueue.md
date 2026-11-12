@@ -61,6 +61,8 @@ dequeues a workflow enqueued without a class name cannot run it: it fails with
 them. Options:
 
 - `withWorkflowId(String)` — idempotency key
+- `withWorkflowIdReusePolicy(WorkflowIdReusePolicy)` (1.3+) — `REJECT` throws `DBOSWorkflowIdInUseException` when a
+  workflow with the ID already exists, instead of returning it ([pattern-idempotency.md](pattern-idempotency.md))
 - `withAppVersion(String)` — pin the application version that should process the workflow; left unset, the
   owning application's latest version dequeues it
 - `withApplicationName(String)` — the application that owns and runs the workflow (default: the client's own, or

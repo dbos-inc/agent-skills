@@ -72,4 +72,8 @@ Per-call strategies: `send`, `setEvent`, `writeStream`, and `EnqueueOptions` acc
 `DEFAULT` (the configured serializer, `java_jackson` unless the workflow is portable), `NATIVE` (always Jackson), or
 `PORTABLE` (cross-language JSON, see [advanced-interops.md](advanced-interops.md)).
 
+DBOS's own steps (such as `cancelWorkflow` or `getEvent` called from a workflow) record their errors in the native
+`java_jackson` format whatever serializer is configured, so a replay rethrows the same exception type. Only
+`getResult` keeps the configured serializer, since its error is the awaited workflow's own.
+
 Reference: [Custom Serialization](https://docs.dbos.dev/java/reference/lifecycle#custom-serialization)
