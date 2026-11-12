@@ -55,7 +55,7 @@ left behind by earlier application versions. A stuck workflow therefore consumes
 resumed.
 
 When using worker concurrency, each process must have a unique executor ID (`DBOSConfig.withExecutorId`); this is
-automatic with DBOS Conductor or Cloud.
+automatic with DBOS Conductor.
 
 Limits can be changed at runtime without redeploying, with `dbos.updateQueue(name, options)`; workers pick
 up the new configuration on their next polling iteration ([queue-management.md](queue-management.md)).

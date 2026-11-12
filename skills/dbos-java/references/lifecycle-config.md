@@ -13,8 +13,8 @@ registered before that point.
 
 At launch, the process re-enqueues its own `PENDING` workflows from the current application version rather than
 running them in-process: each goes back onto its own queue (or the internal queue if it was started directly), and
-whichever process dequeues it runs it. The launch-time sweep is skipped when a Conductor key is configured or on DBOS
-Cloud, where Conductor decides which executors are gone and issues recovery itself. A workflow's
+whichever process dequeues it runs it. The launch-time sweep is skipped when a Conductor key is configured, since
+Conductor then decides which executors are gone and issues recovery itself. A workflow's
 `maxRecoveryAttempts` budget is counted at each dequeue, so a recovered workflow spends an attempt when it is
 dispatched from the queue, not when it is re-enqueued.
 
@@ -82,8 +82,8 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
 - `withAppName(String)`: the application name (required; also the argument to `defaults`/`defaultsFromEnv`).
   Applications sharing a system database must each have a distinct name — it identifies which application owns each
   workflow, queue, schedule, and version ([advanced-shared-database.md](advanced-shared-database.md)). DBOS Conductor
-  accepts only 3-256 lowercase letters, digits, `-` and `_`: any other name fails launch when a Conductor key is set
-  or on DBOS Cloud, and only logs a warning otherwise
+  accepts only 3-256 lowercase letters, digits, `-` and `_`: any other name fails launch when a Conductor key is set,
+  and only logs a warning otherwise
 - `withDatabaseUrl(String)` / `withDbUser(String)` / `withDbPassword(String)`: system database connection
 - `withDataSource(DataSource)`: use an existing pooled `DataSource` instead of URL/credentials
 - `withDatabaseSchema(String)`: schema for DBOS system tables (default `dbos`)
