@@ -98,7 +98,10 @@ Use `DBOSConfig.defaults(appName)` plus `with` methods to configure explicitly:
   `dev.dbos:transact-enterprise` artifact on the class path, at exactly the same version as `dev.dbos:transact`
   (DBOS loads it through `ServiceLoader`; no code change). Without it, `launch()` throws `IllegalStateException`
   ("Connecting to DBOS Conductor requires dev.dbos:transact-enterprise on the class path..."); with a different
-  version, launch fails naming both. Do not add it to applications that don't use Conductor
+  version, launch fails naming both. Do not add it to applications that don't use Conductor. Since 1.3 the client
+  also verifies Conductor's TLS certificate against the JVM's trust store: for a self-hosted Conductor behind a
+  self-signed or private-CA certificate, pass a trust store with `-Djavax.net.ssl.trustStore=...` (and
+  `-Djavax.net.ssl.trustStorePassword=...`), or the application keeps retrying and never connects
 - `withConductorExecutorMetadata(Map<String, Object>)`: JSON-serializable metadata identifying this executor in the
   Conductor dashboard (region, instance type, ...)
 - `withConductorMetadataOnlyMode(boolean)` (1.3+): send Conductor only workflow metadata, never inputs, outputs,

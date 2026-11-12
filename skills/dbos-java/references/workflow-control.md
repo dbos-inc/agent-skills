@@ -104,8 +104,10 @@ Notes:
   `CANCELLED`, `MAX_RECOVERY_ATTEMPTS_EXCEEDED`); an active one throws `IllegalStateException`, so cancel it first.
   From `startStep` on, rewind discards recorded steps and the output, rolls events back to their value before
   `startStep`, deletes messages the discarded steps consumed (and unconsumed ones), and reopens closed streams.
-  `DBOS.rewindWorkflow` also deletes step-factory checkpoints past the cut; `DBOSClient.rewindWorkflow` can't, so
-  those transactional steps replay their recorded results. Called from a workflow, a rewind is a step. Child
+  `DBOS.rewindWorkflow` also deletes step-factory checkpoints past the cut, so those transactions run again.
+  `DBOSClient.rewindWorkflow` can't reach the application database and leaves any it finds: a workflow that finished
+  on 1.3 has none left (they're deleted when it finishes), so its transactions run again either way, while one that
+  was cancelled, or finished before the 1.3 upgrade, still has them, and those steps replay their recorded results. Called from a workflow, a rewind is a step. Child
   workflows are left alone and keep their IDs, so the replay gets the existing child back; rewind a child separately
   to re-run it
 - Resuming a workflow whose code changed incompatibly will fail — fork onto a new application version instead
