@@ -151,8 +151,11 @@ JVM's zone; set `withCronTimezone` to keep a local zone. Transactional step fact
 Mixing 1.2 and 1.3 executors during a rolling upgrade:
 
 - The computed application version includes the DBOS version, so unless `withAppVersion` pins it, 1.3 executors
-  don't recover workflows 1.2 left `PENDING` or dequeue ones 1.2 enqueued (they keep the old version). Pin the
-  version across the upgrade, or resume or fork that work afterwards
+  don't recover workflows 1.2 left `PENDING` or dequeue ones 1.2 enqueued (they keep the old version, and resuming
+  doesn't change it). Keep 1.2's `withAppVersion` value, or set 1.3's to the version 1.2 computed, or fork that work
+  with `new ForkOptions().withApplicationVersion(...)` naming the 1.3 version
+- Don't pause a queue (`concurrency` or `workerConcurrency` 0) until every executor runs 1.3: 1.2 can't read such a
+  queue, so its queue discovery fails on every poll and it keeps dequeuing with the limits it last read
 - 1.2 doesn't fence writes on the owning execution, so a 1.2 executor can still write a step for a stale run; the
   1.3 owner then fails the workflow with `DBOSStepNondeterminismException`
 - On hosts not in UTC, a schedule without `cronTimezone` also gets new tick workflow IDs (1.2 built them in the host's
