@@ -75,7 +75,7 @@ DBOSConfig config = DBOSConfig.defaults("my-app")
     .withConductorDomain(System.getenv("DBOS_CONDUCTOR_URL"));
 ```
 
-DBOS for Rust does not support Conductor.
+DBOS for Rust does not support Conductor yet.
 
 Registering and creating the key:
 - In your self-hosted Console (http://localhost for the local trial, your Console's address in production), register the application, then generate an API key. Not at https://console.dbos.dev

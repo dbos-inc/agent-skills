@@ -110,7 +110,7 @@ config: DBOSConfig = {
 }
 ```
 
-Without `conductor_url`, the application connects to DBOS-hosted Conductor instead, where a self-hosted API key is not valid. See `references/connect-applications.md` for TypeScript, Go and Java. DBOS for Rust does not support Conductor.
+Without `conductor_url`, the application connects to DBOS-hosted Conductor instead, where a self-hosted API key is not valid. See `references/connect-applications.md` for TypeScript, Go and Java. DBOS for Rust does not support Conductor yet.
 
 ### Key Constraints
 

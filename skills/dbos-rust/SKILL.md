@@ -56,7 +56,7 @@ cargo add --dev uuid --features v4
 
 `serde` is for workflow inputs and outputs, `thiserror` for workflow error types, `tracing-subscriber` to see DBOS's logs, `futures` for joining DBOS calls (`try_join_all`), and `uuid` for fresh workflow IDs in tests.
 
-DBOS runs on Tokio by default; smol and async-global-executor are Cargo features (see `references/lifecycle-runtimes.md`). DBOS for Rust does not support DBOS Conductor or DBOS Cloud.
+DBOS runs on Tokio by default; smol and async-global-executor are Cargo features (see `references/lifecycle-runtimes.md`). DBOS for Rust does not support DBOS Conductor yet, and does not support DBOS Cloud.
 
 ### DBOS Configuration and Launch
 
