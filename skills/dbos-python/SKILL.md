@@ -81,6 +81,24 @@ def my_workflow():
     return result
 ```
 
+### Connecting to Conductor
+
+A DBOS application runs without Conductor. Add it only when the user asks for it, or for what it provides: workflow recovery across processes, observability, and managing workflows from a console. Conductor is either DBOS-hosted (https://console.dbos.dev) or self-hosted on the user's own infrastructure. The choice is the user's: if they haven't made it, ask, describing both neutrally (see `references/lifecycle-config.md`), and don't recommend either. Users who don't want workflow data to leave their infrastructure often self-host.
+
+Write the configuration so the same code works with either, leaving the choice to the environment:
+
+```python
+config: DBOSConfig = {
+    "name": "my-app",
+    "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
+    "conductor_key": os.environ.get("DBOS_CONDUCTOR_KEY"),  # unset: no Conductor
+    "conductor_url": os.environ.get("DBOS_CONDUCTOR_URL"),  # unset: DBOS-hosted Conductor
+}
+```
+
+- DBOS-hosted: register the app and create an API key at https://console.dbos.dev, then set `DBOS_CONDUCTOR_KEY`
+- Self-hosted: deploy Conductor with the `dbos-conductor-self-hosting` skill, register the app and create an API key in that Conductor's console, then set `DBOS_CONDUCTOR_KEY` and `DBOS_CONDUCTOR_URL` (its WebSocket URL, such as `ws://localhost:8090/`)
+
 ### Key Constraints
 
 - Do NOT call `DBOS.start_workflow` or `DBOS.recv` from a step

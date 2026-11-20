@@ -125,6 +125,24 @@ func myWorkflow(ctx dbos.Context, input string) (string, error) {
 
 Database writes that must happen exactly once belong in a datasource transaction (`dbos.RunAsTransaction`), not a step (see `references/step-transactions.md`).
 
+### Connecting to Conductor
+
+A DBOS application runs without Conductor. Add it only when the user asks for it, or for what it provides: workflow recovery across processes, observability, and managing workflows from a console. Conductor is either DBOS-hosted (https://console.dbos.dev) or self-hosted on the user's own infrastructure. The choice is the user's: if they haven't made it, ask, describing both neutrally (see `references/lifecycle-config.md`), and don't recommend either. Users who don't want workflow data to leave their infrastructure often self-host.
+
+Write the configuration so the same code works with either, leaving the choice to the environment (with the enterprise import above):
+
+```go
+ctx, err := dbos.NewContext(context.Background(), dbos.Config{
+	AppName:         "my-app",
+	DatabaseURL:     os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
+	ConductorAPIKey: os.Getenv("DBOS_CONDUCTOR_KEY"), // empty: no Conductor
+	ConductorURL:    os.Getenv("DBOS_CONDUCTOR_URL"), // empty: DBOS-hosted Conductor
+})
+```
+
+- DBOS-hosted: register the app and create an API key at https://console.dbos.dev, then set `DBOS_CONDUCTOR_KEY`
+- Self-hosted: deploy Conductor with the `dbos-conductor-self-hosting` skill, register the app and create an API key in that Conductor's console, then set `DBOS_CONDUCTOR_KEY` and `DBOS_CONDUCTOR_URL` (its WebSocket URL, such as `ws://localhost:8090/`)
+
 ### Key Constraints
 
 - Do NOT start or enqueue workflows from within steps

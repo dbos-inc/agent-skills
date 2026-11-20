@@ -88,7 +88,7 @@ All fields except `name` are optional:
 | **observability_query_timeout_sec** | Statement timeout for `list_workflows`/`list_workflow_steps`-style queries on Postgres (raises `DBOSQueryTimeoutError`); <= 0 disables | `30` |
 | **sys_db_idle_transaction_timeout_sec** | Postgres `idle_in_transaction_session_timeout` set on the system DB connections DBOS creates | `60` |
 | **conductor_key** | API key for DBOS Conductor. Requires `pip install "dbos[enterprise]"` (see below) | `None` |
-| **conductor_url** | Conductor service URL (only for self-hosted) | `None` |
+| **conductor_url** | WebSocket URL of a self-hosted Conductor; unset for DBOS-hosted Conductor | `None` |
 | **conductor_executor_metadata** | JSON dict of metadata sent to Conductor (region, instance type, etc.) | `None` |
 | **conductor_metadata_only_mode** | Send only workflow metadata (never inputs/outputs/events/etc.) to Conductor | `False` |
 | **transact_enterprise_key** | Key entitling the app to DBOS Transact Enterprise features without Conductor. Development only; in production, connect to Conductor (`conductor_key` stands in for it) | `None` |
@@ -112,11 +112,23 @@ The `application_database_url` and `database_url` fields were removed in 3.0.
 
 ### Connecting to Conductor
 
-Connecting to DBOS Conductor requires the `dbos-enterprise` package. Without it, setting `conductor_key` (or deploying to DBOS Cloud, which always connects to Conductor) raises `DBOSInitializationError` at initialization:
+Conductor is optional, and runs in one of two places. Which one is the user's choice: if they haven't said, ask, presenting both as below, and don't recommend either.
+
+| | DBOS-hosted | Self-hosted |
+|---|---|---|
+| Who runs it | DBOS, at https://console.dbos.dev | The user, on their own infrastructure (see the `dbos-conductor-self-hosting` skill) |
+| Setup | Register the app and create an API key in the DBOS Console | Deploy Conductor, then register the app and create an API key in its console |
+| Configuration | `conductor_key` | `conductor_key` and `conductor_url` |
+| Workflow data | Workflow metadata goes to DBOS. Workflow data such as inputs and outputs is also sent, for display in the console, unless metadata-only mode is on (`conductor_metadata_only_mode`; DBOS Teams plan or above). Conductor never stores application data or connects to the app's database | Stays on the user's infrastructure. Conductor contacts DBOS only to validate its license at startup, and not at all with an offline license key (for air-gapped environments; the user requests one from contact@dbos.dev) |
+| License | Covered by the user's DBOS plan | A self-serve trial key to evaluate; for production, a license key the user requests from contact@dbos.dev |
+
+Either way, connecting requires the `dbos-enterprise` package. Without it, setting `conductor_key` (or deploying to DBOS Cloud, which always connects to Conductor) raises `DBOSInitializationError` at initialization:
 
 ```shell
 pip install "dbos[enterprise]"   # pins dbos-enterprise to the same version as dbos
 ```
+
+Read both settings from the environment so the same code serves either choice. With `DBOS_CONDUCTOR_URL` unset (or empty), the app connects to DBOS-hosted Conductor; with `DBOS_CONDUCTOR_KEY` unset (or empty), it doesn't connect at all:
 
 ```python
 config: DBOSConfig = {
@@ -124,8 +136,11 @@ config: DBOSConfig = {
     "application_version": "0.1.0",
     "system_database_url": os.environ.get("DBOS_SYSTEM_DATABASE_URL"),
     "conductor_key": os.environ.get("DBOS_CONDUCTOR_KEY"),
+    "conductor_url": os.environ.get("DBOS_CONDUCTOR_URL"),
 }
 ```
+
+For a self-hosted Conductor, `DBOS_CONDUCTOR_URL` is its WebSocket URL: `ws://localhost:8090/` for a local trial, or the `wss://` URL of its TLS proxy in production. The API key comes from that Conductor's console, not https://console.dbos.dev.
 
 The same package provides the DBOS Transact Enterprise feature auto-upgrade (`auto_upgrade`, see [advanced-patching](advanced-patching.md)). It also requires a key whose organization is entitled to it, which DBOS checks with Conductor at initialization: the `conductor_key` in production or, in development without Conductor, `transact_enterprise_key` (a Conductor API key from the DBOS Console). A missing package, key, or entitlement raises `DBOSInitializationError`.
 

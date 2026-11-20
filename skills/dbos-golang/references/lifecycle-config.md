@@ -64,7 +64,7 @@ Config fields:
 - `DatabaseSchema`: Schema name (default: `"dbos"`)
 - `Logger`: Custom `*slog.Logger` (defaults to stdout)
 - `ConductorAPIKey`: DBOS Conductor API key. Setting it requires importing `go.dbos.dev/dbos-enterprise-go` (see [Connecting to Conductor](#connecting-to-conductor))
-- `ConductorURL`: DBOS Conductor service URL; only set it when self-hosting Conductor
+- `ConductorURL`: WebSocket URL of a self-hosted Conductor; leave empty for DBOS-hosted Conductor (see [Connecting to Conductor](#connecting-to-conductor))
 - `ConductorExecutorMetadata`: `map[string]any` of metadata to identify this executor in the Conductor dashboard (must be JSON-serializable)
 - `ConductorMetadataOnlyMode`: Send only workflow metadata to Conductor, never workflow data (inputs, outputs, errors, step outputs, events, messages, streams, or schedule context), whatever the console setting (default: `false`)
 - `TransactEnterpriseKey`: DBOS key that entitles the application to Transact Enterprise features (auto-upgrade) without connecting to Conductor. For development only: in production, connect to Conductor, whose `ConductorAPIKey` stands in for it
@@ -85,7 +85,19 @@ Config fields:
 
 ### Connecting to Conductor
 
-Connecting to DBOS Conductor (setting `ConductorAPIKey`, or running in DBOS Cloud) requires importing DBOS Enterprise for Go, `go.dbos.dev/dbos-enterprise-go`, which must be at the same minor version as the core module. Add it with `go get go.dbos.dev/dbos-enterprise-go@v1.8.0` and import it once, anywhere in the program:
+Conductor is optional, and runs in one of two places. Which one is the user's choice: if they haven't said, ask, presenting both as below, and don't recommend either.
+
+| | DBOS-hosted | Self-hosted |
+|---|---|---|
+| Who runs it | DBOS, at https://console.dbos.dev | The user, on their own infrastructure (see the `dbos-conductor-self-hosting` skill) |
+| Setup | Register the app and create an API key in the DBOS Console | Deploy Conductor, then register the app and create an API key in its console |
+| Configuration | `ConductorAPIKey` | `ConductorAPIKey` and `ConductorURL` |
+| Workflow data | Workflow metadata goes to DBOS. Workflow data such as inputs and outputs is also sent, for display in the console, unless metadata-only mode is on (`ConductorMetadataOnlyMode`; DBOS Teams plan or above). Conductor never stores application data or connects to the app's database | Stays on the user's infrastructure. Conductor contacts DBOS only to validate its license at startup, and not at all with an offline license key (for air-gapped environments; the user requests one from contact@dbos.dev) |
+| License | Covered by the user's DBOS plan | A self-serve trial key to evaluate; for production, a license key the user requests from contact@dbos.dev |
+
+Either way, connecting (setting `ConductorAPIKey`, or running in DBOS Cloud) requires importing DBOS Enterprise for Go, `go.dbos.dev/dbos-enterprise-go`, which must be at the same minor version as the core module. Add it with `go get go.dbos.dev/dbos-enterprise-go@v1.8.0` and import it once, anywhere in the program.
+
+Read both settings from the environment so the same code serves either choice. With `DBOS_CONDUCTOR_URL` empty, the app connects to DBOS-hosted Conductor; with `DBOS_CONDUCTOR_KEY` empty, it doesn't connect at all:
 
 ```go
 import (
@@ -98,9 +110,12 @@ ctx, err := dbos.NewContext(context.Background(), dbos.Config{
 	ApplicationVersion: "0.1.0",
 	DatabaseURL:        os.Getenv("DBOS_SYSTEM_DATABASE_URL"),
 	ConductorAPIKey:    os.Getenv("DBOS_CONDUCTOR_KEY"),
+	ConductorURL:       os.Getenv("DBOS_CONDUCTOR_URL"),
 	// ConductorMetadataOnlyMode: true, // never send workflow data to Conductor
 })
 ```
+
+For a self-hosted Conductor, `DBOS_CONDUCTOR_URL` is its WebSocket URL: `ws://localhost:8090/` for a local trial, or the `wss://` URL of its TLS proxy in production. The API key comes from that Conductor's console, not https://console.dbos.dev.
 
 Without the import, `NewContext` fails with an initialization error whenever `ConductorAPIKey` is set or the application runs in DBOS Cloud. Conductor configuration is otherwise unchanged; applications that neither connect to Conductor nor auto-upgrade workflows need no import. The same import provides auto-upgrade, which also requires a key whose organization is entitled to it (`ConductorAPIKey`, or `TransactEnterpriseKey` in development); see [advanced-patching.md](advanced-patching.md#auto-upgrade).
 
