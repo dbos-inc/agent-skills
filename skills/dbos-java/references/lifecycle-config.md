@@ -142,7 +142,7 @@ Session-mode poolers keep a 1:1 connection mapping and work with `LISTEN`/`NOTIF
 
 ### Connecting to Conductor
 
-Conductor is optional, and runs in one of two places. Which one is the user's choice: if they haven't said, ask,
+Conductor runs in one of two places. Which one is the user's choice: if they haven't said, ask,
 presenting both as below, and don't recommend either.
 
 | | DBOS-hosted | Self-hosted |

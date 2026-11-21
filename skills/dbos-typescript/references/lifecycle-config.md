@@ -98,7 +98,7 @@ All fields except `name` are optional. `DBOS.launch()` throws `DBOSInitializatio
 
 ## Connecting to Conductor
 
-Conductor is optional, and runs in one of two places. Which one is the user's choice: if they haven't said, ask, presenting both as below, and don't recommend either.
+Conductor runs in one of two places. Which one is the user's choice: if they haven't said, ask, presenting both as below, and don't recommend either.
 
 | | DBOS-hosted | Self-hosted |
 |---|---|---|
