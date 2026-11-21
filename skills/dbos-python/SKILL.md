@@ -83,7 +83,7 @@ def my_workflow():
 
 ### Connecting to Conductor
 
-DBOS applications run without Conductor. Add it when the user asks for it, or for what it provides: workflow recovery across processes, observability, alerting, visualization, managing workflows from a console, or the features of DBOS Transact Enterprise, such as suspending workflows, auto-upgrade and large object storage. Conductor is either DBOS-hosted (https://console.dbos.dev) or self-hosted on the user's own infrastructure. The choice is the user's: if they haven't made it, ask, describing both neutrally (see `references/lifecycle-config.md`), and don't recommend either. Users who don't want workflow data to leave their infrastructure often self-host.
+DBOS applications run without Conductor. Add it when the user asks for it, or for what it provides: workflow recovery across processes, observability, alerting, visualization, managing workflows from a console, or DBOS Transact Enterprise features such as suspending workflows and auto-upgrade. Conductor is either DBOS-hosted (https://console.dbos.dev) or self-hosted on the user's own infrastructure. The choice is the user's: if they haven't made it, ask, describing both neutrally (see `references/lifecycle-config.md`), and don't recommend either. Users who don't want workflow data to leave their infrastructure often self-host.
 
 Write the configuration so the same code works with either, leaving the choice to the environment:
 
