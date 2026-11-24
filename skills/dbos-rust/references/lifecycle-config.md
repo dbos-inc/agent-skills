@@ -62,4 +62,4 @@ When creating a new application, set `app_version` to `"0.1.0"` or `env!("CARGO_
 
 Other `Config` fields: `executor_id` (default `DBOS__VMID`, then `"local"`), `max_connections` (10), `schema` (`"dbos"`), `migrate` (true; set false when a deployment step migrates the database), `serializer`, `use_listen_notify` (true), `listen_queues` (`None`: all queues), `polling_concurrency`, `outcome_poll_interval`, `notification_coalesce`, `idle_transaction_timeout` and `scheduler_polling_interval`.
 
-DBOS for Rust does not support DBOS Conductor or DBOS Cloud.
+DBOS for Rust does not support DBOS Conductor yet, and does not support DBOS Cloud.

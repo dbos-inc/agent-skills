@@ -136,6 +136,32 @@ public String myWorkflow(String url) throws Exception {
 public String parse(String body) { /* ... */ }
 ```
 
+### Connecting to Conductor
+
+DBOS applications run without Conductor. Add it when the user asks for it, or for what it provides: workflow recovery
+across processes, observability, alerting, visualization, managing workflows from a console, or DBOS Transact
+Enterprise features such as suspending workflows and auto-upgrade. Conductor is either DBOS-hosted
+(https://console.dbos.dev) or self-hosted on the user's own infrastructure. The choice is the user's: if they haven't
+made it, ask, describing both neutrally (see `references/lifecycle-config.md`), and don't recommend either. Users who
+don't want workflow data to leave their infrastructure often self-host.
+
+Write the configuration so the same code works with either, leaving the choice to the environment (with
+`dev.dbos:transact-enterprise` added as above):
+
+```java
+DBOSConfig config = DBOSConfig.defaults("my-app")
+    .withDatabaseUrl(System.getenv("DBOS_SYSTEM_JDBC_URL"))
+    .withConductorKey(System.getenv("DBOS_CONDUCTOR_KEY"))      // unset: no Conductor
+    .withConductorDomain(System.getenv("DBOS_CONDUCTOR_URL"));  // unset: DBOS-hosted Conductor
+```
+
+In Spring Boot, set `dbos.conductor.key: ${DBOS_CONDUCTOR_KEY:}` and `dbos.conductor.domain: ${DBOS_CONDUCTOR_URL:}`.
+
+- DBOS-hosted: register the app and create an API key at https://console.dbos.dev, then set `DBOS_CONDUCTOR_KEY`
+- Self-hosted: deploy Conductor with the `dbos-conductor-self-hosting` skill, register the app and create an API key
+  in that Conductor's console, then set `DBOS_CONDUCTOR_KEY` and `DBOS_CONDUCTOR_URL` (its WebSocket URL, such as
+  `ws://localhost:8090`)
+
 ### Key Constraints
 
 - Workflows and `@Step` methods are ONLY durable when invoked through the proxy returned by `registerProxy`
